@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.my_creation.MyCreationActivity">
+
+
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+            android:scaleType="fitXY"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/frmList"
+        android:src="@drawable/bg_up"/>
+
+    <!-- layoutActionBar -->
+    <FrameLayout
+        android:id="@+id/layoutActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include
+            android:id="@+id/actionBar"
+            layout="@layout/layout_actionbar" />
+    </FrameLayout>
+
+
+
+
+
+    <!--    frmList-->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/frmList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        app:layout_goneMarginTop="0dp"
+        tools:background="@drawable/bg_down"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cvType" />
+    <!--    cvType-->
+    <FrameLayout
+        android:id="@+id/cvType"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        android:layout_marginTop="10dp"
+        android:layout_marginHorizontal="16dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutActionBar"
+        app:strokeColor="@color/transparent"
+        app:strokeWidth="0dp"
+        android:background="@drawable/bg_cvtype_avatar"
+    app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <!--            btnMyPixel-->
+            <FrameLayout
+                android:id="@+id/btnMyPixel"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="-1.5dp"
+                android:layout_weight="1">
+
+                <!--                imvBgMyAvatar (nền trắng)-->
+                <ImageView
+                    android:id="@+id/imvBgMyAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    />
+
+                <TextView
+                    android:id="@+id/subTabMyAvatar"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:visibility="gone"
+                    android:background="@drawable/un_selected_tab_sub"
+                    />
+
+                <!--                imvFocusMyAvatar (nền khi chọn)-->
+                <ImageView
+                    android:id="@+id/imvFocusMyAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:visibility="visible" />
+
+                <!--                tvSpace-->
+                <TextView
+                    android:id="@+id/tvSpace"
+                    style="@style/single_marquee"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/chewy_regular"
+                    android:gravity="center"
+                    android:layout_marginEnd="20dp"
+                    android:text="@string/my_pony"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+            </FrameLayout>
+
+            <!--            btnMyDesign-->
+            <FrameLayout
+                android:id="@+id/btnMyDesign"
+                android:layout_width="0dp"
+                android:translationY="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginStart="-1.5dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <!--                imvBgMyDesign (nền trắng)-->
+                <ImageView
+                    android:id="@+id/imvBgMyDesign"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    />
+
+                <TextView
+                    android:id="@+id/subTabMyDesign"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:visibility="gone"
+                    android:background="#291985"
+                    />
+                <!--                imvFocusMyDesign (nền xanh khi chọn)-->
+                <ImageView
+                    android:id="@+id/imvFocusMyDesign"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:scaleX="1"
+                    android:src="@drawable/un_selected_tab_album"
+                    android:visibility="gone" />
+
+                <!--                tvMyDesign-->
+                <TextView
+                    android:id="@+id/tvMyDesign"
+                    style="@style/single_marquee"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/chewy_regular"
+                    android:gravity="center"
+                    android:text="@string/my_design"
+                    android:layout_marginStart="20dp"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="16sp" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!--    lnlBottom-->
+    <FrameLayout
+        android:id="@+id/lnlBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:paddingHorizontal="13dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <include layout="@layout/layout_bottom" />
+
+    </FrameLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
