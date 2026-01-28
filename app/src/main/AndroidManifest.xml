@@ -49,6 +49,11 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".ui.cat_emoji_maker.CatEmojiMakerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".ui.customize.CustomizeCharacterActivity"
             android:exported="false"
             android:hardwareAccelerated="true"

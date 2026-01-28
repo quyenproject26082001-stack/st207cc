@@ -222,4 +222,95 @@ object AssetHelper {
             LayerModel(image = file, isMoreColors = true, listColor = colorList[index])
         }.toCollection(ArrayList())
     }
+
+    // ========== LOAD DATA BY FOLDER (Cat/Emoji) ==========
+    fun getDataFromFolder(context: Context, folderPath: String, assetPrefix: String): ArrayList<CustomizeModel> {
+        val customList = ArrayList<CustomizeModel>()
+        val assetManager = context.assets
+
+        val characterList = assetManager.list(folderPath)
+        val sortedCharacter = MediaHelper.sortAsset(characterList)
+
+        if (sortedCharacter.isNullOrEmpty()) return customList
+
+        sortedCharacter.forEachIndexed { _, character ->
+            val layerListModelList = ArrayList<LayerListModel>()
+            val layer = assetManager.list("$folderPath/$character")
+            val allItems = MediaHelper.sortAsset(layer)?.toCollection(ArrayList()) ?: arrayListOf()
+
+            val avatarFile = allItems.find {
+                it.equals("avatar.png", ignoreCase = true) ||
+                it.equals("avatar.jpg", ignoreCase = true) ||
+                it.equals("avatar.webp", ignoreCase = true)
+            }
+
+            val sortedLayer = allItems.filter { item ->
+                val hasHyphen = item.contains("-")
+                val hasUnderscore = item.contains("_")
+                if (hasHyphen) {
+                    val parts = item.split("-")
+                    parts.size == 2 && parts[0].toIntOrNull() != null && parts[1].toIntOrNull() != null
+                } else if (hasUnderscore) {
+                    val parts = item.split("_")
+                    parts.size == 2 && parts[0].toIntOrNull() != null && parts[1].toIntOrNull() != null
+                } else false
+            }.toCollection(ArrayList())
+
+            val avatar = "$assetPrefix$character/${avatarFile ?: "avatar.png"}"
+
+            for (i in 0 until sortedLayer.size) {
+                val layerName = sortedLayer[i]
+                val position = if (layerName.contains("-")) layerName.split("-") else layerName.split("_")
+                val positionCustom = position[0].toInt() - 1
+                val positionNavigation = position[1].toInt() - 1
+
+                val folderOrImageList = assetManager.list("$folderPath/$character/${sortedLayer[i]}")
+                val folderOrImageSortedList = MediaHelper.sortAsset(folderOrImageList)?.toCollection(ArrayList()) ?: arrayListOf()
+
+                val navigationImage = "$assetPrefix$character/${sortedLayer[i]}/${folderOrImageSortedList.last()}"
+                folderOrImageSortedList.removeAt(folderOrImageSortedList.size - 1)
+
+                val layerData = if (AssetsKey.FIRST_IMAGE.any { it in folderOrImageSortedList[0] }) {
+                    getDataNoColorByFolder(assetPrefix, character, folderOrImageSortedList, sortedLayer[i])
+                } else {
+                    getDataColorByFolder(assetManager, folderPath, assetPrefix, character, folderOrImageSortedList, sortedLayer[i])
+                }
+                layerListModelList.add(LayerListModel(positionCustom, positionNavigation, navigationImage, layerData))
+            }
+            layerListModelList.sortBy { it.positionNavigation }
+            customList.add(CustomizeModel(character, avatar, layerListModelList, level = 100))
+        }
+        return customList
+    }
+
+    private fun getDataNoColorByFolder(assetPrefix: String, character: String, filesList: List<String>, folder: String): ArrayList<LayerModel> {
+        return filesList.map {
+            LayerModel(image = "$assetPrefix$character/$folder/$it", isMoreColors = false, listColor = arrayListOf())
+        }.toCollection(ArrayList())
+    }
+
+    private fun getDataColorByFolder(
+        assetManager: AssetManager, folderPath: String, assetPrefix: String,
+        character: String, folderList: List<String>, folder: String
+    ): ArrayList<LayerModel> {
+        val colorNames = folderList.map { "#$it" }
+        val fileList = folderList.map { colorFolder ->
+            assetManager.list("$folderPath/$character/$folder/$colorFolder")?.let {
+                MediaHelper.sortAsset(it)
+            }?.map { "$assetPrefix$character/$folder/$colorFolder/$it" } ?: emptyList()
+        }
+
+        val minSize = fileList.minOfOrNull { it.size } ?: 0
+        if (minSize == 0) return arrayListOf()
+
+        val colorList = Array(minSize) { index ->
+            Array(folderList.size) { folderIndex ->
+                ColorModel(color = colorNames[folderIndex], path = fileList[folderIndex][index])
+            }.toCollection(ArrayList())
+        }.toCollection(ArrayList())
+
+        return fileList.first().take(minSize).mapIndexed { index, file ->
+            LayerModel(image = file, isMoreColors = true, listColor = colorList[index])
+        }.toCollection(ArrayList())
+    }
 }

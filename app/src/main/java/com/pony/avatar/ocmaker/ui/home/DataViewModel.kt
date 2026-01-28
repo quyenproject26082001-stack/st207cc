@@ -82,6 +82,20 @@ class DataViewModel() : ViewModel() {
         }
     }
 
+    // Load data by type (Cat/Emoji)
+    fun loadDataByType(context: Context, dataType: Int) {
+        viewModelScope.launch {
+            val list = withContext(Dispatchers.IO) {
+                when (dataType) {
+                    1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
+                    2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
+                    else -> arrayListOf()
+                }
+            }
+            _allData.value = list
+        }
+    }
+
     fun getAllParts(context: Context): Flow<HandleState> = flow {
         Log.d("nbhieu", "API Calling...")
         emit(HandleState.LOADING)
