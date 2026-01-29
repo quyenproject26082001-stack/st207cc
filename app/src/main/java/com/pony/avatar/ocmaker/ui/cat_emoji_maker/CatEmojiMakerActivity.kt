@@ -13,6 +13,7 @@ import com.pony.avatar.ocmaker.core.extensions.tap
 import com.pony.avatar.ocmaker.core.utils.key.IntentKey
 import com.pony.avatar.ocmaker.databinding.ActivityCatEmojiMakerBinding
 import com.pony.avatar.ocmaker.ui.choose_character.ChooseCharacterActivity
+import com.pony.avatar.ocmaker.ui.emoji_custom.EmojiCustomActivity
 
 class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
 
@@ -32,7 +33,7 @@ class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
                 startIntentRightToLeft(ChooseCharacterActivity::class.java, IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_CAT)
             }
             btnEmojiCat.tap(800) {
-                startIntentRightToLeft(ChooseCharacterActivity::class.java, IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_EMOJI)
+                startIntentRightToLeft(EmojiCustomActivity::class.java)
             }
         }
     }

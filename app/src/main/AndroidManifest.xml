@@ -54,6 +54,11 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".ui.emoji_custom.EmojiCustomActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".ui.customize.CustomizeCharacterActivity"
             android:exported="false"
             android:hardwareAccelerated="true"

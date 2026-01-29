@@ -28,7 +28,7 @@
     </FrameLayout>
 
     <!-- Layout Image Layer -->
-    <FrameLayout
+    <com.pony.avatar.ocmaker.core.custom.drawview.DrawView
         android:id="@+id/layoutCustomLayer"
         android:layout_width="0dp"
         android:layout_height="0dp"
