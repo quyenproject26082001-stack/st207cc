@@ -32,6 +32,8 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
     private val dataViewModel: DataViewModel by viewModels()
     private val chooseCharacterAdapter by lazy { ChooseCharacterAdapter() }
     private var hasCheckedInternet = false  // Flag to check internet only once
+    private var currentDataType = IntentKey.DATA_TYPE_DEFAULT
+
     override fun setViewBinding(): ActivityChooseCharacterBinding {
         return ActivityChooseCharacterBinding.inflate(LayoutInflater.from(this))
     }
@@ -43,7 +45,13 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
         }
         initRcv()
 
-        dataViewModel.ensureData(this)
+        // Check if dataType is passed (Cat/Emoji)
+        currentDataType = intent.getIntExtra(IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_DEFAULT)
+        if (currentDataType != IntentKey.DATA_TYPE_DEFAULT) {
+            dataViewModel.loadDataByType(this, currentDataType)
+        } else {
+            dataViewModel.ensureData(this)
+        }
     }
 
     override fun dataObservable() {
@@ -131,7 +139,7 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
                 android.util.Log.d("ChooseCharacter", "API character - checking internet...")
                 InternetHelper.checkInternet(this) { state ->
                     if (state == HandleState.SUCCESS) {
-                        showInterAll { startIntentRightToLeft(CustomizeCharacterActivity::class.java, position) }
+                        showInterAll { navigateToCustomize(position) }
                     } else {
                         // Show No Internet dialog
                         val dialog = com.pony.avatar.ocmaker.dialog.YesNoDialog(
@@ -151,7 +159,7 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
             } else {
                 android.util.Log.d("ChooseCharacter", "Local character - navigating directly")
                 android.util.Log.d("ChooseCharacter", "========================================")
-                showInterAll { startIntentRightToLeft(CustomizeCharacterActivity::class.java, position) }
+                showInterAll { navigateToCustomize(position) }
             }
         }
     }
@@ -169,6 +177,14 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
             adapter = chooseCharacterAdapter
             itemAnimator = null
         }
+    }
+
+    private fun navigateToCustomize(position: Int) {
+        val intent = android.content.Intent(this, CustomizeCharacterActivity::class.java)
+        intent.putExtra(IntentKey.INTENT_KEY, position)
+        intent.putExtra(IntentKey.DATA_TYPE_KEY, currentDataType)
+        val option = android.app.ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_right, R.anim.slide_out_left)
+        startActivity(intent, option.toBundle())
     }
 
     fun initNativeCollab() {

@@ -21,10 +21,11 @@ import com.pony.avatar.ocmaker.core.utils.state.RateState
 import com.pony.avatar.ocmaker.databinding.ActivityHomeBinding
 import com.pony.avatar.ocmaker.ui.SettingsActivity
 import com.pony.avatar.ocmaker.ui.my_creation.MyCreationActivity
-import com.pony.avatar.ocmaker.ui.choose_character.ChooseCharacterActivity
+import com.pony.avatar.ocmaker.ui.cat_emoji_maker.CatEmojiMakerActivity
 import com.pony.avatar.ocmaker.core.extensions.tap
 import com.pony.avatar.ocmaker.core.extensions.strings
 import com.pony.avatar.ocmaker.ui.random_character.RandomCharacterActivity
+import com.pony.avatar.ocmaker.ui.emoji_custom.EmojiCustomActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,9 +54,10 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
     override fun viewListener() {
         binding.apply {
             actionBar.btnActionBarRight.tap(800) { startIntentRightToLeft(SettingsActivity::class.java) }
-            btnCreate.tap(800) { startIntentRightToLeft(ChooseCharacterActivity::class.java) }
+            btnCreate.tap(800) { startIntentRightToLeft(CatEmojiMakerActivity::class.java) }
             btnMyAlbum.tap(800) { showInterAll { startIntentRightToLeft(MyCreationActivity::class.java) } }
             btnQuickMaker.tap(800) { startIntentRightToLeft(RandomCharacterActivity::class.java) }
+            btnEmojiCustom.tap(800) { startIntentRightToLeft(EmojiCustomActivity::class.java) }
         }
     }
 
@@ -71,7 +73,6 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
     }
 
     // Enable background music for HomeActivity
-    override fun shouldPlayBackgroundMusic(): Boolean = true
 
     @SuppressLint("MissingSuperCall", "GestureBackNavigation")
     override fun onBackPressed() {
