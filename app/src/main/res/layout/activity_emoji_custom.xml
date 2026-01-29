@@ -33,7 +33,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/flBottomNav"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -75,6 +75,63 @@
         app:layout_constraintTop_toBottomOf="@+id/btnFlip" />
 
 
+    <ImageView
+        android:id="@+id/btnFlipH"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_flip_emoji_h"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnFlipV"
+        android:layout_marginBottom="7dp"
+        android:layout_marginStart="20dp"/>
+
+    <ImageView
+        android:id="@+id/btnFlipV"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_flip_emoji_v"
+        app:layout_constraintEnd_toStartOf="@id/btnDraw"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintStart_toEndOf="@id/btnFlipH"
+        android:layout_marginBottom="7dp"
+
+        />
+
+    <ImageView
+        android:id="@+id/btnDraw"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_draw"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintStart_toEndOf="@id/btnFlipV"
+        android:layout_marginBottom="7dp"
+        app:layout_constraintEnd_toStartOf="@id/btnText"
+        />
+
+    <ImageView
+        android:id="@+id/btnText"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_text_emoji"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintStart_toEndOf="@id/btnDraw"
+        android:layout_marginBottom="7dp"
+        app:layout_constraintEnd_toStartOf="@id/btnLayer"
+        />
+
+    <ImageView
+        android:id="@+id/btnLayer"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_layer"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintStart_toEndOf="@id/btnText"
+        android:layout_marginBottom="7dp"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+      />
+
 
     <!--    rcvLayer-->
     <androidx.recyclerview.widget.RecyclerView
@@ -91,25 +148,17 @@
         app:spanCount="5"
         tools:listitem="@layout/item_customize" />
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginHorizontal="16dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/bg_navi_bottom"
-        android:layout_marginTop="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/flBottomNav"
-        app:layout_constraintTop_toTopOf="@+id/flBottomNav" />
+
 
     <!--    flBottomNav-->
     <FrameLayout
         android:id="@+id/flBottomNav"
         android:layout_width="match_parent"
-        android:layout_height="82dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_height="54dp"
         android:layout_marginBottom="0dp"
         android:clipChildren="false"
-        app:layout_constraintBottom_toTopOf="@id/rcvLayer">
+        android:background="@drawable/bg_navi_bottom"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <!--        rcvNavigation-->
         <androidx.recyclerview.widget.RecyclerView
@@ -117,9 +166,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:clipChildren="false"
-            android:layout_marginTop="5dp"
-            android:layout_marginHorizontal="15dp"
+            android:layout_marginStart="16dp"
             android:clipToPadding="false"
             android:foregroundGravity="center"
             android:layerType="hardware"

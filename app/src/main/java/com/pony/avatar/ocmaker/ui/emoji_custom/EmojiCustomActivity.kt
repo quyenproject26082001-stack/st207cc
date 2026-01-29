@@ -2,11 +2,14 @@ package com.pony.avatar.ocmaker.ui.emoji_custom
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.pony.avatar.ocmaker.R
 import com.pony.avatar.ocmaker.core.base.BaseActivity
 import com.pony.avatar.ocmaker.core.extensions.handleBackLeftToRight
@@ -20,8 +23,11 @@ import com.pony.avatar.ocmaker.core.helper.LanguageHelper
 import com.pony.avatar.ocmaker.core.utils.key.EmojiApiConfig
 import com.pony.avatar.ocmaker.core.utils.key.EmojiCategory
 import com.pony.avatar.ocmaker.databinding.ActivityEmojiCustomBinding
+import com.pony.avatar.ocmaker.data.model.draw.Draw
+import com.pony.avatar.ocmaker.data.model.draw.DrawableDraw
 import com.pony.avatar.ocmaker.dialog.DialogType
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
+import com.pony.avatar.ocmaker.listener.listenerdraw.OnDrawListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,35 +40,49 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private var currentCategoryIndex = 0
     private val categories = EmojiApiHelper.getAllCategories()
 
-    // Lưu trữ selected items cho mỗi category
-    private val selectedItems = mutableMapOf<String, String?>()
-
-    // ImageViews cho mỗi layer
-    private val layerViews = mutableListOf<ImageView>()
+    // Lưu trữ selected DrawableDraw cho mỗi category
+    private val selectedDraws = mutableMapOf<String, DrawableDraw?>()
 
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
     }
 
     override fun initView() {
-        initLayerViews()
+        initDrawView()
         initRcv()
         loadNavigationData()
         loadLayerData(0)
     }
 
-    private fun initLayerViews() {
-        // Tạo ImageView cho mỗi category (layer)
-        categories.forEachIndexed { index, _ ->
-            val imageView = ImageView(this).apply {
-                layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                scaleType = ImageView.ScaleType.FIT_CENTER
-            }
-            binding.layoutCustomLayer.addView(imageView)
-            layerViews.add(imageView)
+    private fun initDrawView() {
+        binding.layoutCustomLayer.apply {
+            setConstrained(true)
+            setLocked(false)
+            setOnDrawListener(object : OnDrawListener {
+                override fun onAddedDraw(draw: Draw) {}
+                override fun onClickedDraw(draw: Draw) {}
+                override fun onDeletedDraw(draw: Draw) {
+                    // Update selectedDraws when user deletes via icon
+                    val category = categories.find { selectedDraws[it.name] == draw }
+                    if (category != null) {
+                        selectedDraws[category.name] = null
+                        loadLayerData(currentCategoryIndex)
+                    }
+                }
+                override fun onDragFinishedDraw(draw: Draw) {}
+                override fun onTouchedDownDraw(draw: Draw) {}
+                override fun onZoomFinishedDraw(draw: Draw) {}
+                override fun onFlippedDraw(draw: Draw) {}
+                override fun onDoubleTappedDraw(draw: Draw) {}
+                override fun onHideOptionIconDraw() {}
+                override fun onUndoDeleteDraw(draw: List<Draw?>) {}
+                override fun onUndoUpdateDraw(draw: List<Draw?>) {}
+                override fun onUndoDeleteAll() {}
+                override fun onRedoAll() {}
+                override fun onReplaceDraw(draw: Draw) {}
+                override fun onEditText(draw: DrawableDraw) {}
+                override fun onReplace(draw: Draw) {}
+            })
         }
     }
 
@@ -104,11 +124,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         navigationAdapter.submitList(navItems)
 
         // Load items cho category
+        val selectedDraw = selectedDraws[category.name]
         val items = (1..category.count).map { index ->
             val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
             EmojiLayerItem(
                 imageUrl = imageUrl,
-                isSelected = selectedItems[category.name] == imageUrl
+                isSelected = selectedDraw?.drawablePath == imageUrl
             )
         }
         layerAdapter.submitList(items)
@@ -129,16 +150,33 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             val imageUrl = EmojiApiConfig.getImageUrl(category.name, position + 1)
 
             // Toggle selection
-            if (selectedItems[category.name] == imageUrl) {
-                // Deselect
-                selectedItems[category.name] = null
-                Glide.with(this).clear(layerViews[currentCategoryIndex])
+            val currentDraw = selectedDraws[category.name]
+            if (currentDraw?.drawablePath == imageUrl) {
+                // Deselect - remove from DrawView
+                binding.layoutCustomLayer.remove(currentDraw)
+                selectedDraws[category.name] = null
             } else {
-                // Select
-                selectedItems[category.name] = imageUrl
+                // Select - load image and add to DrawView
                 Glide.with(this)
+                    .asDrawable()
                     .load(imageUrl)
-                    .into(layerViews[currentCategoryIndex])
+                    .into(object : CustomTarget<Drawable>() {
+                        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                            // Remove old draw if exists
+                            currentDraw?.let { binding.layoutCustomLayer.remove(it) }
+
+                            // Create new DrawableDraw
+                            val drawableDraw = DrawableDraw(resource, imageUrl)
+                            binding.layoutCustomLayer.addDraw(drawableDraw)
+
+                            // Save reference
+                            selectedDraws[category.name] = drawableDraw
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Do nothing
+                        }
+                    })
             }
 
             // Update UI
@@ -171,8 +209,22 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun handleSave() {
-        // TODO: Implement save functionality
-        showToast("Save emoji")
+        if (selectedDraws.values.all { it == null }) {
+           // showToast(R.string.please_select_item)
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.Default) {
+                    binding.layoutCustomLayer.save()
+                }
+                // TODO: Save bitmap to gallery or share
+                showToast("Saved successfully!")
+            } catch (e: Exception) {
+                showToast("Save failed: ${e.message}")
+            }
+        }
     }
 
     @SuppressLint("MissingSuperCall")

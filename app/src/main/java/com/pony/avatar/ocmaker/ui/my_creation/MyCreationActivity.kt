@@ -658,7 +658,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         // Text unselected
         textView.textSize = 16f
         textView.paint.shader = null
-        textView.setTextColor(Color.parseColor("#AB5BFF"))
+        textView.setTextColor(Color.parseColor("#497E00"))
 
         // ❌ Không dùng background tab nữa
         focusImage.gone()

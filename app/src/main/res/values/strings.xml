@@ -79,13 +79,13 @@
     <string name="haven_t_saved_it_yet_do_you_want_to_exit">Haven’t saved it yet, are you sure to exit?</string>
     <string name="change_your_whole_design_are_you_sure">Do you want to reset?</string>
     <string name="character_maker">Pixel Maker</string>
-    <string name="no_item_here">No Item Here</string>
+    <string name="no_item_here">No current</string>
     <string name="quick_maker">Quick Maker</string>
     <string name="my_character">My Pixel</string>
     <string name="category">Pixel Maker</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="no_item_space">No current history</string>
+    <string name="no_item_current">No current history</string>
     <string name="add_to_whatsapp">Add To WhatsApp</string>
     <string name="add_to_telegram">Add To Telegram</string>
     <string name="my_avatar">My Avatar</string>

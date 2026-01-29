@@ -57,7 +57,7 @@
         android:fontFamily="@font/roboto_bolditalic"
         android:gravity="center"
         android:text="@string/image_has_been_saved_successfully"
-        android:textColor="@color/app"
+        android:textColor="#497E00"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/cvImage"
         />
