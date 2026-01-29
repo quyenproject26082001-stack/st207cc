@@ -37,7 +37,7 @@ class TextDraw @JvmOverloads constructor(private val context: Context, drawable:
         private set
     var typeface: Typeface? = null
         private set
-    var textColor1 = 0
+    var textColor = 0
         private set
     var idTypeFace = 0
     var textCheckAlign: String? = null

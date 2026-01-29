@@ -1,15 +1,32 @@
 package com.pony.avatar.ocmaker.ui.emoji_custom
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.text.Layout
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
+import android.widget.EditText
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.pony.avatar.ocmaker.R
 import com.pony.avatar.ocmaker.core.base.BaseActivity
 import com.pony.avatar.ocmaker.core.extensions.handleBackLeftToRight
@@ -20,14 +37,18 @@ import com.pony.avatar.ocmaker.core.extensions.visible
 import com.pony.avatar.ocmaker.core.extensions.invisible
 import com.pony.avatar.ocmaker.core.helper.EmojiApiHelper
 import com.pony.avatar.ocmaker.core.helper.LanguageHelper
+import com.pony.avatar.ocmaker.core.utils.key.DrawKey
 import com.pony.avatar.ocmaker.core.utils.key.EmojiApiConfig
 import com.pony.avatar.ocmaker.core.utils.key.EmojiCategory
 import com.pony.avatar.ocmaker.databinding.ActivityEmojiCustomBinding
+import com.pony.avatar.ocmaker.databinding.DialogLayerBinding
 import com.pony.avatar.ocmaker.data.model.draw.Draw
 import com.pony.avatar.ocmaker.data.model.draw.DrawableDraw
+import com.pony.avatar.ocmaker.data.model.draw.TextDraw
 import com.pony.avatar.ocmaker.dialog.DialogType
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
 import com.pony.avatar.ocmaker.listener.listenerdraw.OnDrawListener
+import com.pony.avatar.ocmaker.ui.emoji_custom.adapter.LayerAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -139,6 +160,70 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
             actionBar.btnActionBarRightText.tap { handleSave() }
+
+            // Flip buttons
+            btnFlipH.tap {
+                if (layoutCustomLayer.getDraws().isNotEmpty()) {
+                    layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_HORIZONTALLY)
+                }
+            }
+
+            btnFlipV.tap {
+                if (layoutCustomLayer.getDraws().isNotEmpty()) {
+                    layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_VERTICALLY)
+                }
+            }
+
+            // Draw button
+            btnDraw.tap {
+                enterDrawMode()
+            }
+
+            // Drawing control buttons
+            btnPen.tap {
+                paintDrawView.eraser(false)
+            }
+
+            btnEraser.tap {
+                paintDrawView.eraser(true)
+            }
+
+            btnDrawDone.tap {
+                exitDrawModeAndSave()
+            }
+
+            btnDrawCancel.tap {
+                exitDrawModeAndCancel()
+            }
+
+            // Size slider
+            sbSize.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                    val strokeWidth = (progress * 2).coerceAtLeast(10)
+                    paintDrawView.setStrokeWidth(strokeWidth)
+                    paintDrawView.setStrokeWidthEraser(strokeWidth)
+                }
+
+                override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            })
+
+            // Color picker
+            colorBlack.tap { paintDrawView.setColor(Color.BLACK) }
+            colorRed.tap { paintDrawView.setColor(Color.RED) }
+            colorBlue.tap { paintDrawView.setColor(Color.BLUE) }
+            colorGreen.tap { paintDrawView.setColor(Color.GREEN) }
+            colorYellow.tap { paintDrawView.setColor(Color.YELLOW) }
+
+            // Text button
+            btnText.tap {
+                showTextDialog()
+            }
+
+            // Layer button
+            btnLayer.tap {
+                showLayerBottomSheet()
+            }
         }
 
         navigationAdapter.onItemClick = { position ->
@@ -227,9 +312,321 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
     }
 
+    private fun showTextDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(true)
+
+        val dialogView = layoutInflater.inflate(android.R.layout.simple_list_item_1, null)
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(32, 32, 32, 32)
+        }
+
+        // EditText for text input
+        val editText = EditText(this).apply {
+            hint = "Enter text"
+            maxLines = 2
+            textSize = 18f
+            setTextColor(Color.BLACK)
+        }
+        container.addView(editText)
+
+        // Color selection
+        val colorLabel = android.widget.TextView(this).apply {
+            text = "Color:"
+            setPadding(0, 16, 0, 8)
+        }
+        container.addView(colorLabel)
+
+        val colorContainer = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+        }
+
+        val colors = listOf(
+            Color.BLACK, Color.WHITE, Color.RED, Color.BLUE,
+            Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
+        )
+        var selectedColor = Color.BLACK
+
+        colors.forEach { color ->
+            val colorView = View(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(60, 60).apply {
+                    marginEnd = 8
+                }
+                setBackgroundColor(color)
+                setOnClickListener {
+                    selectedColor = color
+                    editText.setTextColor(color)
+                }
+            }
+            colorContainer.addView(colorView)
+        }
+        container.addView(colorContainer)
+
+        // Font selection
+        val fontLabel = android.widget.TextView(this).apply {
+            text = "Font:"
+            setPadding(0, 16, 0, 8)
+        }
+        container.addView(fontLabel)
+
+        val fontContainer = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+        }
+
+        val fonts = listOf(
+            Pair("Normal", Typeface.DEFAULT),
+            Pair("Bold", Typeface.DEFAULT_BOLD),
+            Pair("Mono", Typeface.MONOSPACE)
+        )
+        var selectedTypeface = Typeface.DEFAULT
+
+        fonts.forEach { (name, typeface) ->
+            val fontButton = android.widget.Button(this).apply {
+                text = name
+                setOnClickListener {
+                    selectedTypeface = typeface
+                    editText.typeface = typeface
+                }
+            }
+            fontContainer.addView(fontButton)
+        }
+        container.addView(fontContainer)
+
+        // Done button
+        val doneButton = android.widget.Button(this).apply {
+            text = "Done"
+            setOnClickListener {
+                val text = editText.text.toString().trim()
+                if (text.isNotEmpty()) {
+                    // Create transparent background drawable
+                    val transparentDrawable = ColorDrawable(Color.TRANSPARENT)
+
+                    // Create TextDraw
+                    val textDraw = TextDraw(this@EmojiCustomActivity, transparentDrawable, "text_${System.currentTimeMillis()}")
+                    textDraw.setText(text)
+                    textDraw.setTextColor(selectedColor)
+                    textDraw.setTypeface(selectedTypeface)
+                    textDraw.setTextAlign(Layout.Alignment.ALIGN_CENTER)
+                    textDraw.resizeText()
+
+                    // Add to DrawView
+                    binding.layoutCustomLayer.addDraw(textDraw)
+
+                    dialog.dismiss()
+                } else {
+                    showToast("Please enter text")
+                }
+            }
+        }
+        container.addView(doneButton)
+
+        dialog.setContentView(container)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.WHITE))
+        dialog.show()
+    }
+
+    private fun showLayerBottomSheet() {
+        val drawList = binding.layoutCustomLayer.getDraws()
+
+        if (drawList.isEmpty()) {
+            showToast(R.string.please_select_item)
+            return
+        }
+
+        val bottomSheetBinding = DialogLayerBinding.inflate(layoutInflater)
+        val bottomSheet = BottomSheetDialog(this)
+        bottomSheet.setContentView(bottomSheetBinding.root)
+
+        var drawSelect: DrawableDraw? = null
+        var isSwipe = false
+        val paint = Paint()
+
+        bottomSheetBinding.apply {
+            val adapter = LayerAdapter(binding.layoutCustomLayer) { draw, position ->
+                binding.layoutCustomLayer.selectCurrentDraw(draw)
+                drawSelect = draw
+                isSwipe = true
+            }
+
+            rcv.adapter = adapter
+            adapter.submitList(drawList)
+
+            if (drawList.isNotEmpty()) {
+                tvLayerEmpty.visibility = View.GONE
+            } else {
+                tvLayerEmpty.visibility = View.VISIBLE
+            }
+
+            // ItemTouchHelper for drag to reorder and swipe to delete
+            ItemTouchHelper(object : ItemTouchHelper.Callback() {
+                override fun getMovementFlags(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder
+                ): Int {
+                    val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
+                    val swipeFlags = ItemTouchHelper.LEFT
+                    return makeMovementFlags(dragFlags, swipeFlags)
+                }
+
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    val fromPosition = viewHolder.adapterPosition
+                    val toPosition = target.adapterPosition
+                    adapter.onItemMove(fromPosition, toPosition)
+                    return true
+                }
+
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    if (direction == ItemTouchHelper.LEFT && isSwipe && drawSelect != null) {
+                        binding.layoutCustomLayer.remove(drawSelect)
+
+                        val position = viewHolder.adapterPosition
+                        val updatedList = drawList.toMutableList()
+                        updatedList.removeAt(position)
+
+                        adapter.resetItemSelected()
+                        adapter.submitList(updatedList)
+
+                        if (updatedList.isEmpty()) {
+                            tvLayerEmpty.visibility = View.VISIBLE
+                            bottomSheet.dismiss()
+                        }
+
+                        isSwipe = false
+                        drawSelect = null
+                    }
+                }
+
+                override fun onChildDraw(
+                    c: Canvas,
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    dX: Float,
+                    dY: Float,
+                    actionState: Int,
+                    isCurrentlyActive: Boolean
+                ) {
+                    if (isSwipe && actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                        val itemView: View = viewHolder.itemView
+                        val height = itemView.bottom.toFloat() - itemView.top.toFloat()
+                        val width = height / 3
+
+                        paint.color = ContextCompat.getColor(this@EmojiCustomActivity, android.R.color.holo_red_dark)
+                        val background = RectF(
+                            itemView.right.toFloat() + dX,
+                            itemView.top.toFloat(),
+                            itemView.right.toFloat(),
+                            itemView.bottom.toFloat()
+                        )
+                        c.drawRect(background, paint)
+
+                        val icon = BitmapFactory.decodeResource(resources, R.drawable.ic_delete)
+                        val iconDest = RectF(
+                            itemView.right.toFloat() - 2 * width,
+                            itemView.top.toFloat() + width,
+                            itemView.right.toFloat() - width,
+                            itemView.bottom.toFloat() - width
+                        )
+                        c.drawBitmap(icon, null, iconDest, paint)
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                }
+            }).attachToRecyclerView(rcv)
+        }
+
+        bottomSheet.show()
+    }
+
+    private fun enterDrawMode() {
+        binding.apply {
+            // Show paint view and controls
+            paintDrawView.visible()
+            layoutDrawControls.visible()
+
+            // Hide other controls
+            btnFlipH.invisible()
+            btnFlipV.invisible()
+            btnText.invisible()
+            btnLayer.invisible()
+
+            // Lock the main DrawView to prevent interaction
+            layoutCustomLayer.setLocked(true)
+
+            // Initialize paint settings
+            paintDrawView.setColor(Color.BLACK)
+            paintDrawView.setStrokeWidth(50)
+            paintDrawView.eraser(false)
+        }
+    }
+
+    private fun exitDrawModeAndSave() {
+        binding.apply {
+            val bitmap = paintDrawView.save()
+
+            if (bitmap != null) {
+                // Convert bitmap to drawable
+                val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+
+                // Create DrawableDraw and add to main DrawView
+                val drawableDraw = DrawableDraw(drawable, "draw_${System.currentTimeMillis()}")
+                layoutCustomLayer.addDraw(drawableDraw)
+
+                // Clear paint view
+                paintDrawView.clearAll()
+            }
+
+            // Hide drawing UI
+            paintDrawView.invisible()
+            layoutDrawControls.invisible()
+
+            // Show other controls
+            btnFlipH.visible()
+            btnFlipV.visible()
+            btnText.visible()
+            btnLayer.visible()
+
+            // Unlock main DrawView
+            layoutCustomLayer.setLocked(false)
+        }
+    }
+
+    private fun exitDrawModeAndCancel() {
+        binding.apply {
+            // Clear paint view
+            paintDrawView.clearAll()
+
+            // Hide drawing UI
+            paintDrawView.invisible()
+            layoutDrawControls.invisible()
+
+            // Show other controls
+            btnFlipH.visible()
+            btnFlipV.visible()
+            btnText.visible()
+            btnLayer.visible()
+
+            // Unlock main DrawView
+            layoutCustomLayer.setLocked(false)
+        }
+    }
+
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
-        confirmExit()
+        // If in drawing mode, exit drawing mode first
+        if (binding.paintDrawView.visibility == View.VISIBLE) {
+            exitDrawModeAndCancel()
+        } else {
+            confirmExit()
+        }
     }
 }
 
