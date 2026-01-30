@@ -89,11 +89,7 @@ class DataViewModel() : ViewModel() {
             val list = withContext(Dispatchers.IO) {
                 when (dataType) {
                     1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
-                    2 -> {
-                        // Emoji Maker - load từ online API
-                        val emojiModel = EmojiApiHelper.buildEmojiCustomizeModel()
-                        arrayListOf(emojiModel)
-                    }
+                    2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
                     else -> arrayListOf()
                 }
             }

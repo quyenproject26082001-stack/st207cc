@@ -19,7 +19,7 @@ abstract class Draw {
     var isCharacter: Boolean = false
     var textContent: String? = null
     var textFont: Int? = null
-    var textColor: Int? = null
+    open var textColor: Int? = null
 
     var isTextGradient: Boolean = false
     var textGradient: ArrayList<String> = arrayListOf()

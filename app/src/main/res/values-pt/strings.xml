@@ -81,7 +81,7 @@
     <string name="category">Pixel Maker</string>
 
     <string name="hello_blank_fragment">Olá, fragmento em branco</string>
-    <string name="no_item_space">Sem histórico atual</string>
+    <string name="no_item_current">Sem histórico atual</string>
     <string name="add_to_whatsapp">Adicionar ao WhatsApp</string>
     <string name="add_to_telegram">Adicionar ao Telegram</string>
     <string name="my_avatar">Meu Avatar</string>

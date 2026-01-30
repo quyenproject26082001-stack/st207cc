@@ -537,7 +537,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         textDrawNew.setLock(textDraw.isLock)
         textDrawNew.setFlippedH(textDraw.isFlippedH)
         textDrawNew.setFlippedV(textDraw.isFlippedV)
-        textDrawNew.setTextColor(textDraw.textColor1)
+        textDrawNew.setTextColor(textDraw.textColor ?: 0)
         textDrawNew.textCheckAlign = (textDraw.textCheckAlign)
         textDrawNew.setTextAlign(textDraw.textAlign)
         textDrawNew.idTypeFace = (textDraw.idTypeFace)

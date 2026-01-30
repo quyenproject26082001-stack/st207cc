@@ -81,7 +81,7 @@
     <string name="category">Pixel Maker</string>
 
     <string name="hello_blank_fragment">हैलो ब्लैंक फ़्रैगमेंट</string>
-    <string name="no_item_space">कोई वर्तमान इतिहास नहीं</string>
+    <string name="no_item_current">कोई वर्तमान इतिहास नहीं</string>
     <string name="add_to_whatsapp">WhatsApp में जोड़ें</string>
     <string name="add_to_telegram">Telegram में जोड़ें</string>
     <string name="my_avatar">मेरा अवतार</string>

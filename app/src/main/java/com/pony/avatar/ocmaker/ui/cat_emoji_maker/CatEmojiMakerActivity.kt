@@ -33,7 +33,7 @@ class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
                 startIntentRightToLeft(ChooseCharacterActivity::class.java, IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_CAT)
             }
             btnEmojiCat.tap(800) {
-                startIntentRightToLeft(EmojiCustomActivity::class.java)
+                startIntentRightToLeft(ChooseCharacterActivity::class.java, IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_EMOJI)
             }
         }
     }
