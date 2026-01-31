@@ -126,6 +126,8 @@
     <string name="trending">Trending Custom</string>
     <string name="my_pony">My Pony</string>
     <string name="do_you_want_to_exit">Do you want to exit?</string>
+    <string name="please_select_item">Please select an item</string>
+    <string name="layer">Layer</string>
     <string name="title_11">Diverse Character Style</string>
     <string name="title_22">Create Your Own Avatar \nHowever You Like</string>
 </resources>

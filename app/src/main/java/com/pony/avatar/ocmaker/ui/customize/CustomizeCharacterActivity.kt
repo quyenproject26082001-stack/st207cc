@@ -137,12 +137,13 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         binding.apply {
             actionBar.apply {
                 btnActionBarLeft.tap { confirmExit() }
-                btnActionBarCenterLeft.tap { handleReset() }
-                btnActionBarCenterRight.tap { viewModel.setIsFlip() }
+                btnActionBarCenter.tap { handleReset() }
                 binding.actionBar.btnActionBarRightText.tap {
                     handleSave()
                 }
             }
+            btnFlip.tap { viewModel.setIsFlip() }
+
             btnRandom.tap { viewModel.checkDataInternet(this@CustomizeCharacterActivity) { handleRandomAllLayer() } }
             btnColor.tap { viewModel.checkDataInternet(this@CustomizeCharacterActivity) { handleStatusColor() } }
             btnHide.tap { viewModel.checkDataInternet(this@CustomizeCharacterActivity) { viewModel.setIsHideView() } }
@@ -157,8 +158,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
             btnActionBarRight.invisible()
             btnActionBarCenterLeft.visible()
             tvRightText.isSelected = true
-            btnActionBarCenterRight.visible()
         }
+        binding.btnFlip.visible()
+
 
     }
 

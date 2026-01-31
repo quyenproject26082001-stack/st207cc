@@ -12,24 +12,11 @@ import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import com.pony.avatar.ocmaker.core.utils.key.DrawKey
 
-class TextDraw @JvmOverloads constructor(private val context: Context, drawable: Drawable? = null, filePath: String? = null) : Draw() {
-
-    override val width: Int
-        get() = drawable.intrinsicWidth
-    override val height: Int
-        get() = drawable.intrinsicHeight
+class TextDraw(private val context: Context, drawable: Drawable, filePath: String) : DrawableDraw(drawable, filePath) {
 
     private val bounds: Rect
     private val textRect: Rect
     private val textPaint: TextPaint
-    private var _drawable: Drawable? = null
-    override var drawable: Drawable
-        get() {
-            return _drawable ?: drawable
-        }
-        set(value) {
-            _drawable = value
-        }
     private var staticLayout: StaticLayout? = null
     var textAlign: Layout.Alignment
         private set
@@ -37,11 +24,9 @@ class TextDraw @JvmOverloads constructor(private val context: Context, drawable:
         private set
     var typeface: Typeface? = null
         private set
-    var textColor = 0
-        private set
+    override var textColor: Int? = 0
     var idTypeFace = 0
     var textCheckAlign: String? = null
-    override val drawablePath: String
 
     private var maxTextSizePixels: Float
     var minTextSizePixels: Float
@@ -50,8 +35,6 @@ class TextDraw @JvmOverloads constructor(private val context: Context, drawable:
     private var lineSpacingExtra = 0.0f
 
     init {
-        drawablePath = filePath!!
-        this.drawable = drawable!!
         textPaint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
         bounds = Rect(0, 0, width, height)
         textRect = Rect(0, 0, width, height)
