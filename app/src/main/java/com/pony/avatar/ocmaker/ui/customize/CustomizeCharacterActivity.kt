@@ -130,6 +130,22 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                     }
                 }
             }
+            launch {
+                viewModel.canUndo.collect { canUndo ->
+                    binding.actionBar.btnActionBarCenterLeft.apply {
+                        isEnabled = canUndo
+                        alpha = if (canUndo) 1.0f else 0.3f
+                    }
+                }
+            }
+            launch {
+                viewModel.canRedo.collect { canRedo ->
+                    binding.actionBar.btnActionBarCenterRight.apply {
+                        isEnabled = canRedo
+                        alpha = if (canRedo) 1.0f else 0.3f
+                    }
+                }
+            }
         }
     }
 
@@ -138,6 +154,8 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
             actionBar.apply {
                 btnActionBarLeft.tap { confirmExit() }
                 btnActionBarCenter.tap { handleReset() }
+                btnActionBarCenterLeft.tap { handleUndo() }
+                btnActionBarCenterRight.tap { handleRedo() }
                 binding.actionBar.btnActionBarRightText.tap {
                     handleSave()
                 }
@@ -157,6 +175,8 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
             btnActionBarRightText.visible()
             btnActionBarRight.invisible()
             btnActionBarCenterLeft.visible()
+            btnActionBarCenterRight.visible()
+            btnActionBarCenter.visible()
             tvRightText.isSelected = true
         }
         binding.btnFlip.visible()
@@ -373,6 +393,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         android.util.Log.d("CustomizeScroll", "Layer clicked at position: $position")
 
         lifecycleScope.launch(Dispatchers.IO) {
+            // Lưu state trước khi thay đổi
+            viewModel.saveStateForUndo()
+
             val pathSelected = viewModel.setClickFillLayer(item, position)
             withContext(Dispatchers.Main) {
                 Glide.with(this@CustomizeCharacterActivity).load(pathSelected)
@@ -387,6 +410,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         android.util.Log.d("CustomizeScroll", "None layer clicked at position: $position")
 
         lifecycleScope.launch(Dispatchers.IO) {
+            // Lưu state trước khi thay đổi
+            viewModel.saveStateForUndo()
+
             viewModel.setIsSelectedItem(viewModel.positionCustom)
             viewModel.setPathSelected(viewModel.positionCustom, "")
             viewModel.setKeySelected(viewModel.positionNavSelected, "")
@@ -401,6 +427,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
 
     private fun handleRandomLayer() {
         lifecycleScope.launch(Dispatchers.IO) {
+            // Lưu state trước khi random
+            viewModel.saveStateForUndo()
+
             val (pathRandom, isMoreColors) = viewModel.setClickRandomLayer()
             withContext(Dispatchers.Main) {
                 Glide.with(this@CustomizeCharacterActivity).load(pathRandom)
@@ -416,6 +445,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
 
     private fun handleChangeColorLayer(position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
+            // Lưu state trước khi đổi màu
+            viewModel.saveStateForUndo()
+
             // 1. Lấy path màu mới cho item đang được chọn
             val pathColor = viewModel.setClickChangeColor(position)
 
@@ -595,6 +627,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         dialog.onYesClick = {
             dialog.dismiss()
             lifecycleScope.launch(Dispatchers.IO) {
+                // Lưu state trước khi reset
+                viewModel.saveStateForUndo()
+
                 val pathDefault = viewModel.setClickReset()
                 withContext(Dispatchers.Main) {
                     viewModel.imageViewList.forEach { imageView ->
@@ -620,6 +655,10 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                 binding.actionBar.btnActionBarRightText.isEnabled = false
             }
             val timeStart = System.currentTimeMillis()
+
+            // Lưu state trước khi random
+            viewModel.saveStateForUndo()
+
             val isOutTurn = viewModel.setClickRandomFullLayer()
 
             withContext(Dispatchers.Main) {
@@ -637,6 +676,60 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                 }
                 delay(800)
                 binding.actionBar.btnActionBarRightText.isEnabled = true
+            }
+        }
+    }
+
+    private fun handleUndo() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val success = viewModel.performUndo()
+            if (success) {
+                withContext(Dispatchers.Main) {
+                    // Refresh UI với state đã restore
+                    viewModel.pathSelectedList.forEachIndexed { index, path ->
+                        if (path.isNotEmpty()) {
+                            Glide.with(this@CustomizeCharacterActivity)
+                                .load(path)
+                                .into(viewModel.imageViewList[index])
+                        } else {
+                            Glide.with(this@CustomizeCharacterActivity)
+                                .clear(viewModel.imageViewList[index])
+                        }
+                    }
+
+                    // Update adapters
+                    layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    bottomNavigationCustomizeAdapter.submitList(viewModel.bottomNavigationList.value)
+                    checkStatusColor()
+                }
+            }
+        }
+    }
+
+    private fun handleRedo() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val success = viewModel.performRedo()
+            if (success) {
+                withContext(Dispatchers.Main) {
+                    // Refresh UI với state đã restore
+                    viewModel.pathSelectedList.forEachIndexed { index, path ->
+                        if (path.isNotEmpty()) {
+                            Glide.with(this@CustomizeCharacterActivity)
+                                .load(path)
+                                .into(viewModel.imageViewList[index])
+                        } else {
+                            Glide.with(this@CustomizeCharacterActivity)
+                                .clear(viewModel.imageViewList[index])
+                        }
+                    }
+
+                    // Update adapters
+                    layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    bottomNavigationCustomizeAdapter.submitList(viewModel.bottomNavigationList.value)
+                    checkStatusColor()
+                }
             }
         }
     }

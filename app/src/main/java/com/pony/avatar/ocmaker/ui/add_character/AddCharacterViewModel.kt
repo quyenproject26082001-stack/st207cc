@@ -29,6 +29,36 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 class AddCharacterViewModel : ViewModel() {
+    // Data class để lưu state snapshot cho undo/redo
+    data class AddCharacterState(
+        val backgroundImageList: ArrayList<SelectedModel>,
+        val backgroundColorList: ArrayList<SelectedModel>,
+        val stickerList: ArrayList<SelectedModel>,
+        val speechList: ArrayList<SelectedModel>,
+        val textFontList: ArrayList<SelectedModel>,
+        val textColorList: ArrayList<SelectedModel>,
+        val drawViewList: ArrayList<DrawableDraw>,
+        val typeNavigation: Int,
+        val typeBackground: Int,
+        val backgroundImagePath: String,  // Path của background image hiện tại
+        val backgroundColor: Int,          // Màu background hiện tại
+        val currentText: String,          // Text trong EditText
+        val currentTextFont: Int,         // Font đang dùng
+        val currentTextColor: Int         // Màu text đang dùng
+    )
+
+    // Undo/Redo stacks
+    private val undoStack = ArrayDeque<AddCharacterState>()
+    private val redoStack = ArrayDeque<AddCharacterState>()
+    private val maxHistorySize = 50
+
+    // StateFlows để track trạng thái undo/redo
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo = _canUndo.asStateFlow()
+
+    private val _canRedo = MutableStateFlow(false)
+    val canRedo = _canRedo.asStateFlow()
+
     var backgroundImageList: ArrayList<SelectedModel> = arrayListOf()
     var backgroundColorList: ArrayList<SelectedModel> = arrayListOf()
     var stickerList: ArrayList<SelectedModel> = arrayListOf()
@@ -47,13 +77,20 @@ class AddCharacterViewModel : ViewModel() {
 
     var currentDraw: Draw? = null
 
-    var drawViewList: ArrayList<Draw> = arrayListOf()
+    var drawViewList: ArrayList<DrawableDraw> = arrayListOf()
 
     lateinit var layoutParams: ViewGroup.MarginLayoutParams
 
     var originalMarginBottom: Int = 0
 
     var pathDefault = ""
+
+    // Cache cho restore UI
+    var cachedBackgroundImagePath: String = ""
+    var cachedBackgroundColor: Int = android.graphics.Color.TRANSPARENT
+    var cachedCurrentText: String = ""
+    var cachedCurrentTextFont: Int = 0
+    var cachedCurrentTextColor: Int = android.graphics.Color.BLACK
 
     fun setTypeNavigation(type: Int) {
         _typeNavigation.value = type
@@ -139,7 +176,9 @@ class AddCharacterViewModel : ViewModel() {
     }
 
     fun addDrawView(draw: Draw) {
-        drawViewList.add(draw)
+        if (draw is DrawableDraw) {
+            drawViewList.add(draw)
+        }
     }
 
     fun deleteDrawView(draw: Draw) {
@@ -169,4 +208,149 @@ class AddCharacterViewModel : ViewModel() {
             emit(state)
         }
     }.flowOn(Dispatchers.IO)
+
+    //----------------------------------------------------------------------------------------------------------------------
+    // Undo/Redo Functions
+
+    /**
+     * Lưu state hiện tại vào undo stack trước khi thực hiện thay đổi
+     */
+    fun saveStateForUndo() {
+        val currentState = AddCharacterState(
+            backgroundImageList = ArrayList(backgroundImageList.map { it.copy() }),
+            backgroundColorList = ArrayList(backgroundColorList.map { it.copy() }),
+            stickerList = ArrayList(stickerList.map { it.copy() }),
+            speechList = ArrayList(speechList.map { it.copy() }),
+            textFontList = ArrayList(textFontList.map { it.copy() }),
+            textColorList = ArrayList(textColorList.map { it.copy() }),
+            drawViewList = ArrayList(drawViewList),  // Draw objects are immutable
+            typeNavigation = _typeNavigation.value,
+            typeBackground = _typeBackground.value,
+            backgroundImagePath = cachedBackgroundImagePath,
+            backgroundColor = cachedBackgroundColor,
+            currentText = cachedCurrentText,
+            currentTextFont = cachedCurrentTextFont,
+            currentTextColor = cachedCurrentTextColor
+        )
+
+        undoStack.addLast(currentState)
+
+        // Giới hạn kích thước stack
+        if (undoStack.size > maxHistorySize) {
+            undoStack.removeFirst()
+        }
+
+        // Clear redo stack khi có action mới
+        redoStack.clear()
+
+        updateUndoRedoState()
+    }
+
+    /**
+     * Undo - khôi phục state trước đó
+     */
+    suspend fun performUndo(): Boolean {
+        if (undoStack.isEmpty()) return false
+
+        // Lưu state hiện tại vào redo stack
+        val currentState = AddCharacterState(
+            backgroundImageList = ArrayList(backgroundImageList.map { it.copy() }),
+            backgroundColorList = ArrayList(backgroundColorList.map { it.copy() }),
+            stickerList = ArrayList(stickerList.map { it.copy() }),
+            speechList = ArrayList(speechList.map { it.copy() }),
+            textFontList = ArrayList(textFontList.map { it.copy() }),
+            textColorList = ArrayList(textColorList.map { it.copy() }),
+            drawViewList = ArrayList(drawViewList),
+            typeNavigation = _typeNavigation.value,
+            typeBackground = _typeBackground.value,
+            backgroundImagePath = cachedBackgroundImagePath,
+            backgroundColor = cachedBackgroundColor,
+            currentText = cachedCurrentText,
+            currentTextFont = cachedCurrentTextFont,
+            currentTextColor = cachedCurrentTextColor
+        )
+        redoStack.addLast(currentState)
+
+        // Restore state từ undo stack
+        val previousState = undoStack.removeLast()
+        restoreState(previousState)
+
+        updateUndoRedoState()
+        return true
+    }
+
+    /**
+     * Redo - áp dụng lại state đã undo
+     */
+    suspend fun performRedo(): Boolean {
+        if (redoStack.isEmpty()) return false
+
+        // Lưu state hiện tại vào undo stack
+        val currentState = AddCharacterState(
+            backgroundImageList = ArrayList(backgroundImageList.map { it.copy() }),
+            backgroundColorList = ArrayList(backgroundColorList.map { it.copy() }),
+            stickerList = ArrayList(stickerList.map { it.copy() }),
+            speechList = ArrayList(speechList.map { it.copy() }),
+            textFontList = ArrayList(textFontList.map { it.copy() }),
+            textColorList = ArrayList(textColorList.map { it.copy() }),
+            drawViewList = ArrayList(drawViewList),
+            typeNavigation = _typeNavigation.value,
+            typeBackground = _typeBackground.value,
+            backgroundImagePath = cachedBackgroundImagePath,
+            backgroundColor = cachedBackgroundColor,
+            currentText = cachedCurrentText,
+            currentTextFont = cachedCurrentTextFont,
+            currentTextColor = cachedCurrentTextColor
+        )
+        undoStack.addLast(currentState)
+
+        // Restore state từ redo stack
+        val nextState = redoStack.removeLast()
+        restoreState(nextState)
+
+        updateUndoRedoState()
+        return true
+    }
+
+    /**
+     * Khôi phục state vào ViewModel
+     */
+    private suspend fun restoreState(state: AddCharacterState) {
+        backgroundImageList = ArrayList(state.backgroundImageList.map { it.copy() })
+        backgroundColorList = ArrayList(state.backgroundColorList.map { it.copy() })
+        stickerList = ArrayList(state.stickerList.map { it.copy() })
+        speechList = ArrayList(state.speechList.map { it.copy() })
+        textFontList = ArrayList(state.textFontList.map { it.copy() })
+        textColorList = ArrayList(state.textColorList.map { it.copy() })
+        drawViewList = ArrayList(state.drawViewList)
+
+        _typeNavigation.value = state.typeNavigation
+        _typeBackground.value = state.typeBackground
+
+        // Restore cache
+        cachedBackgroundImagePath = state.backgroundImagePath
+        cachedBackgroundColor = state.backgroundColor
+        cachedCurrentText = state.currentText
+        cachedCurrentTextFont = state.currentTextFont
+        cachedCurrentTextColor = state.currentTextColor
+    }
+
+    /**
+     * Cập nhật trạng thái có thể undo/redo
+     */
+    private fun updateUndoRedoState() {
+        _canUndo.value = undoStack.isNotEmpty()
+        _canRedo.value = redoStack.isNotEmpty()
+    }
+
+    /**
+     * Clear toàn bộ undo/redo history
+     */
+    fun clearUndoRedoHistory() {
+        undoStack.clear()
+        redoStack.clear()
+        updateUndoRedoState()
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
 }
