@@ -299,6 +299,26 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                             }
                         }
                     }
+
+                    // Observe Undo state from DrawView
+                    launch {
+                        drawView.canUndo.collect { canUndo ->
+                            actionBar.btnActionBarCenterLeft.apply {
+                                isEnabled = canUndo
+                                alpha = if (canUndo) 1.0f else 0.3f
+                            }
+                        }
+                    }
+
+                    // Observe Redo state from DrawView
+                    launch {
+                        drawView.canRedo.collect { canRedo ->
+                            actionBar.btnActionBarCenterRight.apply {
+                                isEnabled = canRedo
+                                alpha = if (canRedo) 1.0f else 0.3f
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -312,6 +332,9 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                 btnActionBarRight.tap {
                     handleSave()
                 }
+                // Undo/Redo button listeners
+                btnActionBarCenterLeft.tap { handleUndo() }
+                btnActionBarCenterRight.tap { handleRedo() }
             }
             btnBackgroundImage.tap { viewModel.setTypeBackground(ValueKey.IMAGE_BACKGROUND) }
             btnBackgroundColor.tap { viewModel.setTypeBackground(ValueKey.COLOR_BACKGROUND) }
@@ -392,14 +415,17 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             setImageActionBar(btnActionBarRight, R.drawable.ic_save_addbg)
             btnActionBarRight.visible()
+            btnActionBarCenter.invisible() // Hide reset center button
 
-//            // Căn giữa nút reset vào guideline
-//            val params = btnActionBarCenter.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
-//            params.endToEnd = guideline.id
-//            params.startToStart = guideline.id
-//            params.horizontalBias = 0.5f
-//            params.marginEnd = 0
-//            btnActionBarCenter.layoutParams = params
+            // Show Undo/Redo buttons
+            btnActionBarCenterLeft.visible()
+            btnActionBarCenterRight.visible()
+
+            // Set initial state (disabled until first action)
+            btnActionBarCenterLeft.alpha = 0.3f
+            btnActionBarCenterRight.alpha = 0.3f
+            btnActionBarCenterLeft.isEnabled = false
+            btnActionBarCenterRight.isEnabled = false
         }
     }
 
@@ -732,6 +758,22 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
 
 
         }
+    }
+
+    /**
+     * Handle Undo button click
+     */
+    private fun handleUndo() {
+        viewModel.setIsFocusEditText(false)
+        binding.drawView.undo()
+    }
+
+    /**
+     * Handle Redo button click
+     */
+    private fun handleRedo() {
+        viewModel.setIsFocusEditText(false)
+        binding.drawView.redo()
     }
 
     private fun confirmExit() {

@@ -31,6 +31,8 @@ import com.pony.avatar.ocmaker.listener.listenerdraw.DeleteEvent
 import com.pony.avatar.ocmaker.listener.listenerdraw.FlipEvent
 import com.pony.avatar.ocmaker.listener.listenerdraw.OnDrawListener
 import com.pony.avatar.ocmaker.listener.listenerdraw.ZoomEvent
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Collections
 import kotlin.compareTo
 import kotlin.div
@@ -70,6 +72,13 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
 
     public val undoList = ArrayList<List<DrawableDraw>>()
     public val undoTempList = ArrayList<DrawableDraw>()
+
+    // StateFlow for UI to observe undo/redo availability
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo = _canUndo.asStateFlow()
+
+    private val _canRedo = MutableStateFlow(false)
+    val canRedo = _canRedo.asStateFlow()
 
     private val borderPaint = Paint()
     private val stickerRect = RectF()
@@ -385,94 +394,106 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
 
     public val redoList = ArrayList<List<DrawableDraw>>()
 
-//    fun undo() {
-//        if (undoList.size > 1) {
-//            undoTempList.clear()
-//            undoTempList.addAll(undoList[undoList.size - 1])
-//            redoList.add(undoList.removeAt(undoList.size - 1))
-//            val previousDraw = undoList[undoList.size - 1]
-//            removeAllDraw()
-//            for (draw in previousDraw) {
-//                when (draw) {
-//                    is DrawableDraw -> {
-//                        val drawableStickerNew = configDrawableDraw(draw, false)
-//                        drawList.add(drawableStickerNew)
-//                    }
-//
-//                    is TextDraw -> {
-//                        val textStickerNew = configTextDraw(draw, false)
-//                        drawList.add(textStickerNew)
-//                    }
-//
-//                    is DrawDraw -> {
-//                        val drawStickerNew = configDrawDraw(draw, false)
-//                        drawList.add(drawStickerNew)
-//                    }
-//                }
-//                invalidate()
-//            }
-//        } else {
-//            removeAllDraw()
-//            redoList.add(undoList.removeAt(undoList.size - 1))
-//            undoList.clear()
-//            if (OnDrawListener != null) {
-//                OnDrawListener!!.onUndoDeleteAll()
-//            }
-//        }
-//    }
-//
-//    fun redo() {
-//        if (redoList.size > 1) {
-//            removeAllDraw()
-//            val redoTempList = redoList[redoList.size - 1]
-//            undoList.add(redoTempList)
-//            redoList.removeAt(redoList.size - 1)
-//            for (draw in redoTempList) {
-//                when (draw) {
-//                    is DrawableDraw -> {
-//                        val drawableStickerNew = configDrawableDraw(draw, false)
-//                        drawList.add(drawableStickerNew)
-//                    }
-//
-//                    is TextDraw -> {
-//                        val textStickerNew = configTextDraw(draw, false)
-//                        drawList.add(textStickerNew)
-//                    }
-//
-//                    is DrawDraw -> {
-//                        val drawStickerNew = configDrawDraw(draw, false)
-//                        drawList.add(drawStickerNew)
-//                    }
-//                }
-//                invalidate()
-//            }
-//        } else {
-//            removeAllDraw()
-//            val redoTempList = redoList[redoList.size - 1]
-//            undoList.add(redoTempList)
-//            redoList.removeAt(redoList.size - 1)
-//            for (draw in redoTempList) {
-//                when (draw) {
-//                    is DrawableDraw -> {
-//                        val drawableStickerNew = configDrawableDraw(draw, false)
-//                        drawList.add(drawableStickerNew)
-//                    }
-//
-//                    is TextDraw -> {
-//                        val textStickerNew = configTextDraw(draw, false)
-//                        drawList.add(textStickerNew)
-//                    }
-//
-//                    is DrawDraw -> {
-//                        val drawStickerNew = configDrawDraw(draw, false)
-//                        drawList.add(drawStickerNew)
-//                    }
-//                }
-//                invalidate()
-//            }
-//            OnDrawListener!!.onRedoAll()
-//        }
-//    }
+    /**
+     * Undo - quay lại trạng thái trước đó
+     * @return true nếu undo thành công
+     */
+    fun undo(): Boolean {
+        if (undoList.size <= 1) {
+            // Không còn gì để undo (state đầu tiên là initial state)
+            return false
+        }
+
+        // Lưu state hiện tại vào redoList
+        undoTempList.clear()
+        undoTempList.addAll(undoList[undoList.size - 1])
+        redoList.add(undoList.removeAt(undoList.size - 1))
+
+        // Lấy state trước đó
+        val previousDraw = undoList[undoList.size - 1]
+
+        // Clear current draws (không gọi saveDrawState)
+        drawList.clear()
+        initialScaleMap.clear()
+        handlingDraw?.release()
+        handlingDraw = null
+
+        // Restore draws từ previous state
+        for (draw in previousDraw) {
+            val drawableStickerNew = configDrawableDraw(draw, false)
+            drawList.add(drawableStickerNew)
+            initialScaleMap[drawableStickerNew] = drawableStickerNew.currentScale
+        }
+
+        // Update UI
+        updateUndoRedoState()
+        invalidate()
+
+        // Auto select first draw if available
+        if (drawList.isNotEmpty()) {
+            handlingDraw = drawList.last()
+            OnDrawListener?.onTouchedDownDraw(handlingDraw!!)
+        }
+
+        return true
+    }
+
+    /**
+     * Redo - khôi phục trạng thái đã undo
+     * @return true nếu redo thành công
+     */
+    fun redo(): Boolean {
+        if (redoList.isEmpty()) {
+            return false
+        }
+
+        // Lấy state từ redoList
+        val redoState = redoList.removeAt(redoList.size - 1)
+
+        // Lưu state hiện tại vào undoList
+        undoList.add(redoState)
+
+        // Clear current draws (không gọi saveDrawState)
+        drawList.clear()
+        initialScaleMap.clear()
+        handlingDraw?.release()
+        handlingDraw = null
+
+        // Restore draws từ redo state
+        for (draw in redoState) {
+            val drawableStickerNew = configDrawableDraw(draw, false)
+            drawList.add(drawableStickerNew)
+            initialScaleMap[drawableStickerNew] = drawableStickerNew.currentScale
+        }
+
+        // Update UI
+        updateUndoRedoState()
+        invalidate()
+
+        // Auto select last draw if available
+        if (drawList.isNotEmpty()) {
+            handlingDraw = drawList.last()
+            OnDrawListener?.onTouchedDownDraw(handlingDraw!!)
+        }
+
+        return true
+    }
+
+    /**
+     * Update trạng thái enable/disable của Undo/Redo buttons
+     */
+    private fun updateUndoRedoState() {
+        _canUndo.value = undoList.size > 1  // > 1 vì state đầu tiên là initial
+        _canRedo.value = redoList.isNotEmpty()
+    }
+
+    /**
+     * Clear redo history khi có action mới
+     */
+    private fun clearRedoOnNewAction() {
+        redoList.clear()
+        updateUndoRedoState()
+    }
 
     fun removeAllDraw() {
         drawList.clear()
@@ -483,6 +504,9 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
     }
 
     private fun saveDrawState() {
+        // Clear redo history khi có action mới
+        clearRedoOnNewAction()
+
         val drawCopy = ArrayList<DrawableDraw>()
         for (draw in drawList) {
             when (draw) {
@@ -490,19 +514,12 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
                     val drawableStickerNew = configDrawableDraw(draw, false)
                     drawCopy.add(drawableStickerNew)
                 }
-
-//                is TextDraw -> {
-//                    val textStickerNew = configTextDraw(draw, false)
-//                    drawCopy.add(textStickerNew)
-//                }
-//
-//                is DrawDraw -> {
-//                    val drawStickerNew = configDrawDraw(draw, false)
-//                    drawCopy.add(drawStickerNew)
-//                }
             }
         }
         undoList.add(drawCopy)
+
+        // Update UI buttons state
+        updateUndoRedoState()
     }
 
     private fun findDrawNotInList2(list1: List<DrawableDraw>, list2: List<DrawableDraw>): List<DrawableDraw> {
