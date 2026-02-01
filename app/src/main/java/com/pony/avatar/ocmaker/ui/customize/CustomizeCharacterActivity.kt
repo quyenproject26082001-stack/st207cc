@@ -137,8 +137,8 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         binding.apply {
             actionBar.apply {
                 btnActionBarLeft.tap { confirmExit() }
-                btnActionBarCenterLeft.tap { handleReset() }
-                btnActionBarCenterRight.tap { viewModel.setIsFlip() }
+                btnActionBarCenter.tap { handleReset() }
+                btnFlip.tap { viewModel.setIsFlip() }
                 binding.actionBar.btnActionBarRightText.tap {
                     handleSave()
                 }
@@ -155,9 +155,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
             btnActionBarRightText.visible()
             btnActionBarRight.invisible()
-            btnActionBarCenterLeft.visible()
+            btnActionBarCenter.visible()
             tvRightText.isSelected = true
-            btnActionBarCenterRight.visible()
+            btnFlip.visible()
         }
 
     }
