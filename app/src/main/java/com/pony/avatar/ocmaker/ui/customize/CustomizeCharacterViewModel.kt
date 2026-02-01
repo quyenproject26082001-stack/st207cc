@@ -32,10 +32,39 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.collections.get
 
+/**
+ * Data class để lưu trạng thái customize cho Undo/Redo
+ * Deep copy tất cả mutable data để tránh reference issues
+ */
+data class CustomizeState(
+    val positionColorItemList: ArrayList<Int>,
+    val itemNavList: ArrayList<ArrayList<ItemNavCustomModel>>,
+    val colorItemNavList: ArrayList<ArrayList<ItemColorModel>>,
+    val isSelectedItemList: ArrayList<Boolean>,
+    val keySelectedItemList: ArrayList<String>,
+    val isShowColorList: ArrayList<Boolean>,
+    val pathSelectedList: ArrayList<String>,
+    val positionNavSelected: Int,
+    val positionCustom: Int
+)
+
 class CustomizeCharacterViewModel : ViewModel() {
     // Đếm số lần random, chỉ số được chọn
     var countRandom = 0
     var positionSelected = 0
+
+    //----------------------------------------------------------------------------------------------------------------------
+    // Undo/Redo Stacks
+    private val undoStack = ArrayDeque<CustomizeState>()
+    private val redoStack = ArrayDeque<CustomizeState>()
+    private val maxHistorySize = 50
+
+    // StateFlow để UI observe trạng thái enable/disable của buttons
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo = _canUndo.asStateFlow()
+
+    private val _canRedo = MutableStateFlow(false)
+    val canRedo = _canRedo.asStateFlow()
 
     // Data từ API hay không
     private val _isDataAPI = MutableStateFlow(false)
@@ -699,5 +728,151 @@ class CustomizeCharacterViewModel : ViewModel() {
         }
     }
 //----------------------------------------------------------------------------------------------------------------------
+    // Undo/Redo Methods
+
+    /**
+     * Tạo snapshot của state hiện tại với deep copy
+     */
+    private fun createCurrentStateSnapshot(): CustomizeState {
+        return CustomizeState(
+            positionColorItemList = ArrayList(positionColorItemList),
+            itemNavList = ArrayList(itemNavList.map { outerList ->
+                ArrayList(outerList.map { item ->
+                    item.copy(listImageColor = ArrayList(item.listImageColor.map { it.copy() }))
+                })
+            }),
+            colorItemNavList = ArrayList(colorItemNavList.map { outerList ->
+                ArrayList(outerList.map { it.copy() })
+            }),
+            isSelectedItemList = ArrayList(isSelectedItemList),
+            keySelectedItemList = ArrayList(keySelectedItemList),
+            isShowColorList = ArrayList(isShowColorList),
+            pathSelectedList = ArrayList(pathSelectedList),
+            positionNavSelected = positionNavSelected,
+            positionCustom = positionCustom
+        )
+    }
+
+    /**
+     * Lưu state hiện tại vào undoStack TRƯỚC KHI thay đổi
+     * Gọi method này ở đầu mỗi action (fillLayer, changeColor, random, reset, none)
+     */
+    fun saveStateForUndo() {
+        // Bước 1: Chụp snapshot của state hiện tại
+        val currentState = createCurrentStateSnapshot()
+
+        // Bước 2: Đẩy vào undoStack
+        undoStack.addLast(currentState)
+
+        // Bước 3: Giới hạn size để tránh memory leak
+        if (undoStack.size > maxHistorySize) {
+            undoStack.removeFirst()
+        }
+
+        // Bước 4: Clear redo stack vì có action mới
+        redoStack.clear()
+
+        // Bước 5: Update UI buttons
+        updateUndoRedoState()
+    }
+
+    /**
+     * Thực hiện Undo - quay về state trước đó
+     * @return true nếu undo thành công
+     */
+    fun performUndo(): Boolean {
+        if (undoStack.isEmpty()) return false
+
+        // Bước 1: Lưu state HIỆN TẠI vào redoStack
+        val currentState = createCurrentStateSnapshot()
+        redoStack.addLast(currentState)
+
+        // Bước 2: Lấy state CŨ từ undoStack
+        val previousState = undoStack.removeLast()
+
+        // Bước 3: Restore state
+        restoreState(previousState)
+
+        // Bước 4: Update UI buttons
+        updateUndoRedoState()
+
+        return true
+    }
+
+    /**
+     * Thực hiện Redo - quay lại state đã undo
+     * @return true nếu redo thành công
+     */
+    fun performRedo(): Boolean {
+        if (redoStack.isEmpty()) return false
+
+        // Bước 1: Lưu state hiện tại vào undoStack
+        val currentState = createCurrentStateSnapshot()
+        undoStack.addLast(currentState)
+
+        // Bước 2: Lấy state từ redoStack
+        val nextState = redoStack.removeLast()
+
+        // Bước 3: Restore state
+        restoreState(nextState)
+
+        // Bước 4: Update UI buttons
+        updateUndoRedoState()
+
+        return true
+    }
+
+    /**
+     * Restore state từ snapshot
+     */
+    private fun restoreState(state: CustomizeState) {
+        // Deep copy khi restore để tránh reference issues
+        positionColorItemList.clear()
+        positionColorItemList.addAll(state.positionColorItemList)
+
+        itemNavList.clear()
+        itemNavList.addAll(state.itemNavList.map { outerList ->
+            ArrayList(outerList.map { item ->
+                item.copy(listImageColor = ArrayList(item.listImageColor.map { it.copy() }))
+            })
+        })
+
+        colorItemNavList.clear()
+        colorItemNavList.addAll(state.colorItemNavList.map { outerList ->
+            ArrayList(outerList.map { it.copy() })
+        })
+
+        isSelectedItemList.clear()
+        isSelectedItemList.addAll(state.isSelectedItemList)
+
+        keySelectedItemList.clear()
+        keySelectedItemList.addAll(state.keySelectedItemList)
+
+        isShowColorList.clear()
+        isShowColorList.addAll(state.isShowColorList)
+
+        pathSelectedList.clear()
+        pathSelectedList.addAll(state.pathSelectedList)
+
+        positionNavSelected = state.positionNavSelected
+        positionCustom = state.positionCustom
+    }
+
+    /**
+     * Update trạng thái enable/disable của Undo/Redo buttons
+     */
+    private fun updateUndoRedoState() {
+        _canUndo.value = undoStack.isNotEmpty()
+        _canRedo.value = redoStack.isNotEmpty()
+    }
+
+    /**
+     * Clear toàn bộ history (gọi khi reset hoặc khởi tạo mới)
+     */
+    fun clearUndoRedoHistory() {
+        undoStack.clear()
+        redoStack.clear()
+        updateUndoRedoState()
+    }
 
 }

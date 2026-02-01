@@ -393,13 +393,13 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             setImageActionBar(btnActionBarRight, R.drawable.ic_save_addbg)
             btnActionBarRight.visible()
 
-            // Căn giữa nút reset vào guideline
-            val params = btnActionBarCenter.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
-            params.endToEnd = guideline.id
-            params.startToStart = guideline.id
-            params.horizontalBias = 0.5f
-            params.marginEnd = 0
-            btnActionBarCenter.layoutParams = params
+//            // Căn giữa nút reset vào guideline
+//            val params = btnActionBarCenter.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+//            params.endToEnd = guideline.id
+//            params.startToStart = guideline.id
+//            params.horizontalBias = 0.5f
+//            params.marginEnd = 0
+//            btnActionBarCenter.layoutParams = params
         }
     }
 
