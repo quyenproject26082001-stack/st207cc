@@ -1,7 +1,9 @@
 package com.pony.avatar.ocmaker.ui.emoji_custom
 
 import android.annotation.SuppressLint
+import android.app.ActivityOptions
 import android.app.Dialog
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,16 +32,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.pony.avatar.ocmaker.R
 import com.pony.avatar.ocmaker.core.base.BaseActivity
 import com.pony.avatar.ocmaker.core.extensions.handleBackLeftToRight
+import com.pony.avatar.ocmaker.core.extensions.hideNavigation
 import com.pony.avatar.ocmaker.core.extensions.setImageActionBar
 import com.pony.avatar.ocmaker.core.extensions.showInterAll
 import com.pony.avatar.ocmaker.core.extensions.tap
 import com.pony.avatar.ocmaker.core.extensions.visible
 import com.pony.avatar.ocmaker.core.extensions.invisible
+import com.pony.avatar.ocmaker.core.helper.BitmapHelper
 import com.pony.avatar.ocmaker.core.helper.EmojiApiHelper
 import com.pony.avatar.ocmaker.core.helper.LanguageHelper
+import com.pony.avatar.ocmaker.core.helper.MediaHelper
 import com.pony.avatar.ocmaker.core.utils.key.DrawKey
 import com.pony.avatar.ocmaker.core.utils.key.EmojiApiConfig
 import com.pony.avatar.ocmaker.core.utils.key.EmojiCategory
+import com.pony.avatar.ocmaker.core.utils.key.IntentKey
+import com.pony.avatar.ocmaker.core.utils.key.ValueKey
+import com.pony.avatar.ocmaker.core.utils.state.SaveState
 import com.pony.avatar.ocmaker.databinding.ActivityEmojiCustomBinding
 import com.pony.avatar.ocmaker.databinding.DialogLayerBinding
 import com.pony.avatar.ocmaker.data.model.draw.Draw
@@ -49,9 +57,11 @@ import com.pony.avatar.ocmaker.dialog.DialogType
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
 import com.pony.avatar.ocmaker.listener.listenerdraw.OnDrawListener
 import com.pony.avatar.ocmaker.ui.emoji_custom.adapter.LayerAdapter
+import com.pony.avatar.ocmaker.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -350,20 +360,45 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun handleSave() {
-        if (selectedDraws.values.all { it == null }) {
-           // showToast(R.string.please_select_item)
-            return
-        }
+        // Hide selection before save
+        binding.layoutCustomLayer.hideSelect()
 
-        lifecycleScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.Default) {
-                    binding.layoutCustomLayer.save()
+        lifecycleScope.launch(Dispatchers.IO) {
+            showLoading()
+            delay(200)
+
+            val bitmap = BitmapHelper.createBimapFromView(binding.layoutCustomLayer)
+            MediaHelper.saveBitmapToInternalStorage(
+                this@EmojiCustomActivity,
+                ValueKey.DOWNLOAD_ALBUM,
+                bitmap
+            ).collect { result ->
+                when (result) {
+                    is SaveState.Loading -> showLoading()
+
+                    is SaveState.Error -> {
+                        dismissLoading(true)
+                        withContext(Dispatchers.Main) {
+                            showToast(R.string.save_failed_please_try_again)
+                        }
+                    }
+
+                    is SaveState.Success -> {
+                        val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
+                        intent.putExtra(IntentKey.INTENT_KEY, result.path)
+                        val options = ActivityOptions.makeCustomAnimation(
+                            this@EmojiCustomActivity,
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left
+                        )
+                        dismissLoading(true)
+                        withContext(Dispatchers.Main) {
+                            showInterAll {
+                                startActivity(intent, options.toBundle())
+                            }
+                        }
+                    }
                 }
-                // TODO: Save bitmap to gallery or share
-                showToast("Saved successfully!")
-            } catch (e: Exception) {
-                showToast("Save failed: ${e.message}")
             }
         }
     }
