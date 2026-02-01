@@ -49,6 +49,8 @@ import com.pony.avatar.ocmaker.dialog.DialogType
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
 import com.pony.avatar.ocmaker.listener.listenerdraw.OnDrawListener
 import com.pony.avatar.ocmaker.ui.emoji_custom.adapter.LayerAdapter
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -156,10 +158,40 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         layerAdapter.submitList(items)
     }
 
+    override fun dataObservable() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observe Undo state from DrawView
+                launch {
+                    binding.layoutCustomLayer.canUndo.collect { canUndo ->
+                        binding.actionBar.btnActionBarCenterLeft.apply {
+                            isEnabled = canUndo
+                            alpha = if (canUndo) 1.0f else 0.3f
+                        }
+                    }
+                }
+
+                // Observe Redo state from DrawView
+                launch {
+                    binding.layoutCustomLayer.canRedo.collect { canRedo ->
+                        binding.actionBar.btnActionBarCenterRight.apply {
+                            isEnabled = canRedo
+                            alpha = if (canRedo) 1.0f else 0.3f
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun viewListener() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
             actionBar.btnActionBarRightText.tap { handleSave() }
+
+            // Undo/Redo button listeners
+            actionBar.btnActionBarCenterLeft.tap { handleUndo() }
+            actionBar.btnActionBarCenterRight.tap { handleRedo() }
 
             // Flip buttons
             btnFlipH.tap {
@@ -274,7 +306,31 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
             btnActionBarRightText.visible()
             btnActionBarRight.invisible()
+
+            // Show Undo/Redo buttons
+            btnActionBarCenterLeft.visible()
+            btnActionBarCenterRight.visible()
+
+            // Set initial state (disabled until first action)
+            btnActionBarCenterLeft.alpha = 0.3f
+            btnActionBarCenterRight.alpha = 0.3f
+            btnActionBarCenterLeft.isEnabled = false
+            btnActionBarCenterRight.isEnabled = false
         }
+    }
+
+    /**
+     * Handle Undo button click
+     */
+    private fun handleUndo() {
+        binding.layoutCustomLayer.undo()
+    }
+
+    /**
+     * Handle Redo button click
+     */
+    private fun handleRedo() {
+        binding.layoutCustomLayer.redo()
     }
 
     private fun confirmExit() {
