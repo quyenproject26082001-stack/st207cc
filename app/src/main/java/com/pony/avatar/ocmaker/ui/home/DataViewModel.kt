@@ -41,6 +41,14 @@ class DataViewModel() : ViewModel() {
     private val _getDataAPI = MutableLiveData<List<PartAPI>>()
     val getDataAPI: LiveData<List<PartAPI>> get() = _getDataAPI
 
+    private val _typeStatus = MutableStateFlow<Int>(-1)
+    val typeStatus = _typeStatus.asStateFlow()
+
+    fun setTypeStatus(type: Int){
+        if (type == _typeStatus.value) return
+        _typeStatus.value = type
+    }
+
     fun saveAndReadData(context: Context) {
         viewModelScope.launch {
             val timeStart = System.currentTimeMillis()
@@ -88,8 +96,8 @@ class DataViewModel() : ViewModel() {
         viewModelScope.launch {
             val list = withContext(Dispatchers.IO) {
                 when (dataType) {
-                    1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
-                    2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
+                    ValueKey.CAT_MAKER_TYPE -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
+                    ValueKey.EMOJI_CAT_TYPE -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
                     else -> arrayListOf()
                 }
             }

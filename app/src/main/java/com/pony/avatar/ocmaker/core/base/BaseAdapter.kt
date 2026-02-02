@@ -14,7 +14,7 @@ abstract class BaseAdapter<T, VB : ViewBinding>(private val bindingInflater: (La
 
     inner class BaseViewHolder(val binding: VB) : RecyclerView.ViewHolder(binding.root) {
         fun bindItem(item: T, position: Int) {
-            onBind(binding, item, position)
+            onBindHolder(this, binding, item, position) // ✅ gọi hook mới
         }
     }
 
@@ -59,4 +59,10 @@ abstract class BaseAdapter<T, VB : ViewBinding>(private val bindingInflater: (La
     }
 
     protected abstract fun onBind(binding: VB, item: T, position: Int)
+
+    // ✅ NEW: hook có holder (mặc định gọi API cũ)
+    protected open fun onBindHolder(holder: BaseViewHolder, binding: VB, item: T, position: Int) {
+        onBind(binding, item, position)
+    }
+
 }

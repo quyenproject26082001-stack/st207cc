@@ -123,7 +123,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                     if (bottomNavigationList.isNotEmpty()) {
                         bottomNavigationCustomizeAdapter.submitList(bottomNavigationList)
                         layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
-                        colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                        colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
                         if (viewModel.colorItemNavList[viewModel.positionNavSelected].isNotEmpty()) {
                             binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList[viewModel.positionNavSelected].indexOfFirst { it.isSelected })
                         }
@@ -348,7 +348,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                     }
 
                     layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
-                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
                     checkStatusColor()
                     viewModel.setIsCreated(true)
                     dismissLoading()
@@ -517,7 +517,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                     .into(viewModel.imageViewList[viewModel.positionCustom])
                 layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
                 if (isMoreColors) {
-                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
                     binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList[viewModel.positionNavSelected].indexOfFirst { it.isSelected })
                 }
             }
@@ -544,7 +544,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                 }
 
                 // 4. Update highlight trong rcvColor
-                colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
 
                 // 5. ⭐ Refresh rcvLayer với data mới (tất cả items đã đổi màu)
                 // Sử dụng .toList() để tạo list mới, giúp DiffUtil detect changes
@@ -719,7 +719,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                     Glide.with(this@CustomizeCharacterActivity).load(pathDefault)
                         .into(viewModel.imageViewList[viewModel.dataCustomize.value!!.layerList.first().positionCustom])
                     layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
-                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
                     showInterAll { hideNavigation(false) }
                 }
             }
@@ -748,7 +748,7 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                         .into(viewModel.imageViewList[index])
                 }
                 layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
-                colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected].toList())
                 if (isOutTurn) binding.btnRandom.invisible()
                 val timeEnd = System.currentTimeMillis()
                 showInterAll {

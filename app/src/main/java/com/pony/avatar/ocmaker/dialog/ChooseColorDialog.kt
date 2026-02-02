@@ -44,7 +44,7 @@ class ChooseColorDialog(context: Context) : BaseDialog<DialogColorPickerBinding>
             colorPickerView.setOnColorChangedListener {
                 color = it
                 // Update the color string display in real-time
-             tvColorString.text = String.format("#%06X", 0xFFFFFF and it)
+             //tvColorString.text = String.format("#%06X", 0xFFFFFF and it)
             }
             btnClose.tap { onCloseEvent.invoke() }
             btnDone.tap { onDoneEvent.invoke(color) }

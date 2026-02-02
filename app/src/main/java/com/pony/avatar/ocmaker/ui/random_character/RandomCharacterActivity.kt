@@ -2,11 +2,13 @@ package com.pony.avatar.ocmaker.ui.random_character
 
 import android.app.ActivityOptions
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.pony.avatar.ocmaker.R
 import com.pony.avatar.ocmaker.ui.customize.CustomizeCharacterActivity
 import com.pony.avatar.ocmaker.ui.customize.CustomizeCharacterViewModel
@@ -14,6 +16,7 @@ import com.pony.avatar.ocmaker.ui.home.DataViewModel
 import com.pony.avatar.ocmaker.core.base.BaseActivity
 import com.pony.avatar.ocmaker.core.extensions.dLog
 import com.pony.avatar.ocmaker.core.extensions.eLog
+import com.pony.avatar.ocmaker.core.extensions.gone
 import com.pony.avatar.ocmaker.core.extensions.handleBackLeftToRight
 import com.pony.avatar.ocmaker.core.extensions.hideNavigation
 import com.pony.avatar.ocmaker.core.extensions.loadNativeCollabAds
@@ -27,6 +30,7 @@ import com.pony.avatar.ocmaker.core.helper.InternetHelper
 import com.pony.avatar.ocmaker.core.helper.MediaHelper
 import com.pony.avatar.ocmaker.core.utils.key.IntentKey
 import com.pony.avatar.ocmaker.core.utils.key.ValueKey
+import com.pony.avatar.ocmaker.data.model.custom.CustomizeModel
 import com.pony.avatar.ocmaker.data.model.custom.SuggestionModel
 import com.pony.avatar.ocmaker.databinding.ActivityRandomCharacterBinding
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
@@ -47,29 +51,188 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
     private val customizeCharacterViewModel: CustomizeCharacterViewModel by viewModels()
     private val randomCharacterAdapter by lazy { RandomCharacterAdapter(this) }
 
+    private var currentDataType = ValueKey.CAT_MAKER_TYPE // hoặc lấy từ intent
+
+
     override fun setViewBinding(): ActivityRandomCharacterBinding {
         return ActivityRandomCharacterBinding.inflate(LayoutInflater.from(this))
     }
 
     override fun initView() {
         dataViewModel.ensureData(this)
+        initRcv() // ✅ gắn adapter sớm
+        currentDataType = ValueKey.CAT_MAKER_TYPE
+        dataViewModel.setTypeStatus(currentDataType)
+        dataViewModel.loadDataByType(this, currentDataType)
+
     }
 
     override fun dataObservable() {
+        binding.apply {
         lifecycleScope.launch {
             lifecycleScope.launch {
                 dataViewModel.allData.collect { data ->
                     if (data.isNotEmpty()) {
-                        initData()
+                        renderByType(data)
+                    }
+                }
+                dataViewModel.typeStatus.collect { type ->
+                    if(type!=-1){
+                        if(type == ValueKey.CAT_MAKER_TYPE)
+                        {
+                            binding.cvType.setBackgroundResource(R.drawable.bg_1_selected)
+                            setupSelectedTab(
+                                btnCatMaker,
+                                tvSpace,
+                                imvFocusMyAvatar,
+                                subTabMyAvatar,
+                                isLeftTab = true
+                            )
+                            setupUnselectedTab(
+                                btnEmojiCat,
+                                tvMyDesign,
+                                imvFocusMyDesign,
+                                subTabMyDesign,
+                                isLeftTab = false
+                            )
+                        }
+                        else{
+                            binding.cvType.setBackgroundResource(R.drawable.bg_2_selected)
+                            setupSelectedTab(
+                                btnEmojiCat,
+                                tvMyDesign,
+                                imvFocusMyDesign,
+                                subTabMyDesign,
+                                isLeftTab = false
+                            )
+                            setupUnselectedTab(
+                                btnCatMaker,
+                                tvSpace,
+                                imvFocusMyAvatar,
+                                subTabMyAvatar,
+                                isLeftTab = true
+                            )
+                        }
+
                     }
                 }
             }
         }
     }
+    }
+
+    private fun renderByType(data: List<CustomizeModel>) {
+        val type = dataViewModel.typeStatus.value
+        if (type == -1) return
+
+        viewModel.getCached(type)?.let {
+            randomCharacterAdapter.submitList(it)
+            return
+        }
+        generateRandomListAndCache(data, type)
+    }
+
+
+    private fun generateRandomListAndCache(data: List<CustomizeModel>, type: Int) {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            showLoading()
+
+            val newList = ArrayList<SuggestionModel>()
+
+            val filteredData = data // vì dataViewModel.loadDataByType đã trả đúng type rồi
+            for (i in filteredData.indices) {
+                val currentData = filteredData[i]
+                customizeCharacterViewModel.setDataCustomize(currentData)
+                customizeCharacterViewModel.updateAvatarPath(currentData.avatar)
+                customizeCharacterViewModel.resetDataList()
+                customizeCharacterViewModel.addValueToItemNavList()
+                customizeCharacterViewModel.setItemColorDefault()
+                customizeCharacterViewModel.setBottomNavigationListDefault()
+
+                for (j in 0 until ValueKey.RANDOM_QUANTITY) {
+                    customizeCharacterViewModel.setClickRandomFullLayer()
+                    val suggestion = customizeCharacterViewModel.getSuggestionList()
+                    newList.add(suggestion)
+                }
+            }
+
+            newList.shuffle()
+            viewModel.setCached(type, newList)
+
+            withContext(Dispatchers.Main) {
+                dismissLoading()
+                randomCharacterAdapter.submitList(newList)
+            }
+        }
+    }
+
+
+    private fun setupSelectedTab(
+        tabView: View,
+        textView: android.widget.TextView,
+        focusImage: android.widget.ImageView,
+        subTab: View,
+        isLeftTab: Boolean
+    ) {
+        val params = tabView.layoutParams as android.widget.LinearLayout.LayoutParams
+        params.weight = 1.0f
+        params.topMargin = 0
+
+        // nếu vẫn cần overlap thì giữ, còn không thì set về 0
+        if (isLeftTab) params.marginEnd = 0 else params.marginStart = 0
+        tabView.layoutParams = params
+
+        // Text selected
+        textView.textSize = 16f
+        textView.paint.shader = null
+        textView.setTextColor(Color.WHITE)
+
+        // ❌ Không dùng background tab nữa
+        focusImage.gone()
+        subTab.gone()
+    }
+
+
+    private fun setupUnselectedTab(
+        tabView: View,
+        textView: android.widget.TextView,
+        focusImage: android.widget.ImageView,
+        subTab: View,
+        isLeftTab: Boolean
+    ) {
+        val params = tabView.layoutParams as android.widget.LinearLayout.LayoutParams
+        params.weight = 1f
+        params.topMargin = 0
+
+        // nếu vẫn cần overlap thì giữ, còn không thì set về 0
+        if (isLeftTab) params.marginEnd = 0 else params.marginStart = 0
+        tabView.layoutParams = params
+
+        // Text unselected
+        textView.textSize = 16f
+        textView.paint.shader = null
+        textView.setTextColor(Color.parseColor("#497E00"))
+
+        // ❌ Không dùng background tab nữa
+        focusImage.gone()
+        subTab.gone()
+    }
 
     override fun viewListener() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { showInterAll{handleBackLeftToRight()} }
+
+            btnCatMaker.tap {
+                currentDataType = ValueKey.CAT_MAKER_TYPE
+                dataViewModel.setTypeStatus(ValueKey.CAT_MAKER_TYPE) // 0
+                dataViewModel.loadDataByType(this@RandomCharacterActivity, ValueKey.CAT_MAKER_TYPE)
+            }
+            btnEmojiCat.tap {
+                currentDataType = ValueKey.EMOJI_CAT_TYPE
+
+                dataViewModel.setTypeStatus(ValueKey.EMOJI_CAT_TYPE) // 1 (đổi đúng key của bạn)
+                dataViewModel.loadDataByType(this@RandomCharacterActivity, ValueKey.EMOJI_CAT_TYPE)
+            }
 
         }
 
@@ -181,28 +344,11 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
         binding.rcvRandomCharacter.apply {
             adapter = randomCharacterAdapter
             itemAnimator = null
-
-            // ✅ PERFORMANCE OPTIMIZATIONS
-            // Cache more ViewHolders to avoid recreating them
             setItemViewCacheSize(20)
-
-            // Use a shared RecycledViewPool for better performance
-            setRecycledViewPool(androidx.recyclerview.widget.RecyclerView.RecycledViewPool().apply {
-                setMaxRecycledViews(0, 30)
-            })
-
-            // Enable drawing cache (deprecated but can help on older devices)
+            setRecycledViewPool(RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 30) })
             isDrawingCacheEnabled = true
-            setHasFixedSize(true) // All items have the same size
-
+            setHasFixedSize(true)
         }
-        dLog("==========================================================")
-        dLog("initRcv: Submitting ${viewModel.randomList.size} items to adapter")
-        viewModel.randomList.forEachIndexed { index, item ->
-            dLog("Item $index: Avatar=${item.avatarPath}, Layers=${item.pathSelectedList.size}")
-        }
-        dLog("==========================================================")
-        randomCharacterAdapter.submitList(viewModel.randomList)
     }
 
     private fun handleItemClick(model: SuggestionModel) {

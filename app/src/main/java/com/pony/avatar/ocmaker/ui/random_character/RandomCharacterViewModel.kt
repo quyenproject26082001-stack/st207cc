@@ -7,6 +7,7 @@ import com.pony.avatar.ocmaker.core.utils.state.HandleState
 import com.pony.avatar.ocmaker.data.model.custom.SuggestionModel
 import com.pony.avatar.ocmaker.ui.customize.CustomizeCharacterActivity
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class RandomCharacterViewModel : ViewModel() {
 
@@ -15,6 +16,18 @@ class RandomCharacterViewModel : ViewModel() {
     private val _isDataAPI = MutableStateFlow(false)
     //-----------------------------------------------------------------------------------------------------------------
 
+    private val cache = mutableMapOf<Int, ArrayList<SuggestionModel>>()
+
+    fun getCached(type: Int): ArrayList<SuggestionModel>? = cache[type]
+
+    fun setCached(type: Int,list: ArrayList<SuggestionModel>){
+        cache[type] = list
+    }
+
+    fun clearCache(type: Int? = null){
+        if(type ==null) cache.clear() else cache.remove(type)
+    }
+
     suspend fun updateRandomList(suggestionModel: SuggestionModel){
         randomList.add(suggestionModel)
     }
@@ -22,6 +35,14 @@ class RandomCharacterViewModel : ViewModel() {
 
     fun setIsDataAPI(isAPI: Boolean) {
         _isDataAPI.value = isAPI
+    }
+
+    private val _typeStatus = MutableStateFlow<Int>(-1)
+    val typeStatus = _typeStatus.asStateFlow()
+
+    fun setTypeStatus(type: Int){
+        if (type == _typeStatus.value) return
+        _typeStatus.value = type
     }
 
     fun checkDataInternet(context: RandomCharacterActivity, action: (() -> Unit)) {

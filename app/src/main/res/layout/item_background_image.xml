@@ -57,7 +57,6 @@
                     android:layout_height="match_parent"
                     android:adjustViewBounds="true"
                     android:scaleType="fitXY"
-
                     android:src="@drawable/ic_add_item" />
 
                 <LinearLayout

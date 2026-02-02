@@ -2,6 +2,7 @@
 <resources>
     <color name="white">#FFFFFFFF</color>
     <color name="app">#7AAB36</color>
+    <color name="app_bg">#497E00</color>
     <color name="black">#000000</color>
     <color name="transparent">#00FFFFFF</color>
     <color name="orange_F6">#F68300</color>

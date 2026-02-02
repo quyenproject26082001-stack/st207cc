@@ -40,23 +40,20 @@ class BottomNavigationCustomizeAdapter(private val context: Context) :
         fun bind(item: NavigationModel, position: Int) = with(binding) {
 
             // Apply circular clipping to cvContent (so shimmer/image fills circle and doesn't overflow)
-            cvContent.clipToOutline = true
-            cvContent.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setOval(0, 0, view.width, view.height)
-                }
-            }
+            cvContent.clipToOutline = false
+
 
             // Apply circular clipping to imvImage (shimmer layer - fills full circle)
-            imvImage.clipToOutline = true
+            imvImage.clipToOutline = false
             imvImage.outlineProvider = object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
                     outline.setOval(0, 0, view.width, view.height)
                 }
             }
 
+
             // Apply circular clipping to imvImageBG (actual image layer - with margin)
-            imvImageBG.clipToOutline = true
+            imvImageBG.clipToOutline = false
             imvImageBG.outlineProvider = object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
                     outline.setOval(0, 0, view.width, view.height)
@@ -74,21 +71,16 @@ class BottomNavigationCustomizeAdapter(private val context: Context) :
 
             if (item.isSelected) {
                 imvImage.setBackgroundColor(Color.TRANSPARENT)
+                imvImageBG.background = null // hoặc Color.TRANSPARENT nếu bạn thích
+
                 cvContent.setBackgroundResource(R.drawable.bg_select_navi_shape)
-
-                // Use translationY for visual effect without affecting layout
-                cvContent.translationZ = 0f
-                cvContent.translationY = -offset
-
             } else {
-                // Use same bottom margin as selected to maintain consistent height
-                binding.main.setMargins(0, 15.dp(context), 8.dp(context), 15.dp(context))
-
                 imvImage.setBackgroundColor(Color.TRANSPARENT)
-                cvContent.setBackgroundResource(R.drawable.bg_uslt_navi_shape)
-                cvContent.translationZ = 0f
-                cvContent.translationY = 0f
+                imvImageBG.background = null
+
+                cvContent.setBackgroundResource(R.drawable.bg_unselect_navi_shape)
             }
+
 
             // Layer 1: imvImage - shimmer fills full circle (0dp margin)
             val shimmerDrawable = ShimmerDrawable().apply {
