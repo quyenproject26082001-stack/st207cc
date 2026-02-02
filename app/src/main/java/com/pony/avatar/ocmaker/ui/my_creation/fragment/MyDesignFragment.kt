@@ -173,6 +173,9 @@ class MyDesignFragment : BaseFragment<FragmentMyDesignBinding>() {
             // In selection mode - reset before navigating
             resetSelectionMode()
         }
+
+        // Always navigate to ViewActivity first
+        // ViewActivity will handle showing edit button for editable emojis
         val intent = Intent(myAlbumActivity, ViewActivity::class.java)
         intent.putExtra(IntentKey.INTENT_KEY, pathInternal)
         intent.putExtra(IntentKey.TYPE_KEY, ValueKey.TYPE_VIEW)

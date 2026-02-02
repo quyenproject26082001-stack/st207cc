@@ -128,6 +128,9 @@
     <string name="do_you_want_to_exit">Do you want to exit?</string>
     <string name="please_select_item">Please select an item</string>
     <string name="layer">Layer</string>
-    <string name="title_11">Diverse Character Style</string>
-    <string name="title_22">Create Your Own Avatar \nHowever You Like</string>
+    <string name="title_11">Cat Maker</string>
+    <string name="title_22">Cat Emoji Custom</string>
+    <string name="cat_sticker">Cat Sticker</string>
+    <string name="cat_emoji_maker">Cat Emoji Maker</string>
+    <string name="cat_emoji_customizer">Cat Emoji Custom</string>
 </resources>

@@ -109,15 +109,14 @@
         app:layout_constraintStart_toEndOf="@+id/btnActionBarLeft"
         app:layout_constraintTop_toTopOf="@+id/btnActionBarLeft" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="123dp"
+    <FrameLayout
+        android:id="@+id/bgBtnActionBar"
+        android:layout_width="125dp"
         android:layout_height="39dp"
-        android:background="@drawable/bg_action_bar_action"
-        app:layout_constraintBottom_toBottomOf="@+id/btnActionBarLeft"
-        app:layout_constraintEnd_toEndOf="@id/guideline"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="@+id/btnActionBarLeft"
-        >
+        app:layout_constraintStart_toEndOf="@id/btnActionBarLeft"
+        app:layout_constraintEnd_toStartOf="@id/btnActionBarRight"
+        app:layout_constraintTop_toTopOf="@id/btnActionBarLeft"
+        app:layout_constraintBottom_toBottomOf="@id/btnActionBarLeft">
     <!--    btnActionBarCenter-->
     <ImageView
         android:id="@+id/btnActionBarCenter"
@@ -125,15 +124,12 @@
         android:layout_height="22dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:visibility="invisible"
-        android:src="@drawable/ic_reset"
-        app:layout_constraintStart_toEndOf="@id/btnActionBarCenterLeft"
-        app:layout_constraintEnd_toStartOf="@id/btnActionBarCenterRight"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible"
+        android:src="@drawable/ic_reset"
+        android:layout_gravity="center"
          />
 
-    <!--    btnActionBarCenter-->
+    <!--    btnActionBarCenterLeft - Undo Button -->
     <ImageView
         android:id="@+id/btnActionBarCenterLeft"
         android:layout_width="24dp"
@@ -141,31 +137,26 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:visibility="invisible"
         tools:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@id/btnActionBarCenter"
         android:src="@drawable/ic_undo"
-        app:layout_constraintHorizontal_bias="0.65"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-       />
+        android:layout_marginStart="15dp"
+        android:layout_gravity="start|center_vertical"
+        android:alpha="0.3"
+         />
 
-    <!--    btnActionBarCenterRight-->
+    <!--    btnActionBarCenterRight - Redo Button -->
     <ImageView
         android:id="@+id/btnActionBarCenterRight"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:visibility="gone"
+        android:visibility="invisible"
+        android:layout_marginEnd="15dp"
         tools:visibility="visible"
-        app:layout_constraintStart_toEndOf="@id/btnActionBarCenter"
+        android:layout_gravity="end|center_vertical"
         android:src="@drawable/ic_redo"
-        app:layout_constraintHorizontal_bias="0.35"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        android:alpha="0.3"
+         />
+    </FrameLayout>
     <!--    btnActionBarNextRight-->
     <ImageView
         android:id="@+id/btnActionBarNextRight"

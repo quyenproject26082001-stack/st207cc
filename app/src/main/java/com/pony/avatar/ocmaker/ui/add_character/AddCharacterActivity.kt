@@ -300,18 +300,20 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                         }
                     }
 
+                    // Observe Undo state from DrawView
                     launch {
-                        viewModel.canUndo.collect { canUndo ->
-                            binding.actionBar.btnActionBarCenterLeft.apply {
+                        drawView.canUndo.collect { canUndo ->
+                            actionBar.btnActionBarCenterLeft.apply {
                                 isEnabled = canUndo
                                 alpha = if (canUndo) 1.0f else 0.3f
                             }
                         }
                     }
 
+                    // Observe Redo state from DrawView
                     launch {
-                        viewModel.canRedo.collect { canRedo ->
-                            binding.actionBar.btnActionBarCenterRight.apply {
+                        drawView.canRedo.collect { canRedo ->
+                            actionBar.btnActionBarCenterRight.apply {
                                 isEnabled = canRedo
                                 alpha = if (canRedo) 1.0f else 0.3f
                             }
@@ -327,11 +329,12 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             actionBar.apply {
                 btnActionBarLeft.tap { confirmExit() }
                 btnActionBarCenter.tap { confirmReset() }
-                btnActionBarCenterLeft.tap { handleUndo() }
-                btnActionBarCenterRight.tap { handleRedo() }
                 btnActionBarRight.tap {
                     handleSave()
                 }
+                // Undo/Redo button listeners
+                btnActionBarCenterLeft.tap { handleUndo() }
+                btnActionBarCenterRight.tap { handleRedo() }
             }
             btnBackgroundImage.tap { viewModel.setTypeBackground(ValueKey.IMAGE_BACKGROUND) }
             btnBackgroundColor.tap { viewModel.setTypeBackground(ValueKey.COLOR_BACKGROUND) }
@@ -345,8 +348,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
 
                 override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                     binding.tvGetText.text = p0.toString()
-                    // Update cache
-                    viewModel.cachedCurrentText = p0.toString()
                 }
 
                 override fun afterTextChanged(p0: Editable?) {}
@@ -411,11 +412,20 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
+            setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             setImageActionBar(btnActionBarRight, R.drawable.ic_save_addbg)
             btnActionBarRight.visible()
+            btnActionBarCenter.invisible() // Hide reset center button
+
+            // Show Undo/Redo buttons
             btnActionBarCenterLeft.visible()
-            btnActionBarCenter.visible()
             btnActionBarCenterRight.visible()
+
+            // Set initial state (disabled until first action)
+            btnActionBarCenterLeft.alpha = 0.3f
+            btnActionBarCenterRight.alpha = 0.3f
+            btnActionBarCenterLeft.isEnabled = false
+            btnActionBarCenterRight.isEnabled = false
         }
     }
 
@@ -503,14 +513,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                 binding.edtText.setTextColor(viewModel.textColorList[1].color)
                 binding.tvGetText.setFont(viewModel.textFontList.first().color)
                 binding.tvGetText.setTextColor(viewModel.textColorList[1].color)
-
-                // Initialize cache với giá trị mặc định
-                viewModel.cachedBackgroundImagePath = ""
-                viewModel.cachedBackgroundColor = getColor(R.color.transparent)
-                viewModel.cachedCurrentText = ""
-                viewModel.cachedCurrentTextFont = viewModel.textFontList.first().color
-                viewModel.cachedCurrentTextColor = viewModel.textColorList[1].color
-
                 delay(200)
                 binding.drawView.autoSelectFirstDraw()
 
@@ -589,9 +591,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             setOnDrawListener(object : OnDrawListener {
                 override fun onAddedDraw(draw: Draw) {
                     Log.d("EditTextFlow", "DrawView: onAddedDraw")
-                    // Lưu state trước khi add
-                    viewModel.saveStateForUndo()
-
                     viewModel.updateCurrentCurrentDraw(draw)
                     viewModel.addDrawView(draw)
                     viewModel.setIsFocusEditText(false)
@@ -604,9 +603,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
 
                 override fun onDeletedDraw(draw: Draw) {
                     Log.d("EditTextFlow", "DrawView: onDeletedDraw")
-                    // Lưu state trước khi delete
-                    viewModel.saveStateForUndo()
-
                     viewModel.deleteDrawView(draw)
                     viewModel.setIsFocusEditText(false)
                 }
@@ -764,6 +760,22 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
         }
     }
 
+    /**
+     * Handle Undo button click
+     */
+    private fun handleUndo() {
+        viewModel.setIsFocusEditText(false)
+        binding.drawView.undo()
+    }
+
+    /**
+     * Handle Redo button click
+     */
+    private fun handleRedo() {
+        viewModel.setIsFocusEditText(false)
+        binding.drawView.redo()
+    }
+
     private fun confirmExit() {
         val dialog =
             YesNoDialog(this, R.string.exit, R.string.do_you_want_to_exit,  isError = false,
@@ -797,10 +809,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             dismissDialog()
             lifecycleScope.launch {
                 showLoading()
-
-                // Lưu state trước khi reset
-                viewModel.saveStateForUndo()
-
                 withContext(Dispatchers.IO) {
                     viewModel.loadDataDefault(this@AddCharacterActivity)
                     viewModel.resetDraw()
@@ -820,107 +828,15 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                 speechAdapter.submitList(viewModel.speechList)
                 textFontAdapter.submitListReset(viewModel.textFontList)
                 textColorAdapter.submitListReset(viewModel.textColorList)
-
-                // Update cache
-                viewModel.cachedBackgroundImagePath = ""
-                viewModel.cachedBackgroundColor = getColor(R.color.transparent)
-                viewModel.cachedCurrentText = ""
-                viewModel.cachedCurrentTextFont = viewModel.textFontList.first().color
-                viewModel.cachedCurrentTextColor = viewModel.textColorList[1].color
-
                 dismissLoading(true)
                 showInterAll()
             }
         }
     }
 
-    private fun handleUndo() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val success = viewModel.performUndo()
-            if (success) {
-                withContext(Dispatchers.Main) {
-                    // Restore background
-                    if (viewModel.cachedBackgroundImagePath.isNotEmpty()) {
-                        loadImage(this@AddCharacterActivity, viewModel.cachedBackgroundImagePath, binding.imvBackground)
-                    } else {
-                        binding.imvBackground.setImageBitmap(null)
-                        binding.imvBackground.setBackgroundColor(viewModel.cachedBackgroundColor)
-                    }
-
-                    // Restore all draws
-                    binding.drawView.removeAllDraw()
-                    viewModel.drawViewList.forEach { draw ->
-                        binding.drawView.addDraw(draw)
-                    }
-
-                    // Restore text
-                    binding.edtText.setText(viewModel.cachedCurrentText)
-                    binding.edtText.setFont(viewModel.cachedCurrentTextFont)
-                    binding.edtText.setTextColor(viewModel.cachedCurrentTextColor)
-                    binding.tvGetText.setFont(viewModel.cachedCurrentTextFont)
-                    binding.tvGetText.setTextColor(viewModel.cachedCurrentTextColor)
-
-                    // Update adapters
-                    backgroundImageAdapter.submitList(viewModel.backgroundImageList)
-                    backgroundColorAdapter.submitList(viewModel.backgroundColorList)
-                    stickerAdapter.submitList(viewModel.stickerList)
-                    speechAdapter.submitList(viewModel.speechList)
-                    textFontAdapter.submitListReset(viewModel.textFontList)
-                    textColorAdapter.submitListReset(viewModel.textColorList)
-                }
-            }
-        }
-    }
-
-    private fun handleRedo() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val success = viewModel.performRedo()
-            if (success) {
-                withContext(Dispatchers.Main) {
-                    // Restore background
-                    if (viewModel.cachedBackgroundImagePath.isNotEmpty()) {
-                        loadImage(this@AddCharacterActivity, viewModel.cachedBackgroundImagePath, binding.imvBackground)
-                    } else {
-                        binding.imvBackground.setImageBitmap(null)
-                        binding.imvBackground.setBackgroundColor(viewModel.cachedBackgroundColor)
-                    }
-
-                    // Restore all draws
-                    binding.drawView.removeAllDraw()
-                    viewModel.drawViewList.forEach { draw ->
-                        binding.drawView.addDraw(draw)
-                    }
-
-                    // Restore text
-                    binding.edtText.setText(viewModel.cachedCurrentText)
-                    binding.edtText.setFont(viewModel.cachedCurrentTextFont)
-                    binding.edtText.setTextColor(viewModel.cachedCurrentTextColor)
-                    binding.tvGetText.setFont(viewModel.cachedCurrentTextFont)
-                    binding.tvGetText.setTextColor(viewModel.cachedCurrentTextColor)
-
-                    // Update adapters
-                    backgroundImageAdapter.submitList(viewModel.backgroundImageList)
-                    backgroundColorAdapter.submitList(viewModel.backgroundColorList)
-                    stickerAdapter.submitList(viewModel.stickerList)
-                    speechAdapter.submitList(viewModel.speechList)
-                    textFontAdapter.submitListReset(viewModel.textFontList)
-                    textColorAdapter.submitListReset(viewModel.textColorList)
-                }
-            }
-        }
-    }
-
     private fun handleSetBackgroundImage(path: String, position: Int) {
-        // Lưu state trước khi thay đổi
-        viewModel.saveStateForUndo()
-
         binding.imvBackground.setBackgroundColor(getColor(R.color.transparent))
         loadImage(this, path, binding.imvBackground)
-
-        // Update cache
-        viewModel.cachedBackgroundImagePath = path
-        viewModel.cachedBackgroundColor = getColor(R.color.transparent)
-
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.updateBackgroundImageSelected(position)
             withContext(Dispatchers.Main) {
@@ -975,18 +891,9 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
 
     private fun handleSetBackgroundColor(color: Int, position: Int) {
         Log.d("AddCharacterActivity", "handleSetBackgroundColor called: color=${String.format("#%06X", 0xFFFFFF and color)}, position=$position")
-
-        // Lưu state trước khi thay đổi
-        viewModel.saveStateForUndo()
-
         binding.apply {
             imvBackground.setImageBitmap(null)
             imvBackground.setBackgroundColor(color)
-
-            // Update cache
-            viewModel.cachedBackgroundImagePath = ""
-            viewModel.cachedBackgroundColor = color
-
             lifecycleScope.launch(Dispatchers.IO) {
                 Log.d("AddCharacterActivity", "Before updateBackgroundColorSelected: list[0].color=${String.format("#%06X", 0xFFFFFF and viewModel.backgroundColorList[0].color)}")
                 viewModel.updateBackgroundColorSelected(position)
@@ -999,17 +906,10 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
     }
 
     private fun handleFontClick(font: Int, position: Int) {
-        // Lưu state trước khi thay đổi
-        viewModel.saveStateForUndo()
-
         binding.apply {
             edtText.hint = SpannableString(getString(R.string.hello_world))
             edtText.setFont(font)
             tvGetText.setFont(font)
-
-            // Update cache
-            viewModel.cachedCurrentTextFont = font
-
             viewModel.updateTextFontSelected(position)
             textFontAdapter.submitItem(position, viewModel.textFontList)
         }
@@ -1017,17 +917,9 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
 
     private fun handleTextColorClick(color: Int, position: Int) {
         Log.d("AddCharacterActivity", "handleTextColorClick called: color=${String.format("#%06X", 0xFFFFFF and color)}, position=$position")
-
-        // Lưu state trước khi thay đổi
-        viewModel.saveStateForUndo()
-
         binding.apply {
             edtText.setTextColor(color)
             tvGetText.setTextColor(color)
-
-            // Update cache
-            viewModel.cachedCurrentTextColor = color
-
             Log.d("AddCharacterActivity", "Before updateTextColorSelected: list[0].color=${String.format("#%06X", 0xFFFFFF and viewModel.textColorList[0].color)}")
             viewModel.updateTextColorSelected(position)
             Log.d("AddCharacterActivity", "After updateTextColorSelected: list[0].color=${String.format("#%06X", 0xFFFFFF and viewModel.textColorList[0].color)}, list[0].isSelected=${viewModel.textColorList[0].isSelected}")
@@ -1064,11 +956,6 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
                 tvGetText.text = ""
                 tvGetText.setFont(font)
                 tvGetText.setTextColor(color)
-
-                // Update cache sau khi reset
-                viewModel.cachedCurrentText = ""
-                viewModel.cachedCurrentTextFont = font
-                viewModel.cachedCurrentTextColor = color
             }
         }
     }
