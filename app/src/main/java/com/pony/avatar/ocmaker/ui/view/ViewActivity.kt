@@ -36,6 +36,7 @@ import com.pony.avatar.ocmaker.core.utils.state.HandleState
 import com.pony.avatar.ocmaker.databinding.ActivityViewBinding
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
 import com.pony.avatar.ocmaker.ui.customize.CustomizeCharacterActivity
+import com.pony.avatar.ocmaker.ui.emoji_custom.EmojiCustomActivity
 import com.pony.avatar.ocmaker.ui.home.DataViewModel
 import com.pony.avatar.ocmaker.ui.my_creation.fragment.MyAvatarFragment
 import com.pony.avatar.ocmaker.ui.my_creation.MyCreationActivity
@@ -75,11 +76,17 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
                 //  setImageActionBar(btnActionBarNextRight, R.drawable.ic_edit_view)
                 setImageActionBar(btnActionBarRight, R.drawable.ic_edit_view)
 
-                // Hide edit icon when coming from design section
-                if (viewModel.statusFrom == ValueKey.MY_DESIGN_TYPE) {
-                    btnActionBarRight.invisible()
+                // Handle edit button visibility based on source
+                when (viewModel.statusFrom) {
+                    ValueKey.AVATAR_TYPE -> {
+                        // Avatar tab - always show edit button (avatars and emojis are editable)
+                        // Keep visible (default)
+                    }
+                    ValueKey.MY_DESIGN_TYPE -> {
+                        // Design tab - only show edit button if it's an editable emoji
+                        checkAndShowEditButtonForDesign()
+                    }
                 }
-
             }
 
             // Set scaleType based on content type
@@ -89,6 +96,33 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
             } else {
                 // For designs, use center to maintain original size
                 imvImage.scaleType = android.widget.ImageView.ScaleType.CENTER
+            }
+        }
+    }
+
+    /**
+     * Check if the design item is an editable emoji and show/hide edit button accordingly
+     */
+    private fun checkAndShowEditButtonForDesign() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val pathInternal = viewModel.pathInternal.value
+            val isEditableEmoji = try {
+                val emojiEditList = com.pony.avatar.ocmaker.core.helper.MediaHelper
+                    .readListFromFile<com.pony.avatar.ocmaker.data.model.custom.EmojiEditModel>(
+                        this@ViewActivity,
+                        ValueKey.EMOJI_EDIT_FILE_INTERNAL
+                    )
+                emojiEditList.any { it.pathInternalEdit == pathInternal }
+            } catch (e: Exception) {
+                false
+            }
+
+            withContext(Dispatchers.Main) {
+                if (isEditableEmoji) {
+                    binding.actionBar.btnActionBarRight.visibility = android.view.View.VISIBLE
+                } else {
+                    binding.actionBar.btnActionBarRight.invisible()
+                }
             }
         }
     }
@@ -240,6 +274,38 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
     }
 
     private fun handleEditClick(pathInternal: String) {
+        // For design tab, it's always emoji (we only show edit button for emojis)
+        if (viewModel.statusFrom == ValueKey.MY_DESIGN_TYPE) {
+            handleEmojiEditClick(pathInternal)
+            return
+        }
+
+        // For avatar tab, check if this is an emoji or avatar by reading from file directly
+        // (Cannot use myAvatarViewModel.isEmoji() because ViewActivity has its own ViewModel instance
+        // which doesn't have the avatar list loaded)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val isEmoji = try {
+                val emojiEditList = com.pony.avatar.ocmaker.core.helper.MediaHelper
+                    .readListFromFile<com.pony.avatar.ocmaker.data.model.custom.EmojiEditModel>(
+                        this@ViewActivity,
+                        ValueKey.EMOJI_EDIT_FILE_INTERNAL
+                    )
+                emojiEditList.any { it.pathInternalEdit == pathInternal }
+            } catch (e: Exception) {
+                false
+            }
+
+            withContext(Dispatchers.Main) {
+                if (isEmoji) {
+                    handleEmojiEditClick(pathInternal)
+                } else {
+                    handleAvatarEditClick(pathInternal)
+                }
+            }
+        }
+    }
+
+    private fun handleAvatarEditClick(pathInternal: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             showLoading()
             myAvatarViewModel.editItem(this@ViewActivity, pathInternal, dataViewModel.allData.value)
@@ -256,6 +322,27 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
 
                     editLauncher.launch(intent)
                     overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right)
+                }
+            }
+        }
+    }
+
+    private fun handleEmojiEditClick(pathInternal: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            showLoading()
+            val success = myAvatarViewModel.prepareEmojiEdit(this@ViewActivity, pathInternal)
+
+            withContext(Dispatchers.Main) {
+                dismissLoading()
+
+                if (success) {
+                    val intent = Intent(this@ViewActivity, EmojiCustomActivity::class.java).apply {
+                        putExtra(IntentKey.STATUS_FROM_KEY, ValueKey.EDIT)
+                    }
+                    editLauncher.launch(intent)
+                    overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right)
+                } else {
+                    showToast(R.string.error)
                 }
             }
         }

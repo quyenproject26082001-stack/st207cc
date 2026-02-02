@@ -28,7 +28,6 @@ import com.pony.avatar.ocmaker.core.utils.state.HandleState
 import com.pony.avatar.ocmaker.databinding.FragmentMyDesignBinding
 import com.pony.avatar.ocmaker.dialog.YesNoDialog
 import com.pony.avatar.ocmaker.ui.customize.CustomizeCharacterActivity
-import com.pony.avatar.ocmaker.ui.emoji_custom.EmojiCustomActivity
 import com.pony.avatar.ocmaker.ui.home.DataViewModel
 import com.pony.avatar.ocmaker.ui.my_creation.MyCreationActivity
 import com.pony.avatar.ocmaker.ui.my_creation.view_model.MyCreationViewModel
@@ -175,56 +174,14 @@ class MyDesignFragment : BaseFragment<FragmentMyDesignBinding>() {
             resetSelectionMode()
         }
 
-        // Check if this is an editable emoji
-        if (viewModel.isEmojiEdit(myAlbumActivity, pathInternal)) {
-            handleEmojiEditClick(pathInternal)
-        } else {
-            // Regular view navigation
-            val intent = Intent(myAlbumActivity, ViewActivity::class.java)
-            intent.putExtra(IntentKey.INTENT_KEY, pathInternal)
-            intent.putExtra(IntentKey.TYPE_KEY, ValueKey.TYPE_VIEW)
-            intent.putExtra(IntentKey.STATUS_KEY, ValueKey.MY_DESIGN_TYPE)
-            val options = ActivityOptions.makeCustomAnimation(myAlbumActivity, R.anim.slide_in_right, R.anim.slide_out_left)
-            myAlbumActivity.showInterAll { startActivity(intent, options.toBundle()) }
-        }
-    }
-
-    private fun handleEmojiEditClick(pathInternal: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            myAlbumActivity.showLoading()
-
-            val success = viewModel.prepareEmojiEdit(myAlbumActivity, pathInternal)
-
-            withContext(Dispatchers.Main) {
-                myAlbumActivity.dismissLoading()
-
-                if (success) {
-                    val intent = Intent(myAlbumActivity, EmojiCustomActivity::class.java).apply {
-                        putExtra(IntentKey.STATUS_FROM_KEY, ValueKey.EDIT)
-                    }
-                    val options = ActivityOptions.makeCustomAnimation(
-                        myAlbumActivity,
-                        R.anim.slide_in_right,
-                        R.anim.slide_out_left
-                    )
-                    myAlbumActivity.showInterAll {
-                        startActivity(intent, options.toBundle())
-                    }
-                } else {
-                    // Fallback to regular view if prepare fails
-                    val intent = Intent(myAlbumActivity, ViewActivity::class.java)
-                    intent.putExtra(IntentKey.INTENT_KEY, pathInternal)
-                    intent.putExtra(IntentKey.TYPE_KEY, ValueKey.TYPE_VIEW)
-                    intent.putExtra(IntentKey.STATUS_KEY, ValueKey.MY_DESIGN_TYPE)
-                    val options = ActivityOptions.makeCustomAnimation(
-                        myAlbumActivity,
-                        R.anim.slide_in_right,
-                        R.anim.slide_out_left
-                    )
-                    myAlbumActivity.showInterAll { startActivity(intent, options.toBundle()) }
-                }
-            }
-        }
+        // Always navigate to ViewActivity first
+        // ViewActivity will handle showing edit button for editable emojis
+        val intent = Intent(myAlbumActivity, ViewActivity::class.java)
+        intent.putExtra(IntentKey.INTENT_KEY, pathInternal)
+        intent.putExtra(IntentKey.TYPE_KEY, ValueKey.TYPE_VIEW)
+        intent.putExtra(IntentKey.STATUS_KEY, ValueKey.MY_DESIGN_TYPE)
+        val options = ActivityOptions.makeCustomAnimation(myAlbumActivity, R.anim.slide_in_right, R.anim.slide_out_left)
+        myAlbumActivity.showInterAll { startActivity(intent, options.toBundle()) }
     }
 
     private fun handleLongClick(position: Int) {
