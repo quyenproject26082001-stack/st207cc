@@ -47,12 +47,10 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
 
         // Check if dataType is passed (Cat/Emoji)
         currentDataType = intent.getIntExtra(IntentKey.DATA_TYPE_KEY, IntentKey.DATA_TYPE_DEFAULT)
-        if (currentDataType == IntentKey.DATA_TYPE_DEFAULT || currentDataType == -1) {
-            // Load all data (both cat and emoji)
-            dataViewModel.ensureData(this)
-        } else {
-            // Load specific type (Cat or Emoji)
+        if (currentDataType != IntentKey.DATA_TYPE_DEFAULT) {
             dataViewModel.loadDataByType(this, currentDataType)
+        } else {
+            dataViewModel.ensureData(this)
         }
     }
 

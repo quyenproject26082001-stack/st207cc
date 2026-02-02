@@ -29,9 +29,6 @@ object ValueKey {
     const val AVATAR_TYPE = 0
     const val MY_DESIGN_TYPE = 1
 
-    const val CAT_MAKER_TYPE = 0
-    const val EMOJI_CAT_TYPE = 1
-
     const val RANDOM_IDENTIFIER_FOR_ADDING_STICKER_TO_WHATSAPP =
         "RANDOM_IDENTIFIER_FOR_WHATSAPP_STICKER"
 

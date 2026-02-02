@@ -10,7 +10,7 @@ object IntentKey {
 
     // Data Types for Cat/Emoji
     const val DATA_TYPE_KEY = "DATA_TYPE_KEY"
-    const val DATA_TYPE_DEFAULT = -1
-    const val DATA_TYPE_CAT = ValueKey.CAT_MAKER_TYPE  // 0
-    const val DATA_TYPE_EMOJI = ValueKey.EMOJI_CAT_TYPE  // 1
+    const val DATA_TYPE_DEFAULT = 0
+    const val DATA_TYPE_CAT = 1
+    const val DATA_TYPE_EMOJI = 2
 }
