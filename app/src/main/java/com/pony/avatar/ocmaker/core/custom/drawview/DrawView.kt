@@ -589,6 +589,34 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         return this
     }
 
+    /**
+     * Add a draw that already has its matrix set (for restore/edit purposes).
+     * Does NOT apply any default transforms (position, scale).
+     */
+    fun addDrawRestored(draw: DrawableDraw): DrawView {
+        if (ViewCompat.isLaidOut(this)) {
+            addDrawRestoredImmediately(draw)
+        } else {
+            post {
+                addDrawRestoredImmediately(draw)
+            }
+        }
+        return this
+    }
+
+    private fun addDrawRestoredImmediately(draw: DrawableDraw) {
+        // Skip setDrawPosition() and postScale() - matrix is already set
+        initialScaleMap[draw] = draw.currentScale
+        handlingDraw = draw
+        drawList.add(draw)
+
+        // save undo khi add xong
+        saveDrawState()
+
+        OnDrawListener?.onAddedDraw(draw)
+        invalidate()
+    }
+
     private fun addDrawImmediately(draw: DrawableDraw, position: Int) {
         setDrawPosition(draw, position)
 

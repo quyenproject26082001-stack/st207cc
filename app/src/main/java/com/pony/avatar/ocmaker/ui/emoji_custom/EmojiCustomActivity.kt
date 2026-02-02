@@ -254,8 +254,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         textDraw.setHide(itemModel.isHide)
         textDraw.setAlpha(itemModel.alpha)
 
-        // Add to DrawView
-        binding.layoutCustomLayer.addDraw(textDraw)
+        // Add to DrawView using addDrawRestored() to preserve matrix
+        binding.layoutCustomLayer.addDrawRestored(textDraw)
         drawIdMap[textDraw] = itemModel.id
     }
 
@@ -320,8 +320,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         drawableDraw.isCharacter = itemModel.isCharacter
         drawableDraw.setAlpha(itemModel.alpha)
 
-        // Add to DrawView
-        binding.layoutCustomLayer.addDraw(drawableDraw)
+        // Add to DrawView using addDrawRestored() to preserve matrix
+        binding.layoutCustomLayer.addDrawRestored(drawableDraw)
         drawIdMap[drawableDraw] = itemModel.id
 
         // Restore selectedDraws mapping
