@@ -8,9 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.Layout
@@ -50,6 +52,8 @@ import com.pony.avatar.ocmaker.core.utils.key.ValueKey
 import com.pony.avatar.ocmaker.core.utils.state.SaveState
 import com.pony.avatar.ocmaker.databinding.ActivityEmojiCustomBinding
 import com.pony.avatar.ocmaker.databinding.DialogLayerBinding
+import com.pony.avatar.ocmaker.data.model.custom.DrawItemModel
+import com.pony.avatar.ocmaker.data.model.custom.EmojiEditModel
 import com.pony.avatar.ocmaker.data.model.draw.Draw
 import com.pony.avatar.ocmaker.data.model.draw.DrawableDraw
 import com.pony.avatar.ocmaker.data.model.draw.TextDraw
@@ -64,6 +68,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
@@ -76,15 +83,30 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     // Lưu trữ selected DrawableDraw cho mỗi category
     private val selectedDraws = mutableMapOf<String, DrawableDraw?>()
 
+    // Edit mode support
+    private var statusFrom = ValueKey.CREATE
+    private var currentEditModel: EmojiEditModel? = null
+
+    // Map DrawableDraw to its UUID for restore
+    private val drawIdMap = mutableMapOf<DrawableDraw, String>()
+
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
     }
 
     override fun initView() {
+        // Get statusFrom from intent
+        statusFrom = intent.getIntExtra(IntentKey.STATUS_FROM_KEY, ValueKey.CREATE)
+
         initDrawView()
         initRcv()
         loadNavigationData()
         loadLayerData(0)
+
+        // If in EDIT mode, restore edit data
+        if (statusFrom == ValueKey.EDIT) {
+            restoreEditData()
+        }
     }
 
     private fun initDrawView() {
@@ -100,6 +122,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     if (category != null) {
                         selectedDraws[category.name] = null
                         loadLayerData(currentCategoryIndex)
+                    }
+                    // Clean up drawIdMap
+                    if (draw is DrawableDraw) {
+                        drawIdMap.remove(draw)
                     }
                 }
                 override fun onDragFinishedDraw(draw: Draw) {}
@@ -128,6 +154,292 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.rcvLayer.apply {
             adapter = layerAdapter
             itemAnimator = null
+        }
+    }
+
+    /**
+     * Restore edit data from EMOJI_SUGGESTION_FILE_INTERNAL
+     */
+    private fun restoreEditData() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val editModel = MediaHelper.readModelFromFile<EmojiEditModel>(
+                    this@EmojiCustomActivity,
+                    ValueKey.EMOJI_SUGGESTION_FILE_INTERNAL
+                )
+                if (editModel != null) {
+                    currentEditModel = editModel
+                    withContext(Dispatchers.Main) {
+                        restoreDrawItems(editModel)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("EmojiCustomActivity", "Error restoring edit data: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Restore DrawableDraw and TextDraw items from EmojiEditModel
+     */
+    private fun restoreDrawItems(editModel: EmojiEditModel) {
+        var pendingLoads = editModel.drawItems.size
+        if (pendingLoads == 0) return
+
+        editModel.drawItems.forEach { itemModel ->
+            when (itemModel.type) {
+                "text" -> {
+                    restoreTextDraw(itemModel, editModel)
+                    pendingLoads--
+                    if (pendingLoads == 0) {
+                        // All items loaded, refresh UI
+                        loadLayerData(currentCategoryIndex)
+                    }
+                }
+                else -> {
+                    // drawable type
+                    restoreDrawableDraw(itemModel, editModel) {
+                        pendingLoads--
+                        if (pendingLoads == 0) {
+                            // All items loaded, refresh UI
+                            loadLayerData(currentCategoryIndex)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Restore a TextDraw from DrawItemModel
+     */
+    private fun restoreTextDraw(itemModel: DrawItemModel, editModel: EmojiEditModel) {
+        val transparentDrawable = ColorDrawable(Color.TRANSPARENT)
+        val textDraw = TextDraw(this, transparentDrawable, itemModel.drawablePath)
+
+        // Restore text properties
+        itemModel.text?.let { textDraw.setText(it) }
+        itemModel.textColor?.let { textDraw.setTextColor(it) }
+
+        // Restore typeface
+        val typeface = when (itemModel.idTypeFace) {
+            1 -> Typeface.DEFAULT_BOLD
+            2 -> Typeface.MONOSPACE
+            else -> Typeface.DEFAULT
+        }
+        textDraw.setTypeface(typeface)
+        textDraw.idTypeFace = itemModel.idTypeFace
+
+        // Restore text alignment
+        val alignment = try {
+            Layout.Alignment.valueOf(itemModel.textAlignString)
+        } catch (e: Exception) {
+            Layout.Alignment.ALIGN_CENTER
+        }
+        textDraw.setTextAlign(alignment)
+        textDraw.textCheckAlign = itemModel.textCheckAlign
+        textDraw.resizeText()
+
+        // Restore matrix
+        if (itemModel.matrixValues.size == 9) {
+            val matrix = Matrix()
+            matrix.setValues(itemModel.matrixValues.toFloatArray())
+            textDraw.setMatrix(matrix)
+        }
+
+        // Restore other properties
+        textDraw.setFlippedH(itemModel.isFlippedH)
+        textDraw.setFlippedV(itemModel.isFlippedV)
+        textDraw.setLock(itemModel.isLock)
+        textDraw.setHide(itemModel.isHide)
+        textDraw.setAlpha(itemModel.alpha)
+
+        // Add to DrawView
+        binding.layoutCustomLayer.addDraw(textDraw)
+        drawIdMap[textDraw] = itemModel.id
+    }
+
+    /**
+     * Restore a DrawableDraw from DrawItemModel
+     */
+    private fun restoreDrawableDraw(itemModel: DrawItemModel, editModel: EmojiEditModel, onComplete: () -> Unit) {
+        val drawablePath = itemModel.drawablePath
+
+        // Check if it's a local file (freehand drawing) or URL (sticker)
+        val isLocalFile = !drawablePath.startsWith("http")
+
+        if (isLocalFile) {
+            // Load from local file
+            val file = File(drawablePath)
+            if (file.exists()) {
+                val bitmap = BitmapFactory.decodeFile(drawablePath)
+                if (bitmap != null) {
+                    val drawable = BitmapDrawable(resources, bitmap)
+                    addRestoredDrawableDraw(drawable, itemModel, editModel)
+                }
+            }
+            onComplete()
+        } else {
+            // Load from URL using Glide
+            Glide.with(this)
+                .asDrawable()
+                .load(drawablePath)
+                .into(object : CustomTarget<Drawable>() {
+                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                        addRestoredDrawableDraw(resource, itemModel, editModel)
+                        onComplete()
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        onComplete()
+                    }
+                })
+        }
+    }
+
+    /**
+     * Add a restored DrawableDraw to the canvas
+     */
+    private fun addRestoredDrawableDraw(drawable: Drawable, itemModel: DrawItemModel, editModel: EmojiEditModel) {
+        val drawableDraw = DrawableDraw(drawable, itemModel.drawablePath)
+
+        // Restore matrix
+        if (itemModel.matrixValues.size == 9) {
+            val matrix = Matrix()
+            matrix.setValues(itemModel.matrixValues.toFloatArray())
+            drawableDraw.setMatrix(matrix)
+        }
+
+        // Restore other properties
+        drawableDraw.setFlippedH(itemModel.isFlippedH)
+        drawableDraw.setFlippedV(itemModel.isFlippedV)
+        drawableDraw.setLock(itemModel.isLock)
+        drawableDraw.setHide(itemModel.isHide)
+        drawableDraw.setPagerSelected(itemModel.pagerSelected)
+        drawableDraw.setPositionSelected(itemModel.positionSelected)
+        drawableDraw.isCharacter = itemModel.isCharacter
+        drawableDraw.setAlpha(itemModel.alpha)
+
+        // Add to DrawView
+        binding.layoutCustomLayer.addDraw(drawableDraw)
+        drawIdMap[drawableDraw] = itemModel.id
+
+        // Restore selectedDraws mapping
+        editModel.selectedByCategory.forEach { (categoryName, savedId) ->
+            if (savedId == itemModel.id) {
+                selectedDraws[categoryName] = drawableDraw
+            }
+        }
+    }
+
+    /**
+     * Create EmojiEditModel from current state
+     */
+    private fun createEditModel(pathInternal: String): EmojiEditModel {
+        val drawItems = ArrayList<DrawItemModel>()
+        val selectedByCategory = HashMap<String, String?>()
+
+        // Process all draws
+        binding.layoutCustomLayer.getDraws().forEach { draw ->
+            val id = drawIdMap[draw] ?: UUID.randomUUID().toString()
+            drawIdMap[draw] = id
+
+            val matrixValues = FloatArray(9)
+            draw.getMatrix().getValues(matrixValues)
+
+            val itemModel = DrawItemModel(
+                id = id,
+                type = if (draw is TextDraw) "text" else "drawable",
+                drawablePath = draw.drawablePath,
+                matrixValues = matrixValues.toCollection(ArrayList()),
+                isFlippedH = draw.isFlippedH,
+                isFlippedV = draw.isFlippedV,
+                isLock = draw.isLock,
+                isHide = draw.isHide,
+                pagerSelected = draw.pagerSelected,
+                positionSelected = draw.positionSelected,
+                isCharacter = draw.isCharacter,
+                alpha = draw.drawable.alpha
+            )
+
+            // If it's a TextDraw, add text-specific fields
+            if (draw is TextDraw) {
+                itemModel.isText = true
+                itemModel.text = draw.text
+                itemModel.textColor = draw.textColor
+                itemModel.textAlignString = draw.textAlign.name
+                itemModel.idTypeFace = draw.idTypeFace
+                itemModel.textCheckAlign = draw.textCheckAlign
+            }
+
+            drawItems.add(itemModel)
+        }
+
+        // Build selectedByCategory mapping
+        selectedDraws.forEach { (categoryName, draw) ->
+            selectedByCategory[categoryName] = draw?.let { drawIdMap[it] }
+        }
+
+        return EmojiEditModel(
+            pathInternalEdit = pathInternal,
+            drawItems = drawItems,
+            selectedByCategory = selectedByCategory
+        )
+    }
+
+    /**
+     * Save freehand bitmap to file and return the file path
+     */
+    private fun saveFreehandBitmapToFile(bitmap: Bitmap): String {
+        val drawsFolder = File(filesDir, ValueKey.EMOJI_DRAWS_FOLDER)
+        if (!drawsFolder.exists()) {
+            drawsFolder.mkdirs()
+        }
+
+        val fileName = "freehand_${System.currentTimeMillis()}.png"
+        val file = File(drawsFolder, fileName)
+
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        }
+
+        return file.absolutePath
+    }
+
+    /**
+     * Add emoji to edit list (for CREATE mode)
+     */
+    private fun addEmojiToEditList(pathInternal: String) {
+        val editList = loadEmojiEditList()
+        val newEditModel = createEditModel(pathInternal)
+        editList.add(0, newEditModel)
+        MediaHelper.writeListToFile(this, ValueKey.EMOJI_EDIT_FILE_INTERNAL, editList)
+    }
+
+    /**
+     * Update existing emoji in edit list (for EDIT mode)
+     */
+    private fun updateEmojiEditList(pathInternal: String) {
+        val editList = loadEmojiEditList()
+        val oldPath = currentEditModel?.pathInternalEdit ?: return
+
+        val indexEdit = editList.indexOfFirst { it.pathInternalEdit == oldPath }
+        if (indexEdit != -1) {
+            editList[indexEdit] = createEditModel(pathInternal)
+            MediaHelper.writeListToFile(this, ValueKey.EMOJI_EDIT_FILE_INTERNAL, editList)
+        }
+    }
+
+    /**
+     * Load emoji edit list from file
+     */
+    private fun loadEmojiEditList(): ArrayList<EmojiEditModel> {
+        return try {
+            MediaHelper.readListFromFile<EmojiEditModel>(this, ValueKey.EMOJI_EDIT_FILE_INTERNAL)
+                .toCollection(ArrayList())
+        } catch (e: Exception) {
+            android.util.Log.e("EmojiCustomActivity", "Error loading emoji edit list: ${e.message}")
+            arrayListOf()
         }
     }
 
@@ -281,6 +593,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             if (currentDraw?.drawablePath == imageUrl) {
                 // Deselect - remove from DrawView
                 binding.layoutCustomLayer.remove(currentDraw)
+                drawIdMap.remove(currentDraw)
                 selectedDraws[category.name] = null
             } else {
                 // Select - load image and add to DrawView
@@ -290,11 +603,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     .into(object : CustomTarget<Drawable>() {
                         override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
                             // Remove old draw if exists
-                            currentDraw?.let { binding.layoutCustomLayer.remove(it) }
+                            currentDraw?.let {
+                                binding.layoutCustomLayer.remove(it)
+                                drawIdMap.remove(it)
+                            }
 
                             // Create new DrawableDraw
                             val drawableDraw = DrawableDraw(resource, imageUrl)
                             binding.layoutCustomLayer.addDraw(drawableDraw)
+
+                            // Assign UUID for tracking
+                            val id = UUID.randomUUID().toString()
+                            drawIdMap[drawableDraw] = id
 
                             // Save reference
                             selectedDraws[category.name] = drawableDraw
@@ -384,6 +704,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     }
 
                     is SaveState.Success -> {
+                        // Save edit data based on mode
+                        when (statusFrom) {
+                            ValueKey.EDIT -> updateEmojiEditList(result.path)
+                            else -> addEmojiToEditList(result.path)
+                        }
+
                         val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
                         intent.putExtra(IntentKey.INTENT_KEY, result.path)
                         val options = ActivityOptions.makeCustomAnimation(
@@ -504,6 +830,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
                     // Add to DrawView
                     binding.layoutCustomLayer.addDraw(textDraw)
+
+                    // Assign UUID for tracking
+                    val id = UUID.randomUUID().toString()
+                    drawIdMap[textDraw] = id
 
                     dialog.dismiss()
                 } else {
@@ -664,12 +994,19 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             val bitmap = paintDrawView.save()
 
             if (bitmap != null) {
-                // Convert bitmap to drawable
-                val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+                // Save bitmap to file so it can be restored later
+                val filePath = saveFreehandBitmapToFile(bitmap)
 
-                // Create DrawableDraw and add to main DrawView
-                val drawableDraw = DrawableDraw(drawable, "draw_${System.currentTimeMillis()}")
+                // Convert bitmap to drawable
+                val drawable = BitmapDrawable(resources, bitmap)
+
+                // Create DrawableDraw with actual file path
+                val drawableDraw = DrawableDraw(drawable, filePath)
                 layoutCustomLayer.addDraw(drawableDraw)
+
+                // Assign UUID for tracking
+                val id = UUID.randomUUID().toString()
+                drawIdMap[drawableDraw] = id
 
                 // Clear paint view
                 paintDrawView.clearAll()

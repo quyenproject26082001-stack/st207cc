@@ -8,6 +8,7 @@ import com.pony.avatar.ocmaker.core.helper.MediaHelper
 import com.pony.avatar.ocmaker.core.utils.key.ValueKey
 import com.pony.avatar.ocmaker.core.utils.state.HandleState
 import com.pony.avatar.ocmaker.data.model.MyAlbumModel
+import com.pony.avatar.ocmaker.data.model.custom.EmojiEditModel
 import com.pony.avatar.ocmaker.data.model.custom.SuggestionModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -72,6 +73,8 @@ class MyDesignViewModel : ViewModel() {
 
     suspend fun deleteItem(context: Context, pathList: ArrayList<String>){
         MediaHelper.deleteFileByPathNotFlow(pathList)
+        // Also delete from emoji edit list if applicable
+        deleteEmojiFromEditList(context, pathList)
     }
 
     fun toggleSelect(position: Int) {
@@ -97,5 +100,70 @@ class MyDesignViewModel : ViewModel() {
             it.copy(isSelected = false, isShowSelection = false)
         }.toCollection(ArrayList())
         checkLastItem()
+    }
+
+    // ========== EMOJI EDIT SUPPORT ==========
+
+    /**
+     * Check if the given path is an editable emoji (exists in emoji edit list)
+     */
+    fun isEmojiEdit(context: Context, pathInternal: String): Boolean {
+        return try {
+            val emojiEditList = MediaHelper.readListFromFile<EmojiEditModel>(
+                context,
+                ValueKey.EMOJI_EDIT_FILE_INTERNAL
+            )
+            emojiEditList.any { it.pathInternalEdit == pathInternal }
+        } catch (e: Exception) {
+            android.util.Log.e("MyDesignViewModel", "Error checking emoji edit: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Prepare emoji for editing - writes to suggestion file for EmojiCustomActivity to read
+     */
+    suspend fun prepareEmojiEdit(context: Context, pathInternal: String): Boolean {
+        return try {
+            val emojiEditList = MediaHelper.readListFromFile<EmojiEditModel>(
+                context,
+                ValueKey.EMOJI_EDIT_FILE_INTERNAL
+            )
+            val editModel = emojiEditList.firstOrNull { it.pathInternalEdit == pathInternal }
+            if (editModel != null) {
+                MediaHelper.writeModelToFile(
+                    context,
+                    ValueKey.EMOJI_SUGGESTION_FILE_INTERNAL,
+                    editModel
+                )
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MyDesignViewModel", "Error preparing emoji edit: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Delete emoji from edit list when deleting the image
+     */
+    suspend fun deleteEmojiFromEditList(context: Context, pathList: ArrayList<String>) {
+        try {
+            val emojiEditList = MediaHelper.readListFromFile<EmojiEditModel>(
+                context,
+                ValueKey.EMOJI_EDIT_FILE_INTERNAL
+            ).toCollection(ArrayList())
+
+            val updatedList = emojiEditList.filter { it.pathInternalEdit !in pathList }
+            MediaHelper.writeListToFile(
+                context,
+                ValueKey.EMOJI_EDIT_FILE_INTERNAL,
+                updatedList
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("MyDesignViewModel", "Error deleting emoji from edit list: ${e.message}")
+        }
     }
 }

@@ -14,6 +14,11 @@ object ValueKey {
     const val SUGGESTION_FILE_INTERNAL = "suggestion_json.txt"
     const val EDIT_FILE_INTERNAL = "data_edit.json"
 
+    // Emoji Edit files
+    const val EMOJI_SUGGESTION_FILE_INTERNAL = "emoji_suggestion_json.txt"
+    const val EMOJI_EDIT_FILE_INTERNAL = "data_emoji_edit.json"
+    const val EMOJI_DRAWS_FOLDER = "emoji_draws"
+
     const val TYPE_VIEW = 0
     const val TYPE_SUCCESS = 1
 
