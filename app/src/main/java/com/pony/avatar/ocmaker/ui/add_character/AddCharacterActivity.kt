@@ -415,7 +415,8 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             setImageActionBar(btnActionBarRight, R.drawable.ic_save_addbg)
             btnActionBarRight.visible()
-            btnActionBarCenter.invisible() // Hide reset center button
+            btnActionBarCenter.invisible()
+            bgBtnActionBar.setBackgroundResource(R.drawable.bg_actionbar)
 
             // Show Undo/Redo buttons
             btnActionBarCenterLeft.visible()
@@ -716,7 +717,7 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
         textView.textSize = 16f
 
         // Apply RED gradient for unselected
-        textView.setTextColor(Color.parseColor("#AB5BFF"))
+        textView.setTextColor(Color.parseColor("#497E00"))
 
 
         // Show un_selected_tab drawable
@@ -749,10 +750,10 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             if (isBackground) sectionTab.visible() else sectionTab.gone()
 
             if (isBackground) {
-                bgBg.visible()
-                bgOther.gone()
+                tvBackground.visible()
+                bgOther.visible()
             } else {
-                bgBg.gone()
+                tvBackground.gone()
                 bgOther.visible()
             }
 

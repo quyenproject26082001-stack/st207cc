@@ -26,6 +26,7 @@ import com.pony.avatar.ocmaker.core.extensions.tap
 import com.pony.avatar.ocmaker.core.extensions.strings
 import com.pony.avatar.ocmaker.ui.random_character.RandomCharacterActivity
 import com.pony.avatar.ocmaker.ui.emoji_custom.EmojiCustomActivity
+import com.pony.avatar.ocmaker.ui.emoji_sticker.EmojiStickerActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,6 +59,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             btnMyAlbum.tap(800) { showInterAll { startIntentRightToLeft(MyCreationActivity::class.java) } }
             btnQuickMaker.tap(800) { startIntentRightToLeft(RandomCharacterActivity::class.java) }
             btnEmojiCustom.tap(800) { startIntentRightToLeft(EmojiCustomActivity::class.java) }
+            btnStickers.tap(800) { startIntentRightToLeft(EmojiStickerActivity::class.java) }
         }
     }
 

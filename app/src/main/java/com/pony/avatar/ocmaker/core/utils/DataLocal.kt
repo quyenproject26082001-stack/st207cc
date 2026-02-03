@@ -36,8 +36,8 @@ object DataLocal {
     }
 
     val itemIntroList = listOf(
-        IntroModel(R.drawable.img_intro_1, R.string.title_11),
-        IntroModel(R.drawable.img_intro_2, R.string.title_22),
+        IntroModel(R.drawable.img_intro_1, R.string.title_1),
+        IntroModel(R.drawable.img_intro_2, R.string.title_2),
         IntroModel(R.drawable.img_intro_3, R.string.title_3)
     )
 

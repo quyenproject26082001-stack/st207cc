@@ -124,5 +124,8 @@
     <string name="do_you_want_to_exit">Deseja sair?</string>
     <string name="title_11">Estilo de personagem diverso</string>
     <string name="title_22">Crie seu próprio avatar \ndo jeito que quiser</string>
+    <string name="cat_sticker">Cat Sticker</string>
+    <string name="cat_emoji_maker">Cat Emoji Maker</string>
+    <string name="cat_emoji_customizer">Cat Emoji Custom</string>
 
 </resources>

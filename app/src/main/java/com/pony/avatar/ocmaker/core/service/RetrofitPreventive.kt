@@ -5,6 +5,7 @@ import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterF
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitPreventive : BaseRetrofitHelper() {
     val api = Retrofit.Builder()
         .baseUrl(DomainKey.BASE_URL_PREVENTIVE)
+        .addConverterFactory(GsonConverterFactory.create())
         .addConverterFactory(MoshiConverterFactory.create())
         .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .client(okHttpClient!!)

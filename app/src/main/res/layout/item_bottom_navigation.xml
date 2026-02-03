@@ -16,15 +16,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipChildren="true"
+        tools:background="@drawable/bg_select_navi_shape"
         android:clipToPadding="true"
-        android:background="@drawable/bg_uslt_navi_shape"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-
         <!--            imvImage-->
 
         <ImageView

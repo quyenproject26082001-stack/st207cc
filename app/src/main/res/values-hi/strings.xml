@@ -124,5 +124,8 @@
     <string name="do_you_want_to_exit">क्या आप बाहर निकलना चाहते हैं?</string>
     <string name="title_11">विविध किरदार शैली</string>
     <string name="title_22">जैसा चाहें वैसा अपना अवतार बनाएँ</string>
+    <string name="cat_sticker">Cat Sticker</string>
+    <string name="cat_emoji_maker">Cat Emoji Maker</string>
+    <string name="cat_emoji_customizer">Cat Emoji Custom</string>
 
 </resources>

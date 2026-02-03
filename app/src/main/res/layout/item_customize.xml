@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
     app:layout_constraintDimensionRatio="1:1"
-    android:layout_margin="1.5dp">
+    android:layout_margin="2dp">
 
 
 

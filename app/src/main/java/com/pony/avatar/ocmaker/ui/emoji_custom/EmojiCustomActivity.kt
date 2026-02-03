@@ -640,6 +640,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             // Show Undo/Redo buttons
             btnActionBarCenterLeft.visible()
             btnActionBarCenterRight.visible()
+            bgBtnActionBar.setBackgroundResource(R.drawable.bg_actionbar)
+
 
             // Set initial state (disabled until first action)
             btnActionBarCenterLeft.alpha = 0.3f
