@@ -1,19 +1,25 @@
 package com.pony.avatar.ocmaker.ui.emoji_sticker
 
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.core.content.FileProvider
 import androidx.core.graphics.scale
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.pony.avatar.ocmaker.R
+import com.pony.avatar.ocmaker.core.extensions.checkPermissions
+import com.pony.avatar.ocmaker.core.extensions.goToSettings
 import com.pony.avatar.ocmaker.core.extensions.handleBackLeftToRight
 import com.pony.avatar.ocmaker.core.extensions.hideNavigation
+import com.pony.avatar.ocmaker.core.extensions.requestPermission
 import com.pony.avatar.ocmaker.core.extensions.select
 import com.pony.avatar.ocmaker.core.extensions.setImageActionBar
 import com.pony.avatar.ocmaker.core.extensions.setTextActionBar
@@ -23,6 +29,7 @@ import com.pony.avatar.ocmaker.core.helper.LanguageHelper
 import com.pony.avatar.ocmaker.core.helper.MediaHelper
 import com.pony.avatar.ocmaker.core.utils.key.DomainKey
 import com.pony.avatar.ocmaker.core.utils.key.IntentKey
+import com.pony.avatar.ocmaker.core.utils.key.RequestKey
 import com.pony.avatar.ocmaker.core.utils.share.telegram.TelegramSharing
 import com.pony.avatar.ocmaker.core.utils.share.whatsapp.IdGenerator
 import com.pony.avatar.ocmaker.core.utils.share.whatsapp.StickerBook
@@ -32,6 +39,7 @@ import com.pony.avatar.ocmaker.core.utils.state.HandleState
 import com.pony.avatar.ocmaker.databinding.ActivityEmojiStickerListBinding
 import com.pony.avatar.ocmaker.dialog.CreateNameDialog
 import com.pony.avatar.ocmaker.ui.emoji_sticker.adapter.CatEmojiStickerListAdapter
+import com.pony.avatar.ocmaker.ui.permission.PermissionViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -48,6 +56,8 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
     private val adapter = CatEmojiStickerListAdapter()
     private var categoryName = ""
     private val okHttpClient = OkHttpClient()
+    private val permissionViewModel: PermissionViewModel by viewModels()
+    private var pendingDownloadUrls: List<String>? = null
 
     override fun setViewBinding(): ActivityEmojiStickerListBinding {
         return ActivityEmojiStickerListBinding.inflate(LayoutInflater.from(this))
@@ -172,33 +182,7 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
 
     // ==================== DOWNLOAD ====================
     private fun handleDownloadSingle(url: String) {
-        lifecycleScope.launch {
-            showLoading()
-            val bitmaps = downloadBitmapsFromUrls(listOf(url))
-            if (bitmaps.isEmpty()) {
-                dismissLoading()
-                showToast(R.string.download_failed_please_try_again_later)
-                return@launch
-            }
-
-            MediaHelper.saveBitmapToExternal(this@EmojiStickerListActivity, bitmaps.first())
-                .flowOn(Dispatchers.IO)
-                .collect { state ->
-                    when (state) {
-                        HandleState.SUCCESS -> {
-                            dismissLoading()
-                            hideNavigation()
-                            showToast(R.string.download_success)
-                        }
-                        HandleState.FAIL -> {
-                            dismissLoading()
-                            hideNavigation()
-                            showToast(R.string.download_failed_please_try_again_later)
-                        }
-                        else -> {}
-                    }
-                }
-        }
+        checkStoragePermissionForDownload(listOf(url))
     }
 
     private fun handleDownload() {
@@ -207,10 +191,32 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
             showToast(R.string.please_select_stickers)
             return
         }
+        checkStoragePermissionForDownload(selectedUrls)
+    }
 
+    private fun checkStoragePermissionForDownload(urls: List<String>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ không cần quyền WRITE_EXTERNAL_STORAGE
+            performDownload(urls)
+        } else {
+            // Android 8-9 cần check quyền
+            val perms = permissionViewModel.getStoragePermissions()
+            if (checkPermissions(perms)) {
+                performDownload(urls)
+            } else if (permissionViewModel.needGoToSettings(sharePreference, true)) {
+                goToSettings()
+            } else {
+                // Lưu lại list để download sau khi được cấp quyền
+                pendingDownloadUrls = urls
+                requestPermission(perms, RequestKey.STORAGE_PERMISSION_CODE)
+            }
+        }
+    }
+
+    private fun performDownload(urls: List<String>) {
         lifecycleScope.launch {
             showLoading()
-            val bitmaps = downloadBitmapsFromUrls(selectedUrls)
+            val bitmaps = downloadBitmapsFromUrls(urls)
             if (bitmaps.isEmpty()) {
                 dismissLoading()
                 showToast(R.string.download_failed_please_try_again_later)
@@ -233,9 +239,35 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
             hideNavigation()
             if (allSuccess) {
                 showToast(R.string.download_success)
-                exitSelectMode()
+                // Chỉ exit select mode nếu đang ở select mode
+                if (adapter.isSelectMode) {
+                    exitSelectMode()
+                }
             } else {
                 showToast(R.string.download_failed_please_try_again_later)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == RequestKey.STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                permissionViewModel.updateStorageGranted(sharePreference, true)
+                showToast(R.string.granted_storage)
+                // Thực hiện download sau khi được cấp quyền
+                pendingDownloadUrls?.let { urls ->
+                    performDownload(urls)
+                    pendingDownloadUrls = null
+                }
+            } else {
+                permissionViewModel.updateStorageGranted(sharePreference, false)
+                pendingDownloadUrls = null
             }
         }
     }

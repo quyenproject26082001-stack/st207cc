@@ -28,11 +28,11 @@
     <!--    imvAppName-->
     <ImageView
         android:id="@+id/imvAppName"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="centerCrop"
         android:adjustViewBounds="true"
-        android:src="@drawable/img_app_name"
+        android:src="@drawable/imvAppName"
         android:layout_marginTop="0dp"
         app:layout_constraintDimensionRatio="360:159"
         app:layout_constraintEnd_toEndOf="parent"
