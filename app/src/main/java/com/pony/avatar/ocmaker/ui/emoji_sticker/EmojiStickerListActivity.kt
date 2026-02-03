@@ -78,6 +78,11 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
             enterSelectMode()
         }
 
+        // Download single sticker
+        adapter.onDownloadClick = { url ->
+            handleDownloadSingle(url)
+        }
+
         // Callback khi số lượng selected thay đổi
         adapter.onSelectionChanged = { count ->
             updateActionBarTitle(count)
@@ -166,6 +171,36 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
     }
 
     // ==================== DOWNLOAD ====================
+    private fun handleDownloadSingle(url: String) {
+        lifecycleScope.launch {
+            showLoading()
+            val bitmaps = downloadBitmapsFromUrls(listOf(url))
+            if (bitmaps.isEmpty()) {
+                dismissLoading()
+                showToast(R.string.download_failed_please_try_again_later)
+                return@launch
+            }
+
+            MediaHelper.saveBitmapToExternal(this@EmojiStickerListActivity, bitmaps.first())
+                .flowOn(Dispatchers.IO)
+                .collect { state ->
+                    when (state) {
+                        HandleState.SUCCESS -> {
+                            dismissLoading()
+                            hideNavigation()
+                            showToast(R.string.download_success)
+                        }
+                        HandleState.FAIL -> {
+                            dismissLoading()
+                            hideNavigation()
+                            showToast(R.string.download_failed_please_try_again_later)
+                        }
+                        else -> {}
+                    }
+                }
+        }
+    }
+
     private fun handleDownload() {
         val selectedUrls = adapter.getSelectedItems()
         if (selectedUrls.isEmpty()) {

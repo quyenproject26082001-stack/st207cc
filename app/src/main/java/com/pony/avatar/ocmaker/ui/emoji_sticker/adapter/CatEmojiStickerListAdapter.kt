@@ -10,6 +10,7 @@ class CatEmojiStickerListAdapter : BaseAdapter<String, ItemCatEmojiStickerListBi
     var onItemClick: ((String) -> Unit) = {}
     var onItemLongClick: ((String) -> Unit) = {}
     var onSelectionChanged: ((Int) -> Unit) = {} // Callback khi số lượng selected thay đổi
+    var onDownloadClick: ((String) -> Unit) = {} // Callback khi click download từng item
 
     var isSelectMode = false
         private set
@@ -64,15 +65,22 @@ class CatEmojiStickerListAdapter : BaseAdapter<String, ItemCatEmojiStickerListBi
                 sflShimmer.visibility = android.view.View.GONE
             })
 
-            // Hiển thị/ẩn icon select
-            btnSelect.visibility = if (isSelectMode) android.view.View.VISIBLE else android.view.View.GONE
-
-            // Update icon theo trạng thái selected
+            // Hiển thị/ẩn icon select và download
             if (isSelectMode) {
+                btnSelect.visibility = android.view.View.VISIBLE
+                btnDownload.visibility = android.view.View.GONE
                 val isSelected = selectedItems.contains(item)
                 btnSelect.setImageResource(
                     if (isSelected) R.drawable.ic_selected else R.drawable.ic_not_select
                 )
+            } else {
+                btnSelect.visibility = android.view.View.GONE
+                btnDownload.visibility = android.view.View.VISIBLE
+            }
+
+            // Download button click
+            btnDownload.tap {
+                onDownloadClick.invoke(item)
             }
 
             root.tap {
