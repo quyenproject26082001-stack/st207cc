@@ -142,6 +142,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 override fun onEditText(draw: DrawableDraw) {}
                 override fun onReplace(draw: Draw) {}
             })
+
+            // Setup emoji-specific icons: only delete (top right) and zoom (bottom left)
+            setupEmojiIcons(45f)
         }
     }
 

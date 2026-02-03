@@ -58,6 +58,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
+        tools:visibility="visible"
         android:background="#FFFFFF"
         android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@+id/rcvLayer"

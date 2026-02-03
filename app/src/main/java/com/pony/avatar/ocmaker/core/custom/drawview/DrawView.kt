@@ -1042,6 +1042,31 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         iconList.add(editIcon)
     }
 
+    /**
+     * Setup icons specifically for EmojiCustomActivity
+     * Only 2 icons: delete (top right) and zoom (bottom left)
+     * @param iconSize custom size for icons (default is 35f)
+     */
+    fun setupEmojiIcons(iconSize: Float = 45f) {
+        // Delete icon - góc trên phải
+        val deleteIcon = BitmapDrawIcon(
+            ContextCompat.getDrawable(context, R.drawable.ic_close_2), DrawKey.RIGHT_TOP
+        )
+        deleteIcon.event = DeleteEvent()
+        deleteIcon.radius = iconSize
+
+        // Zoom icon - góc dưới trái
+        val zoomIcon = BitmapDrawIcon(
+            ContextCompat.getDrawable(context, R.drawable.ic_rotation_1), DrawKey.LEFT_BOTTOM
+        )
+        zoomIcon.event = ZoomEvent()
+        zoomIcon.radius = iconSize
+
+        iconList.clear()
+        iconList.add(deleteIcon)
+        iconList.add(zoomIcon)
+    }
+
     private fun flip(draw: Draw?, direction: Int) {
         if (draw != null) {
             if (!draw.isLock) {
