@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app"
-    tools:context=".ui.random_character.RandomCharacterActivity">
+    tools:context=".ui.emoji_sticker.EmojiStickerListActivity">
 
 
 
