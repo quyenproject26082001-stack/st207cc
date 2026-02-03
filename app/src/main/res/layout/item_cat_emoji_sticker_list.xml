@@ -52,6 +52,15 @@
                     android:layout_height="match_parent"
                     android:background="#818181" />
             </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!--        btnSelect-->
+            <ImageView
+                android:id="@+id/btnSelect"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="end"
+                android:layout_margin="10dp"
+                android:src="@drawable/ic_not_select" />
         </androidx.cardview.widget.CardView>
 
     </FrameLayout>
