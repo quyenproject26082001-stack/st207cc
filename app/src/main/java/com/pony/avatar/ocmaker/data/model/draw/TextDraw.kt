@@ -53,6 +53,12 @@ class TextDraw(private val context: Context, drawable: Drawable, filePath: Strin
             drawable.draw(canvas)
         }
         canvas.restore()
+
+        // Skip text drawing if staticLayout not initialized
+        if (staticLayout == null) {
+            return
+        }
+
         canvas.save()
         canvas.concat(matrix)
         if (textRect.width() == width) {

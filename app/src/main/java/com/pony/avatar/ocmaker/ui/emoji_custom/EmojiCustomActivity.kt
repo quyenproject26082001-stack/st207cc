@@ -214,7 +214,11 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
      * Restore a TextDraw from DrawItemModel
      */
     private fun restoreTextDraw(itemModel: DrawItemModel, editModel: EmojiEditModel) {
-        val transparentDrawable = ColorDrawable(Color.TRANSPARENT)
+        // Create a transparent bitmap drawable with proper dimensions
+        // ColorDrawable has intrinsicWidth/Height = -1 which causes resizeText() to fail
+        val size = 512 // Standard size
+        val transparentBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val transparentDrawable = BitmapDrawable(resources, transparentBitmap)
         val textDraw = TextDraw(this, transparentDrawable, itemModel.drawablePath)
 
         // Restore text properties
@@ -819,8 +823,11 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             setOnClickListener {
                 val text = editText.text.toString().trim()
                 if (text.isNotEmpty()) {
-                    // Create transparent background drawable
-                    val transparentDrawable = ColorDrawable(Color.TRANSPARENT)
+                    // Create transparent bitmap drawable with proper dimensions
+                    // ColorDrawable has intrinsicWidth/Height = -1 which causes resizeText() to fail
+                    val size = 512
+                    val transparentBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+                    val transparentDrawable = BitmapDrawable(resources, transparentBitmap)
 
                     // Create TextDraw
                     val textDraw = TextDraw(this@EmojiCustomActivity, transparentDrawable, "text_${System.currentTimeMillis()}")
