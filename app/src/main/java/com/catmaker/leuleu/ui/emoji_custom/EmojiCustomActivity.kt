@@ -34,6 +34,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.skydoves.colorpickerview.ColorEnvelope
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import com.catmaker.leuleu.R
 import com.catmaker.leuleu.core.base.BaseActivity
 import com.catmaker.leuleu.core.extensions.gone
@@ -59,6 +61,7 @@ import com.catmaker.leuleu.core.utils.state.SaveState
 import com.catmaker.leuleu.databinding.ActivityEmojiCustomBinding
 import com.catmaker.leuleu.databinding.DialogLayerBinding
 import com.catmaker.leuleu.databinding.EmDialogTextStickerBinding
+import com.catmaker.leuleu.databinding.LayoutDrawBinding
 import com.catmaker.leuleu.data.model.custom.DrawItemModel
 import com.catmaker.leuleu.data.model.custom.EmojiEditModel
 import com.catmaker.leuleu.data.model.draw.Draw
@@ -98,6 +101,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
     // Map DrawableDraw to its UUID for restore
     private val drawIdMap = mutableMapOf<DrawableDraw, String>()
+
+    // Draw overlay binding (inflated programmatically)
+    private lateinit var drawBinding: LayoutDrawBinding
 
     // URLs that failed to load — filtered out from all categories
     private val failedUrls = mutableSetOf<String>()
@@ -530,6 +536,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     override fun viewListener() {
+        drawBinding = LayoutDrawBinding.inflate(LayoutInflater.from(this), binding.root, true)
+
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
             actionBar.btnActionBarRightText.tap { handleSave() }
@@ -556,29 +564,36 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 enterDrawMode()
             }
 
-            // Drawing control buttons
-            btnPen.tap {
-                paintDrawView.eraser(false)
-            }
-
-            btnEraser.tap {
-                paintDrawView.eraser(true)
-            }
-
-            btnDrawDone.tap {
-                exitDrawModeAndSave()
-            }
-
-            btnDrawCancel.tap {
+            // Draw mode toolbar buttons
+            drawBinding.btnBackDraw.tap {
                 exitDrawModeAndCancel()
             }
 
+            drawBinding.btnDoneDraw.tap {
+                exitDrawModeAndSave()
+            }
+
+            // Paint / Eraser toggle
+            drawBinding.btnPaintDraw.tap {
+                drawBinding.dv.eraser(false)
+                drawBinding.btnPaintDraw.setBackgroundResource(R.drawable.bg_selected)
+                drawBinding.btnEraserDraw.setBackgroundResource(0)
+                drawBinding.layoutColorPickerDraw.visible()
+            }
+
+            drawBinding.btnEraserDraw.tap {
+                drawBinding.dv.eraser(true)
+                drawBinding.btnEraserDraw.setBackgroundResource(R.drawable.bg_selected)
+                drawBinding.btnPaintDraw.setBackgroundResource(0)
+                drawBinding.layoutColorPickerDraw.gone()
+            }
+
             // Size slider
-            sbSize.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            drawBinding.sbSizeDraw.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                     val strokeWidth = (progress * 2).coerceAtLeast(10)
-                    paintDrawView.setStrokeWidth(strokeWidth)
-                    paintDrawView.setStrokeWidthEraser(strokeWidth)
+                    drawBinding.dv.setStrokeWidth(strokeWidth)
+                    drawBinding.dv.setStrokeWidthEraser(strokeWidth)
                 }
 
                 override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
@@ -586,11 +601,13 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             })
 
             // Color picker
-            colorBlack.tap { paintDrawView.setColor(Color.BLACK) }
-            colorRed.tap { paintDrawView.setColor(Color.RED) }
-            colorBlue.tap { paintDrawView.setColor(Color.BLUE) }
-            colorGreen.tap { paintDrawView.setColor(Color.GREEN) }
-            colorYellow.tap { paintDrawView.setColor(Color.YELLOW) }
+            drawBinding.colorPicker.attachBrightnessSlider(drawBinding.sbBrightnessSlide)
+            drawBinding.colorPicker.attachAlphaSlider(drawBinding.sbAlphaSlideBar)
+            drawBinding.colorPicker.setColorListener(object : ColorEnvelopeListener {
+                override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
+                    drawBinding.dv.setColor(envelope.color)
+                }
+            })
 
             // Text button
             btnText.tap {
@@ -981,10 +998,6 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
     private fun enterDrawMode() {
         binding.apply {
-            // Show paint view and controls
-            paintDrawView.visible()
-            layoutDrawControls.visible()
-
             // Hide other controls
             btnFlipH.invisible()
             btnFlipV.invisible()
@@ -993,68 +1006,65 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
+        }
+
+        // Show draw overlay and initialize
+        drawBinding.apply {
+            layoutDraw.visible()
 
             // Initialize paint settings
-            paintDrawView.setColor(Color.BLACK)
-            paintDrawView.setStrokeWidth(50)
-            paintDrawView.eraser(false)
+            dv.setColor(Color.BLACK)
+            dv.setStrokeWidth(50)
+            dv.eraser(false)
+
+            // Reset UI to default paint mode with size visible
+            btnPaintDraw.setBackgroundResource(R.drawable.bg_selected)
+            btnEraserDraw.setBackgroundResource(0)
+            layoutColorPickerDraw.gone()
+            layoutSize.visible()
         }
     }
 
     private fun exitDrawModeAndSave() {
+        val bitmap = drawBinding.dv.save()
+
+        if (bitmap != null) {
+            val filePath = saveFreehandBitmapToFile(bitmap)
+            val drawable = BitmapDrawable(resources, bitmap)
+            val drawableDraw = DrawableDraw(drawable, filePath)
+            binding.layoutCustomLayer.addDraw(drawableDraw)
+
+            val id = UUID.randomUUID().toString()
+            drawIdMap[drawableDraw] = id
+
+            drawBinding.dv.clearAll()
+        }
+
+        // Hide draw overlay
+        drawBinding.layoutDraw.gone()
+
+        // Show other controls
         binding.apply {
-            val bitmap = paintDrawView.save()
-
-            if (bitmap != null) {
-                // Save bitmap to file so it can be restored later
-                val filePath = saveFreehandBitmapToFile(bitmap)
-
-                // Convert bitmap to drawable
-                val drawable = BitmapDrawable(resources, bitmap)
-
-                // Create DrawableDraw with actual file path
-                val drawableDraw = DrawableDraw(drawable, filePath)
-                layoutCustomLayer.addDraw(drawableDraw)
-
-                // Assign UUID for tracking
-                val id = UUID.randomUUID().toString()
-                drawIdMap[drawableDraw] = id
-
-                // Clear paint view
-                paintDrawView.clearAll()
-            }
-
-            // Hide drawing UI
-            paintDrawView.invisible()
-            layoutDrawControls.invisible()
-
-            // Show other controls
             btnFlipH.visible()
             btnFlipV.visible()
             btnText.visible()
             btnLayer.visible()
-
-            // Unlock main DrawView
             layoutCustomLayer.setLocked(false)
         }
     }
 
     private fun exitDrawModeAndCancel() {
+        drawBinding.dv.clearAll()
+
+        // Hide draw overlay
+        drawBinding.layoutDraw.gone()
+
+        // Show other controls
         binding.apply {
-            // Clear paint view
-            paintDrawView.clearAll()
-
-            // Hide drawing UI
-            paintDrawView.invisible()
-            layoutDrawControls.invisible()
-
-            // Show other controls
             btnFlipH.visible()
             btnFlipV.visible()
             btnText.visible()
             btnLayer.visible()
-
-            // Unlock main DrawView
             layoutCustomLayer.setLocked(false)
         }
     }
@@ -1062,7 +1072,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         // If in drawing mode, exit drawing mode first
-        if (binding.paintDrawView.visibility == View.VISIBLE) {
+        if (drawBinding.layoutDraw.visibility == View.VISIBLE) {
             exitDrawModeAndCancel()
         } else {
             confirmExit()

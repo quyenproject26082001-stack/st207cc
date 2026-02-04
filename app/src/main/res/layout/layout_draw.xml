@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutDraw"
@@ -53,7 +54,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/btnDone"
+                android:id="@+id/btnDoneDraw"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="12dp"
@@ -121,7 +122,7 @@
                 android:visibility="gone" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/layoutColorPicker"
+                android:id="@+id/layoutColorPickerDraw"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layoutDirection="ltr"
@@ -191,7 +192,6 @@
                 android:layout_marginBottom="48dp"
                 android:layoutDirection="ltr"
                 android:orientation="horizontal"
-                android:visibility="gone"
                 android:weightSum="10">
 
                 <TextView
@@ -213,7 +213,7 @@
                     android:textStyle="bold" />
 
                 <androidx.appcompat.widget.AppCompatSeekBar
-                    android:id="@+id/sbSize"
+                    android:id="@+id/sbSizeDraw"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -262,7 +262,7 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <com.catmaker.leuleu.core.custom.drawview.DrawView
+        <com.catmaker.leuleu.core.custom.paintview.PaintDrawView
             android:id="@+id/dv"
             android:layout_width="match_parent"
             android:layout_height="0dp"
