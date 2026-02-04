@@ -576,6 +576,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
             actionBar.btnActionBarRightText.tap { handleSave() }
+            actionBar.btnActionBarCenter.tap { confirmReset() }
 
             // Undo/Redo button listeners
             actionBar.btnActionBarCenterLeft.tap { handleUndo() }
@@ -716,14 +717,15 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
+            setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             btnActionBarRightText.visible()
             btnActionBarRight.invisible()
+            btnActionBarCenter.visible()
 
             // Show Undo/Redo buttons
             btnActionBarCenterLeft.visible()
             btnActionBarCenterRight.visible()
             bgBtnActionBar.setBackgroundResource(R.drawable.bg_actionbar)
-
 
             // Set initial state (disabled until first action)
             btnActionBarCenterLeft.alpha = 0.3f
@@ -745,6 +747,52 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
      */
     private fun handleRedo() {
         binding.layoutCustomLayer.redo()
+    }
+
+    /**
+     * Confirm reset all draws
+     */
+    private fun confirmReset() {
+        if (binding.layoutCustomLayer.getDraws().isEmpty()) {
+            showToast(R.string.please_select_item)
+            return
+        }
+
+        val dialog = YesNoDialog(
+            this,
+            R.string.reset,
+            R.string.change_your_whole_design_are_you_sure,
+            dialogType = DialogType.RESET
+        )
+        dialog.show()
+
+        dialog.onNoClick = {
+            dialog.dismiss()
+            hideNavigation(true)
+        }
+
+        dialog.onYesClick = {
+            dialog.dismiss()
+            hideNavigation(true)
+            handleReset()
+        }
+    }
+
+    /**
+     * Reset all draws and clear selected items
+     */
+    private fun handleReset() {
+        // Remove all draws from canvas
+        binding.layoutCustomLayer.removeAllDraw()
+
+        // Clear selected draws map
+        selectedDraws.clear()
+
+        // Clear draw ID map
+        drawIdMap.clear()
+
+        // Reload current category to refresh UI
+        loadLayerData(currentCategoryIndex)
     }
 
     private fun confirmExit() {

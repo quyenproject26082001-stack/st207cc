@@ -133,4 +133,6 @@
     <string name="cancel">Cancel</string>
     <string name="size">Size:</string>
     <string name="draw">Draw</string>
+    <string name="my_emoji_maker">My Emoji Maker</string>
+    <string name="my_emoji_custom">My Emoji Custom</string>
 </resources>

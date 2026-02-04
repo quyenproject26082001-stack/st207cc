@@ -126,9 +126,10 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
 
     private fun updateText() {
         binding.apply {
-            tv1.text = strings(R.string.pony_maker)
-            tv2.text = strings(R.string.trending)
+            tv1.text = strings(R.string.cat_emoji_maker)
+            tv2.text = strings(R.string.quick_maker)
             tv3.text = strings(R.string.my_work)
+            tvStickers.text = strings(R.string.cat_sticker)
         }
     }
 

@@ -176,7 +176,12 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
-            setTextActionBar(tvCenter, getString(R.string.pony_maker))
+            val title = when (currentDataType) {
+                IntentKey.DATA_TYPE_CAT -> getString(R.string.cat_maker)
+                IntentKey.DATA_TYPE_EMOJI -> getString(R.string.emoji_maker)
+                else -> getString(R.string.pony_maker)
+            }
+            setTextActionBar(tvCenter, title)
             tvCenter.select()
         }
     }
