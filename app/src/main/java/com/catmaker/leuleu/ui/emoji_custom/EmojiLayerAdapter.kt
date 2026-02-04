@@ -2,6 +2,7 @@ package com.catmaker.leuleu.ui.emoji_custom
 
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -35,25 +36,36 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: EmojiLayerItem, position: Int) {
+            // Show shimmer, hide image khi bắt đầu load
+            binding.sflShimmer.visibility = View.VISIBLE
+            binding.sflShimmer.startShimmer()
+            binding.imvImage.visibility = View.INVISIBLE
+
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
-                .placeholder(R.drawable.bg_item_layer)
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        binding.sflShimmer.stopShimmer()
+                        binding.sflShimmer.visibility = View.GONE
                         onItemLoadError(item)
                         return false
                     }
                     override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        // Hide shimmer, show image khi load xong
+                        binding.sflShimmer.stopShimmer()
+                        binding.sflShimmer.visibility = View.GONE
+                        binding.imvImage.visibility = View.VISIBLE
                         return false
                     }
                 })
                 .into(binding.imvImage)
 
-            // Highlight nếu được chọn
-            binding.root.alpha = if (item.isSelected) 1f else 0.7f
-
-            // Luôn dùng bg_item_emoji_custom (stroke #ABE55A, radius 10dp, white bg)
-            binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom)
+            // Background theo trạng thái selected
+            if (item.isSelected) {
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom_selected)
+            } else {
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom)
+            }
 
             binding.root.setOnClickListener {
                 onItemClick(item)
