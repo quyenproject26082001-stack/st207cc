@@ -14,8 +14,11 @@ import com.catmaker.leuleu.core.extensions.select
 import com.catmaker.leuleu.core.extensions.setImageActionBar
 import com.catmaker.leuleu.core.extensions.showInterAll
 import com.catmaker.leuleu.core.extensions.startIntentRightToLeft
+import com.catmaker.leuleu.core.helper.InternetHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
+import com.catmaker.leuleu.dialog.DialogType
+import com.catmaker.leuleu.dialog.YesNoDialog
 import com.catmaker.leuleu.core.utils.key.ValueKey
 import com.catmaker.leuleu.core.utils.state.RateState
 import com.catmaker.leuleu.databinding.ActivityHomeBinding
@@ -58,7 +61,21 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             btnCreate.tap(800) { startIntentRightToLeft(CatEmojiMakerActivity::class.java) }
             btnMyAlbum.tap(800) { showInterAll { startIntentRightToLeft(MyCreationActivity::class.java) } }
             btnQuickMaker.tap(800) { startIntentRightToLeft(RandomCharacterActivity::class.java) }
-            btnEmojiCustom.tap(800) { startIntentRightToLeft(EmojiCustomActivity::class.java) }
+            btnEmojiCustom.tap(800) {
+                if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
+                    startIntentRightToLeft(EmojiCustomActivity::class.java)
+                } else {
+                    val dialog = YesNoDialog(
+                        this@HomeActivity,
+                        R.string.no_internet,
+                        R.string.please_check_your_internet,
+                        isError = true,
+                        dialogType = DialogType.INTERNET
+                    )
+                    dialog.show()
+                    dialog.onYesClick = { dialog.dismiss() }
+                }
+            }
             btnStickers.tap(800) { startIntentRightToLeft(EmojiStickerActivity::class.java) }
         }
     }

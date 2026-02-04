@@ -49,6 +49,7 @@ import com.catmaker.leuleu.core.extensions.visible
 import com.catmaker.leuleu.core.extensions.invisible
 import com.catmaker.leuleu.core.helper.BitmapHelper
 import com.catmaker.leuleu.core.helper.EmojiApiHelper
+import com.catmaker.leuleu.core.helper.InternetHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
 import com.catmaker.leuleu.core.utils.DataLocal
@@ -113,6 +114,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     override fun initView() {
+        // Check internet before entering screen
+        if (!InternetHelper.isInternetAvailable(this)) {
+            showNoInternetDialog {
+                finish()
+            }
+            return
+        }
+
         // Get statusFrom from intent
         statusFrom = intent.getIntExtra(IntentKey.STATUS_FROM_KEY, ValueKey.CREATE)
 
@@ -124,6 +133,29 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         // If in EDIT mode, restore edit data
         if (statusFrom == ValueKey.EDIT) {
             restoreEditData()
+        }
+    }
+
+    private fun showNoInternetDialog(onDismiss: (() -> Unit)? = null) {
+        val dialog = YesNoDialog(
+            this,
+            R.string.no_internet,
+            R.string.please_check_your_internet,
+            isError = true,
+            dialogType = DialogType.INTERNET
+        )
+        dialog.show()
+        dialog.onYesClick = {
+            dialog.dismiss()
+            onDismiss?.invoke()
+        }
+    }
+
+    private fun checkInternetAndExecute(action: () -> Unit) {
+        if (InternetHelper.isInternetAvailable(this)) {
+            action.invoke()
+        } else {
+            showNoInternetDialog()
         }
     }
 
@@ -553,12 +585,16 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnFlipH.tap {
                 if (layoutCustomLayer.getDraws().isNotEmpty()) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_HORIZONTALLY)
+                } else {
+                    showToast(R.string.please_select_item)
                 }
             }
 
             btnFlipV.tap {
                 if (layoutCustomLayer.getDraws().isNotEmpty()) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_VERTICALLY)
+                } else {
+                    showToast(R.string.please_select_item)
                 }
             }
 
@@ -628,7 +664,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         navigationAdapter.onItemClick = { position ->
-            loadLayerData(position)
+            checkInternetAndExecute {
+                loadLayerData(position)
+            }
         }
 
         layerAdapter.onItemLoadError = { item ->
@@ -639,37 +677,39 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         layerAdapter.onItemClick = { item ->
-            val category = categories[currentCategoryIndex]
-            val imageUrl = item.imageUrl
+            checkInternetAndExecute {
+                val category = categories[currentCategoryIndex]
+                val imageUrl = item.imageUrl
 
-            // Add new item (cho phép chọn nhiều lần)
-            Glide.with(this)
-                .asDrawable()
-                .load(imageUrl)
-                .into(object : CustomTarget<Drawable>() {
-                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                        // Create new DrawableDraw
-                        val drawableDraw = DrawableDraw(resource, imageUrl)
-                        binding.layoutCustomLayer.addDraw(drawableDraw)
+                // Add new item (cho phép chọn nhiều lần)
+                Glide.with(this)
+                    .asDrawable()
+                    .load(imageUrl)
+                    .into(object : CustomTarget<Drawable>() {
+                        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                            // Create new DrawableDraw
+                            val drawableDraw = DrawableDraw(resource, imageUrl)
+                            binding.layoutCustomLayer.addDraw(drawableDraw)
 
-                        // Assign UUID for tracking
-                        val id = UUID.randomUUID().toString()
-                        drawIdMap[drawableDraw] = id
+                            // Assign UUID for tracking
+                            val id = UUID.randomUUID().toString()
+                            drawIdMap[drawableDraw] = id
 
-                        // Save reference to list
-                        if (selectedDraws[category.name] == null) {
-                            selectedDraws[category.name] = mutableListOf()
+                            // Save reference to list
+                            if (selectedDraws[category.name] == null) {
+                                selectedDraws[category.name] = mutableListOf()
+                            }
+                            selectedDraws[category.name]?.add(drawableDraw)
+
+                            // Update UI
+                            loadLayerData(currentCategoryIndex)
                         }
-                        selectedDraws[category.name]?.add(drawableDraw)
 
-                        // Update UI
-                        loadLayerData(currentCategoryIndex)
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        // Do nothing
-                    }
-                })
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Do nothing
+                        }
+                    })
+            }
         }
     }
 
@@ -724,6 +764,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun handleSave() {
+        // Check if there are any items
+        if (binding.layoutCustomLayer.getDraws().isEmpty()) {
+            showToast(R.string.please_select_item)
+            return
+        }
+
         // Hide selection before save
         binding.layoutCustomLayer.hideSelect()
 
