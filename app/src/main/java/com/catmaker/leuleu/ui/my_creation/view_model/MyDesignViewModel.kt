@@ -46,7 +46,15 @@ class MyDesignViewModel : ViewModel() {
                 android.util.Log.d("MyDesignViewModel", "  [$index] File exists: $exists, Size: $size bytes")
             }
 
-            val albumList = imageList.map { MyAlbumModel(it) }.toCollection(ArrayList())
+            // Filter out emoji custom items — those belong to the Emoji tab
+            val emojiPaths = try {
+                MediaHelper.readListFromFile<EmojiEditModel>(context, ValueKey.EMOJI_EDIT_FILE_INTERNAL)
+                    .map { it.pathInternalEdit }.toSet()
+            } catch (e: Exception) { emptySet() }
+
+            val albumList = imageList
+                .filter { it !in emojiPaths }
+                .map { MyAlbumModel(it) }.toCollection(ArrayList())
             _myDesignList.value = albumList
 
             android.util.Log.d("MyDesignViewModel", "✅ Updated myDesignList with ${albumList.size} items")
