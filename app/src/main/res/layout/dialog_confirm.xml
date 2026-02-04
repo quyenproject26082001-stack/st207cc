@@ -23,7 +23,7 @@
                 android:layout_width="311dp"
                 android:layout_height="152dp"
                 android:gravity="center_horizontal"
-                android:background="@drawable/bg_dialog_delete_exit"
+                android:background="@drawable/bg_dialog"
                 android:orientation="vertical">
 
                 <!--            ConstraintLayout bọc tvTitle (Top)-->
@@ -38,14 +38,14 @@
                         android:layout_marginHorizontal="70dp"
                         android:layout_height="wrap_content"
                         android:background="@color/transparent"
-                        android:fontFamily="@font/chewy_regular"
+                        android:fontFamily="@font/nunito_bold"
                         android:gravity="center"
                         android:layout_marginTop="2dp"
                         android:paddingVertical="5dp"
                         android:text="@string/delete"
                         style="@style/single_marquee"
                         android:textColor="#FFFFFF"
-                        android:textSize="20sp"
+                        android:textSize="18sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -60,12 +60,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
-                    android:fontFamily="@font/roboto_regular"
+                    android:fontFamily="@font/nunito_regular"
                     android:gravity="center"
                     android:paddingHorizontal="24dp"
                     android:text="@string/are_you_sure_want_to_delete_this_item"
-                    android:textColor="#FF008C"
-                    android:textSize="14sp" />
+                    android:textColor="#7AAB36"
+                    android:textSize="16sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -88,7 +88,7 @@
                         android:gravity="center"
                         android:paddingVertical="6dp"
                         android:text="@string/no"
-                        android:textColor="#FF008C"
+                        android:textColor="#7AAB36"
                         android:textSize="16sp" />
 
                     <TextView

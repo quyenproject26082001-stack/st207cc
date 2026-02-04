@@ -14,7 +14,7 @@
         android:scaleType="fitXY"
         android:src="@drawable/img_intro_1" />
 
-    <com.pony.avatar.ocmaker.core.custom.text.DoubleStrokeTextView
+    <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
         android:id="@+id/tvContent"
         android:layout_width="match_parent"
         android:layout_height="48sp"

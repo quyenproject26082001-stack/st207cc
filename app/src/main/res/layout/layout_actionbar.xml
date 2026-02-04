@@ -55,7 +55,7 @@
     </androidx.cardview.widget.CardView>
 
     <!--    tvStart-->
-    <com.pony.avatar.ocmaker.core.custom.text.DoubleStrokeTextView
+    <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
         android:id="@+id/tvStart"
         android:layout_width="120dp"
         android:layout_height="100dp"
@@ -74,7 +74,7 @@
         app:layout_constraintTop_toTopOf="@+id/btnActionBarLeft" />
 
     <!--    tvCenter-->
-    <com.pony.avatar.ocmaker.core.custom.text.DoubleStrokeTextView
+    <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
     android:id="@+id/tvCenter"
         style="@style/single_marquee"
         android:layout_width="200dp"

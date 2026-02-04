@@ -133,4 +133,7 @@
     <string name="cat_sticker">Cat Sticker</string>
     <string name="cat_emoji_maker">Cat Emoji Maker</string>
     <string name="cat_emoji_customizer">Cat Emoji Custom</string>
+    <string name="selected_count">%d selected</string>
+    <string name="select_stickers">Select stickers</string>
+    <string name="please_select_stickers">Please select stickers</string>
 </resources>

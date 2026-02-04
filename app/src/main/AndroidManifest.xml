@@ -140,7 +140,7 @@
 
         <provider
             android:name=".core.utils.share.whatsapp.StickerContentProvider"
-            android:authorities="com.pony.avatar.ocmaker.core.utils.share.whatsapp.StickerContentProvider"
+            android:authorities="com.catmaker.leuleu.core.utils.share.whatsapp.StickerContentProvider"
             android:enabled="true"
             android:exported="true"
             android:readPermission="com.whatsapp.sticker.READ" />

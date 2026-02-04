@@ -76,7 +76,7 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop" />
         <!--        drawView-->
-        <com.pony.avatar.ocmaker.core.custom.drawview.DrawView
+        <com.catmaker.leuleu.core.custom.drawview.DrawView
             android:id="@+id/drawView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

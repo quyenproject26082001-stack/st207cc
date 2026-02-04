@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.pony.avatar.ocmaker'
+    namespace 'com.catmaker.leuleu'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.pony.avatar.ocmaker"
+        applicationId "com.catmaker.leuleu"
         minSdk 24
         targetSdk 36
         versionCode 1

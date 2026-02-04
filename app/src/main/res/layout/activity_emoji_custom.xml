@@ -28,7 +28,7 @@
     </FrameLayout>
 
     <!-- Layout Image Layer -->
-    <com.pony.avatar.ocmaker.core.custom.drawview.DrawView
+    <com.catmaker.leuleu.core.custom.drawview.DrawView
         android:id="@+id/layoutCustomLayer"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -41,7 +41,7 @@
         app:layout_constraintTop_toBottomOf="@id/layoutActionBar" />
 
     <!-- Paint Draw View (for drawing) -->
-    <com.pony.avatar.ocmaker.core.custom.paintview.PaintDrawView
+    <com.catmaker.leuleu.core.custom.paintview.PaintDrawView
         android:id="@+id/paintDrawView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -58,6 +58,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
+        tools:visibility="visible"
         android:background="#FFFFFF"
         android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
