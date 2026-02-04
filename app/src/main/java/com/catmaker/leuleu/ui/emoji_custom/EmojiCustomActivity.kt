@@ -15,7 +15,9 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.text.Editable
 import android.text.Layout
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -24,6 +26,7 @@ import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -33,8 +36,10 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.catmaker.leuleu.R
 import com.catmaker.leuleu.core.base.BaseActivity
+import com.catmaker.leuleu.core.extensions.gone
 import com.catmaker.leuleu.core.extensions.handleBackLeftToRight
 import com.catmaker.leuleu.core.extensions.hideNavigation
+import com.catmaker.leuleu.core.extensions.setFont
 import com.catmaker.leuleu.core.extensions.setImageActionBar
 import com.catmaker.leuleu.core.extensions.showInterAll
 import com.catmaker.leuleu.core.extensions.tap
@@ -44,6 +49,7 @@ import com.catmaker.leuleu.core.helper.BitmapHelper
 import com.catmaker.leuleu.core.helper.EmojiApiHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
+import com.catmaker.leuleu.core.utils.DataLocal
 import com.catmaker.leuleu.core.utils.key.DrawKey
 import com.catmaker.leuleu.core.utils.key.EmojiApiConfig
 import com.catmaker.leuleu.core.utils.key.EmojiCategory
@@ -52,6 +58,7 @@ import com.catmaker.leuleu.core.utils.key.ValueKey
 import com.catmaker.leuleu.core.utils.state.SaveState
 import com.catmaker.leuleu.databinding.ActivityEmojiCustomBinding
 import com.catmaker.leuleu.databinding.DialogLayerBinding
+import com.catmaker.leuleu.databinding.EmDialogTextStickerBinding
 import com.catmaker.leuleu.data.model.custom.DrawItemModel
 import com.catmaker.leuleu.data.model.custom.EmojiEditModel
 import com.catmaker.leuleu.data.model.draw.Draw
@@ -60,6 +67,8 @@ import com.catmaker.leuleu.data.model.draw.TextDraw
 import com.catmaker.leuleu.dialog.DialogType
 import com.catmaker.leuleu.dialog.YesNoDialog
 import com.catmaker.leuleu.listener.listenerdraw.OnDrawListener
+import com.catmaker.leuleu.ui.add_character.adapter.TextColorAdapter
+import com.catmaker.leuleu.ui.add_character.adapter.TextFontAdapter
 import com.catmaker.leuleu.ui.emoji_custom.adapter.LayerAdapter
 import com.catmaker.leuleu.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
@@ -752,129 +761,105 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun showTextDialog() {
+        val textFontList = DataLocal.getTextFontDefault().also { it[0].isSelected = true }
+        val textColorList = DataLocal.getTextColorDefault(this).also { it[1].isSelected = true }
+        var selectedFontRes = textFontList[0].color
+        var selectedColor = textColorList[1].color
+
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(true)
+        val bindingDialog = EmDialogTextStickerBinding.inflate(layoutInflater)
+        dialog.setContentView(bindingDialog.root)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.setCancelable(false)
 
-        val dialogView = layoutInflater.inflate(android.R.layout.simple_list_item_1, null)
-        val container = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(32, 32, 32, 32)
-        }
+        val window = dialog.window ?: return
+        window.setGravity(Gravity.CENTER)
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+        window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
-        // EditText for text input
-        val editText = EditText(this).apply {
-            hint = "Enter text"
-            maxLines = 2
-            textSize = 18f
-            setTextColor(Color.BLACK)
-        }
-        container.addView(editText)
+        bindingDialog.apply {
+            edtText.isFocusableInTouchMode = true
+            edtText.isFocusable = true
+            edtText.requestFocus()
+            edtText.setFont(selectedFontRes)
+            edtText.setTextColor(selectedColor)
 
-        // Color selection
-        val colorLabel = android.widget.TextView(this).apply {
-            text = "Color:"
-            setPadding(0, 16, 0, 8)
-        }
-        container.addView(colorLabel)
-
-        val colorContainer = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.HORIZONTAL
-        }
-
-        val colors = listOf(
-            Color.BLACK, Color.WHITE, Color.RED, Color.BLUE,
-            Color.GREEN, Color.YELLOW, Color.CYAN, Color.MAGENTA
-        )
-        var selectedColor = Color.BLACK
-
-        colors.forEach { color ->
-            val colorView = View(this).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(60, 60).apply {
-                    marginEnd = 8
+            edtText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    tvLength.text = "${s.toString().length}/30"
                 }
-                setBackgroundColor(color)
-                setOnClickListener {
-                    selectedColor = color
-                    editText.setTextColor(color)
-                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+
+            val textFontAdapter = TextFontAdapter(this@EmojiCustomActivity)
+            textFontAdapter.onTextFontClick = { font, position ->
+                edtText.setFont(font)
+                selectedFontRes = font
+                textFontList.forEachIndexed { index, item -> item.isSelected = index == position }
+                textFontAdapter.submitItem(position, textFontList)
             }
-            colorContainer.addView(colorView)
-        }
-        container.addView(colorContainer)
 
-        // Font selection
-        val fontLabel = android.widget.TextView(this).apply {
-            text = "Font:"
-            setPadding(0, 16, 0, 8)
-        }
-        container.addView(fontLabel)
-
-        val fontContainer = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.HORIZONTAL
-        }
-
-        val fonts = listOf(
-            Pair("Normal", Typeface.DEFAULT),
-            Pair("Bold", Typeface.DEFAULT_BOLD),
-            Pair("Mono", Typeface.MONOSPACE)
-        )
-        var selectedTypeface = Typeface.DEFAULT
-
-        fonts.forEach { (name, typeface) ->
-            val fontButton = android.widget.Button(this).apply {
-                text = name
-                setOnClickListener {
-                    selectedTypeface = typeface
-                    editText.typeface = typeface
-                }
+            val textColorAdapter = TextColorAdapter()
+            textColorAdapter.onTextColorClick = { color, position ->
+                edtText.setTextColor(color)
+                selectedColor = color
+                textColorList.forEachIndexed { index, item -> item.isSelected = index == position }
+                textColorAdapter.submitItem(position, textColorList)
             }
-            fontContainer.addView(fontButton)
-        }
-        container.addView(fontContainer)
 
-        // Done button
-        val doneButton = android.widget.Button(this).apply {
-            text = "Done"
-            setOnClickListener {
-                val text = editText.text.toString().trim()
+            rcvTextFont.adapter = textFontAdapter
+            rcvTextFont.itemAnimator = null
+            textFontAdapter.submitListReset(textFontList)
+
+            rcvTextColor.adapter = textColorAdapter
+            rcvTextColor.itemAnimator = null
+            textColorAdapter.submitListReset(textColorList)
+            rcvTextColor.gone()
+
+            btnTextFont.tap {
+                Glide.with(this@EmojiCustomActivity).load(R.drawable.ic_text_font_selected).into(btnTextFont)
+                Glide.with(this@EmojiCustomActivity).load(R.drawable.ic_color_picker_unselected).into(btnColorPicker)
+                rcvTextFont.visible()
+                rcvTextColor.gone()
+            }
+
+            btnColorPicker.tap {
+                Glide.with(this@EmojiCustomActivity).load(R.drawable.ic_text_font_unselected).into(btnTextFont)
+                Glide.with(this@EmojiCustomActivity).load(R.drawable.ic_color_picker_selected).into(btnColorPicker)
+                rcvTextFont.gone()
+                rcvTextColor.visible()
+            }
+
+            btnDone.tap {
+                val text = edtText.text.toString().trim()
                 if (text.isNotEmpty()) {
-                    // Create transparent bitmap drawable with proper dimensions
-                    // ColorDrawable has intrinsicWidth/Height = -1 which causes resizeText() to fail
                     val size = 512
                     val transparentBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
                     val transparentDrawable = BitmapDrawable(resources, transparentBitmap)
 
-                    // Create TextDraw
                     val textDraw = TextDraw(this@EmojiCustomActivity, transparentDrawable, "text_${System.currentTimeMillis()}")
                     textDraw.setText(text)
                     textDraw.setTextColor(selectedColor)
-                    textDraw.setTypeface(selectedTypeface)
+                    textDraw.setTypeface(ResourcesCompat.getFont(this@EmojiCustomActivity, selectedFontRes) ?: Typeface.DEFAULT)
                     textDraw.setTextAlign(Layout.Alignment.ALIGN_CENTER)
                     textDraw.resizeText()
 
-                    // Add to DrawView
                     binding.layoutCustomLayer.addDraw(textDraw)
 
-                    // Assign UUID for tracking
                     val id = UUID.randomUUID().toString()
                     drawIdMap[textDraw] = id
-
-                    dialog.dismiss()
-                } else {
-                    showToast("Please enter text")
                 }
+                dialog.dismiss()
             }
         }
-        container.addView(doneButton)
 
-        dialog.setContentView(container)
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.WRAP_CONTENT
-        )
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.WHITE))
         dialog.show()
     }
 
