@@ -127,5 +127,10 @@
     <string name="cat_sticker">Cat Sticker</string>
     <string name="cat_emoji_maker">Cat Emoji Maker</string>
     <string name="cat_emoji_customizer">Cat Emoji Custom</string>
+    <string name="mode">Mode:</string>
+    <string name="pen">Pen</string>
+    <string name="eraser">Eraser</string>
+    <string name="cancel">Cancel</string>
+    <string name="size">Size:</string>
 
 </resources>

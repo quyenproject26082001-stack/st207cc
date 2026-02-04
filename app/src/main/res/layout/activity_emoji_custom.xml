@@ -74,39 +74,56 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mode:"
+                android:text="@string/mode"
                 android:textSize="14sp"
                 android:layout_marginEnd="8dp"/>
 
-            <Button
+            <TextView
                 android:id="@+id/btnPen"
-                android:layout_width="wrap_content"
+                android:layout_width="80dp"
                 android:layout_height="40dp"
-                android:text="Pen"
+                android:text="@string/pen"
                 android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:fontFamily="@font/nunito_bold"
+                android:background="@drawable/bg_button"
                 android:layout_marginEnd="8dp"/>
 
-            <Button
+            <TextView
                 android:id="@+id/btnEraser"
-                android:layout_width="wrap_content"
+                android:layout_width="80dp"
                 android:layout_height="40dp"
-                android:text="Eraser"
+                android:text="@string/eraser"
                 android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:fontFamily="@font/nunito_bold"
+                android:background="@drawable/bg_button"
                 android:layout_marginEnd="8dp"/>
 
-            <Button
+            <TextView
                 android:id="@+id/btnDrawDone"
-                android:layout_width="wrap_content"
+                android:layout_width="80dp"
                 android:layout_height="40dp"
-                android:text="Done"
+                android:text="@string/done"
                 android:textSize="12sp"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:fontFamily="@font/nunito_bold"
+                android:background="@drawable/bg_button"
                 android:layout_marginEnd="8dp"/>
 
-            <Button
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"/>
+
+            <TextView
                 android:id="@+id/btnDrawCancel"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Cancel"
+                android:background="@drawable/ic_close_1"
                 android:textSize="12sp"/>
 
         </LinearLayout>
@@ -121,7 +138,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Size:"
+                android:text="@string/size"
                 android:textSize="14sp"
                 android:layout_marginEnd="8dp"/>
 
@@ -130,8 +147,12 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                style="@style/CustomSeekBar"
                 android:max="100"
-                android:progress="50"/>
+                android:progress="50"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:thumbOffset="0dp"/>
 
         </LinearLayout>
 
@@ -149,41 +170,39 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="4dp"
-                android:background="#000000"/>
+                android:background="@drawable/circle_black"/>
 
             <View
                 android:id="@+id/colorRed"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="4dp"
-                android:background="#FF0000"/>
+                android:background="@drawable/circle_red"/>
 
             <View
                 android:id="@+id/colorBlue"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="4dp"
-                android:background="#0000FF"/>
+                android:background="@drawable/circle_blue"/>
 
             <View
                 android:id="@+id/colorGreen"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="4dp"
-                android:background="#00FF00"/>
+                android:background="@drawable/circle_green"/>
 
             <View
                 android:id="@+id/colorYellow"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="4dp"
-                android:background="#FFFF00"/>
+                android:background="@drawable/circle_yellow"/>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <!--    gl056-->
+    </LinearLayout>    <!--    gl056-->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/gl056"
         android:layout_width="match_parent"

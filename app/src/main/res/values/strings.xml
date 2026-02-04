@@ -137,4 +137,9 @@
     <string name="selected_count">%d selected</string>
     <string name="select_stickers">Select stickers</string>
     <string name="please_select_stickers">Please select stickers</string>
+    <string name="mode">Mode:</string>
+    <string name="pen">Pen</string>
+    <string name="eraser">Eraser</string>
+    <string name="cancel">Cancel</string>
+    <string name="size">Size:</string>
 </resources>
