@@ -578,7 +578,11 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 drawBinding.dv.eraser(false)
                 drawBinding.btnPaintDraw.setBackgroundResource(R.drawable.bg_selected)
                 drawBinding.btnEraserDraw.setBackgroundResource(0)
-                drawBinding.layoutColorPickerDraw.visible()
+                if (drawBinding.layoutColorPickerDraw.visibility == View.VISIBLE) {
+                    drawBinding.layoutColorPickerDraw.gone()
+                } else {
+                    drawBinding.layoutColorPickerDraw.visible()
+                }
             }
 
             drawBinding.btnEraserDraw.tap {
