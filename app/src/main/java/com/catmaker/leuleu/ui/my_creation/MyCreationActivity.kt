@@ -52,6 +52,7 @@ import com.catmaker.leuleu.ui.my_creation.adapter.MyAvatarAdapter
 import com.catmaker.leuleu.ui.my_creation.adapter.TypeAdapter
 import com.catmaker.leuleu.ui.my_creation.fragment.MyAvatarFragment
 import com.catmaker.leuleu.ui.my_creation.fragment.MyDesignFragment
+import com.catmaker.leuleu.ui.my_creation.fragment.MyEmojiFragment
 import com.catmaker.leuleu.ui.my_creation.view_model.MyAvatarViewModel
 import com.catmaker.leuleu.ui.my_creation.view_model.MyCreationViewModel
 import com.catmaker.leuleu.ui.permission.PermissionViewModel
@@ -69,6 +70,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
     private val permissionViewModel: PermissionViewModel by viewModels()
 
     private var myAvatarFragment: MyAvatarFragment? = null
+    private var myEmojiFragment: MyEmojiFragment? = null
     private var myDesignFragment: MyDesignFragment? = null
     private var isInSelectionMode = false
     private var isAllSelected = false
@@ -100,49 +102,29 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
                     launch {
                         viewModel.typeStatus.collect { type ->
                             if (type != -1) {
-                                if (type == ValueKey.AVATAR_TYPE) {
-                                    // MyAvatar selected
-                                    binding.cvType.setBackgroundResource(R.drawable.bg_cvtype_avatar) // ảnh 1
-
-                                    setupSelectedTab(
-                                        btnMyPixel,
-                                        tvSpace,
-                                        imvFocusMyAvatar,
-                                        subTabMyAvatar,
-                                        isLeftTab = true
-                                    )
-                                    setupUnselectedTab(
-                                        btnMyDesign,
-                                        tvMyDesign,
-                                        imvFocusMyDesign,
-                                        subTabMyDesign,
-                                        isLeftTab = false
-                                    )
-                                    showFragment(ValueKey.AVATAR_TYPE)
-                                } else {
-                                    // MyDesign selected
-                                    binding.cvType.setBackgroundResource(R.drawable.bg_cvtype_design) // ảnh 1
-
-                                    setupSelectedTab(
-                                        btnMyDesign,
-                                        tvMyDesign,
-                                        imvFocusMyDesign,
-                                        subTabMyDesign,
-                                        isLeftTab = false
-                                    )
-                                    setupUnselectedTab(
-                                        btnMyPixel,
-                                        tvSpace,
-                                        imvFocusMyAvatar,
-                                        subTabMyAvatar,
-                                        isLeftTab = true
-                                    )
-                                    showFragment(ValueKey.MY_DESIGN_TYPE)
+                                when (type) {
+                                    ValueKey.AVATAR_TYPE -> {
+                                        binding.cvType.setBackgroundResource(R.drawable.maker_selected)
+                                        setupSelectedTab(btnMyPixel, tvSpace, imvFocusMyAvatar, subTabMyAvatar, isLeftTab = true)
+                                        setupUnselectedTab(btnEmoji, tvEmoji, imvFocusEmoji, subTabBgEmoji, isLeftTab = false)
+                                        setupUnselectedTab(btnMyDesign, tvMyDesign, imvFocusMyDesign, subTabMyDesign, isLeftTab = false)
+                                    }
+                                    ValueKey.EMOJI_TYPE -> {
+                                        binding.cvType.setBackgroundResource(R.drawable.emoji_selected)
+                                        setupUnselectedTab(btnMyPixel, tvSpace, imvFocusMyAvatar, subTabMyAvatar, isLeftTab = true)
+                                        setupSelectedTab(btnEmoji, tvEmoji, imvFocusEmoji, subTabBgEmoji, isLeftTab = false)
+                                        setupUnselectedTab(btnMyDesign, tvMyDesign, imvFocusMyDesign, subTabMyDesign, isLeftTab = false)
+                                    }
+                                    ValueKey.MY_DESIGN_TYPE -> {
+                                        binding.cvType.setBackgroundResource(R.drawable.design_selected)
+                                        setupUnselectedTab(btnMyPixel, tvSpace, imvFocusMyAvatar, subTabMyAvatar, isLeftTab = true)
+                                        setupUnselectedTab(btnEmoji, tvEmoji, imvFocusEmoji, subTabBgEmoji, isLeftTab = false)
+                                        setupSelectedTab(btnMyDesign, tvMyDesign, imvFocusMyDesign, subTabMyDesign, isLeftTab = false)
+                                    }
                                 }
-                                // Update bottom buttons visibility when tab changes
+                                showFragment(type)
                                 updateBottomButtonsVisibility()
                             }
-
                         }
                     }
                     launch {
@@ -178,21 +160,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
             actionBar.apply {
                 btnActionBarLeft.tap {
                     if (isInSelectionMode) {
-                        // Exit selection mode
-                        val avatarFragment =
-                            supportFragmentManager.findFragmentByTag("MyAvatarFragment")
-                        val designFragment =
-                            supportFragmentManager.findFragmentByTag("MyDesignFragment")
-
-                        when {
-                            avatarFragment is MyAvatarFragment && avatarFragment.isVisible -> {
-                                avatarFragment.resetSelectionMode()
-                            }
-
-                            designFragment is MyDesignFragment && designFragment.isVisible -> {
-                                designFragment.resetSelectionMode()
-                            }
-                        }
+                        resetVisibleFragmentSelectionMode()
                     } else {
                         startIntentWithClearTop(HomeActivity::class.java)
                     }
@@ -210,6 +178,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
             }
 
             btnMyPixel.tap { viewModel.setTypeStatus(ValueKey.AVATAR_TYPE) }
+            btnEmoji.tap { viewModel.setTypeStatus(ValueKey.EMOJI_TYPE) }
             btnMyDesign.tap { viewModel.setTypeStatus(ValueKey.MY_DESIGN_TYPE) }
 
             // WhatsApp, Telegram, and Download buttons in lnlBottom
@@ -264,64 +233,35 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
     }
 
     private fun handleSelectAllFromCurrentFragment() {
-        val avatarFragment = supportFragmentManager.findFragmentByTag("MyAvatarFragment")
-        val designFragment = supportFragmentManager.findFragmentByTag("MyDesignFragment")
-
+        val shouldSelect = !isAllSelected
         when {
-            avatarFragment is MyAvatarFragment && avatarFragment.isVisible -> {
-                if (isAllSelected) {
-                    // Deselect all
-                    avatarFragment.deselectAllItems()
-                    isAllSelected = false
-                    binding.actionBar.btnActionBarRight.setImageResource(R.drawable.ic_not_select_all)
-                } else {
-                    // Select all
-                    avatarFragment.selectAllItems()
-                    isAllSelected = true
-                    binding.actionBar.btnActionBarRight.setImageResource(R.drawable.ic_select_all)
-                }
+            getVisibleAvatarFragment() != null -> getVisibleAvatarFragment()!!.let {
+                if (shouldSelect) it.selectAllItems() else it.deselectAllItems()
             }
-
-            designFragment is MyDesignFragment && designFragment.isVisible -> {
-                if (isAllSelected) {
-                    // Deselect all
-                    designFragment.deselectAllItems()
-                    isAllSelected = false
-                    binding.actionBar.btnActionBarRight.setImageResource(R.drawable.ic_not_select_all)
-                } else {
-                    // Select all
-                    designFragment.selectAllItems()
-                    isAllSelected = true
-                    binding.actionBar.btnActionBarRight.setImageResource(R.drawable.ic_select_all)
-                }
+            getVisibleEmojiFragment() != null -> getVisibleEmojiFragment()!!.let {
+                if (shouldSelect) it.selectAllItems() else it.deselectAllItems()
+            }
+            getVisibleDesignFragment() != null -> getVisibleDesignFragment()!!.let {
+                if (shouldSelect) it.selectAllItems() else it.deselectAllItems()
             }
         }
+        isAllSelected = shouldSelect
+        binding.actionBar.btnActionBarRight.setImageResource(
+            if (shouldSelect) R.drawable.ic_select_all else R.drawable.ic_not_select_all
+        )
     }
 
     private fun handleDeleteSelectedFromCurrentFragment() {
-        val avatarFragment = supportFragmentManager.findFragmentByTag("MyAvatarFragment")
-        val designFragment = supportFragmentManager.findFragmentByTag("MyDesignFragment")
-
-        when {
-            avatarFragment is MyAvatarFragment && avatarFragment.isVisible -> {
-                avatarFragment.deleteSelectedItems()
-            }
-
-            designFragment is MyDesignFragment && designFragment.isVisible -> {
-                designFragment.deleteSelectedItems()
-            }
-        }
+        getVisibleAvatarFragment()?.deleteSelectedItems()
+            ?: getVisibleEmojiFragment()?.deleteSelectedItems()
+            ?: getVisibleDesignFragment()?.deleteSelectedItems()
     }
 
     private fun getSelectedPathsFromCurrentFragment(): ArrayList<String> {
-        val avatarFragment = supportFragmentManager.findFragmentByTag("MyAvatarFragment")
-        val designFragment = supportFragmentManager.findFragmentByTag("MyDesignFragment")
-
-        return when {
-            avatarFragment is MyAvatarFragment && avatarFragment.isVisible -> avatarFragment.getSelectedPaths()
-            designFragment is MyDesignFragment && designFragment.isVisible -> designFragment.getSelectedPaths()
-            else -> arrayListOf()
-        }
+        return getVisibleAvatarFragment()?.getSelectedPaths()
+            ?: getVisibleEmojiFragment()?.getSelectedPaths()
+            ?: getVisibleDesignFragment()?.getSelectedPaths()
+            ?: arrayListOf()
     }
 
     override fun initActionBar() {
@@ -349,6 +289,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
     override fun initText() {
         binding.apply {
             tvSpace.select()
+            tvEmoji.select()
             tvMyDesign.select()
         }
     }
@@ -436,45 +377,37 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
     }
 
     private fun showFragment(type: Int) {
-        android.util.Log.d("MyCreationActivity", "🔄 showFragment() called with type=$type")
-        android.util.Log.d(
-            "MyCreationActivity",
-            "  type == AVATAR_TYPE: ${type == ValueKey.AVATAR_TYPE}"
-        )
-        android.util.Log.d(
-            "MyCreationActivity",
-            "  type == MY_DESIGN_TYPE: ${type == ValueKey.MY_DESIGN_TYPE}"
-        )
-
         val transaction = supportFragmentManager.beginTransaction()
 
-        // Initialize fragments if null
         if (myAvatarFragment == null) {
-            android.util.Log.d("MyCreationActivity", "  Creating NEW MyAvatarFragment")
             myAvatarFragment = MyAvatarFragment()
             transaction.add(R.id.frmList, myAvatarFragment!!, "MyAvatarFragment")
         }
+        if (myEmojiFragment == null) {
+            myEmojiFragment = MyEmojiFragment()
+            transaction.add(R.id.frmList, myEmojiFragment!!, "MyEmojiFragment")
+        }
         if (myDesignFragment == null) {
-            android.util.Log.d("MyCreationActivity", "  Creating NEW MyDesignFragment")
             myDesignFragment = MyDesignFragment()
             transaction.add(R.id.frmList, myDesignFragment!!, "MyDesignFragment")
         }
 
-        // Show/Hide based on type
-        if (type == ValueKey.AVATAR_TYPE) {
-            android.util.Log.d(
-                "MyCreationActivity",
-                "  ➡️ SHOWING MyAvatarFragment, HIDING MyDesignFragment"
-            )
-            myAvatarFragment?.let { transaction.show(it) }
-            myDesignFragment?.let { transaction.hide(it) }
-        } else {
-            android.util.Log.d(
-                "MyCreationActivity",
-                "  ➡️ HIDING MyAvatarFragment, SHOWING MyDesignFragment"
-            )
-            myAvatarFragment?.let { transaction.hide(it) }
-            myDesignFragment?.let { transaction.show(it) }
+        when (type) {
+            ValueKey.AVATAR_TYPE -> {
+                myAvatarFragment?.let { transaction.show(it) }
+                myEmojiFragment?.let { transaction.hide(it) }
+                myDesignFragment?.let { transaction.hide(it) }
+            }
+            ValueKey.EMOJI_TYPE -> {
+                myAvatarFragment?.let { transaction.hide(it) }
+                myEmojiFragment?.let { transaction.show(it) }
+                myDesignFragment?.let { transaction.hide(it) }
+            }
+            ValueKey.MY_DESIGN_TYPE -> {
+                myAvatarFragment?.let { transaction.hide(it) }
+                myEmojiFragment?.let { transaction.hide(it) }
+                myDesignFragment?.let { transaction.show(it) }
+            }
         }
 
         transaction.commit()
@@ -504,39 +437,11 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
             "MyCreationActivity",
             "🔄 onRestart() called - Activity restarting after being stopped"
         )
-        android.util.Log.w(
-            "MyCreationActivity",
-            "Current tab: ${if (viewModel.typeStatus.value == ValueKey.AVATAR_TYPE) "MyAvatar" else "MyDesign"}"
-        )
         android.util.Log.w("MyCreationActivity", "Selection mode: $isInSelectionMode")
-
-        // Check permission status
-        val hasPermission =
-            checkPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE))
-        android.util.Log.w("MyCreationActivity", "📱 Storage permission: $hasPermission")
 
         // Exit selection mode when returning from another activity
         if (isInSelectionMode) {
-            val avatarFragment = supportFragmentManager.findFragmentByTag("MyAvatarFragment")
-            val designFragment = supportFragmentManager.findFragmentByTag("MyDesignFragment")
-
-            when {
-                avatarFragment is MyAvatarFragment && avatarFragment.isVisible -> {
-                    android.util.Log.d(
-                        "MyCreationActivity",
-                        "Resetting MyAvatarFragment selection mode"
-                    )
-                    avatarFragment.resetSelectionMode()
-                }
-
-                designFragment is MyDesignFragment && designFragment.isVisible -> {
-                    android.util.Log.d(
-                        "MyCreationActivity",
-                        "Resetting MyDesignFragment selection mode"
-                    )
-                    designFragment.resetSelectionMode()
-                }
-            }
+            resetVisibleFragmentSelectionMode()
             exitSelectionMode()
         }
 
@@ -597,17 +502,15 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         val btnDownload = layoutBottom.findViewById<View>(R.id.btnDownload)
 
         if (!isInSelectionMode) {
-            // Not in selection mode: hide all bottom buttons
             btnWhatsapp?.gone()
             btnTelegram?.gone()
             btnDownload?.gone()
         } else if (viewModel.typeStatus.value == ValueKey.MY_DESIGN_TYPE) {
-            // In My Design tab selection mode: show only Download button
             btnWhatsapp?.gone()
             btnTelegram?.gone()
             btnDownload?.visible()
         } else {
-            // In My Pixel tab selection mode: show WhatsApp and Telegram
+            // Avatar or Emoji tab: show WhatsApp and Telegram
             btnWhatsapp?.visible()
             btnTelegram?.visible()
             btnDownload?.gone()
@@ -658,7 +561,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         // Text unselected
         textView.textSize = 16f
         textView.paint.shader = null
-        textView.setTextColor(Color.parseColor("#497E00"))
+        textView.setTextColor(Color.parseColor("#7AAB36"))
 
         // ❌ Không dùng background tab nữa
         focusImage.gone()
@@ -673,5 +576,26 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         } else {
             binding.actionBar.btnActionBarRight.setImageResource(R.drawable.ic_not_select_all)
         }
+    }
+
+    private fun getVisibleAvatarFragment(): MyAvatarFragment? {
+        val f = supportFragmentManager.findFragmentByTag("MyAvatarFragment")
+        return if (f is MyAvatarFragment && f.isVisible) f else null
+    }
+
+    private fun getVisibleEmojiFragment(): MyEmojiFragment? {
+        val f = supportFragmentManager.findFragmentByTag("MyEmojiFragment")
+        return if (f is MyEmojiFragment && f.isVisible) f else null
+    }
+
+    private fun getVisibleDesignFragment(): MyDesignFragment? {
+        val f = supportFragmentManager.findFragmentByTag("MyDesignFragment")
+        return if (f is MyDesignFragment && f.isVisible) f else null
+    }
+
+    private fun resetVisibleFragmentSelectionMode() {
+        getVisibleAvatarFragment()?.resetSelectionMode()
+        getVisibleEmojiFragment()?.resetSelectionMode()
+        getVisibleDesignFragment()?.resetSelectionMode()
     }
 }

@@ -252,16 +252,22 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
         if (myCreationActivity != null) {
             android.util.Log.d("ViewActivity", "Resetting selection mode in MyCreationActivity")
 
-            val designFragment =
-                myCreationActivity.supportFragmentManager.findFragmentByTag("MyDesignFragment")
-            if (designFragment is com.catmaker.leuleu.ui.my_creation.fragment.MyDesignFragment) {
-                designFragment.resetSelectionMode()
-            }
-
             val avatarFragment =
                 myCreationActivity.supportFragmentManager.findFragmentByTag("MyAvatarFragment")
             if (avatarFragment is MyAvatarFragment) {
                 avatarFragment.resetSelectionMode()
+            }
+
+            val emojiFragment =
+                myCreationActivity.supportFragmentManager.findFragmentByTag("MyEmojiFragment")
+            if (emojiFragment is com.catmaker.leuleu.ui.my_creation.fragment.MyEmojiFragment) {
+                emojiFragment.resetSelectionMode()
+            }
+
+            val designFragment =
+                myCreationActivity.supportFragmentManager.findFragmentByTag("MyDesignFragment")
+            if (designFragment is com.catmaker.leuleu.ui.my_creation.fragment.MyDesignFragment) {
+                designFragment.resetSelectionMode()
             }
 
             myCreationActivity.exitSelectionMode()

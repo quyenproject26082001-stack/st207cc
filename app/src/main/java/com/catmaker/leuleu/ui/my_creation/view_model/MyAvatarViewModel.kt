@@ -55,20 +55,9 @@ class MyAvatarViewModel : ViewModel() {
                 }
             }
 
-            // Load emoji edit list
-            val emojiEditList = MediaHelper.readListFromFile<EmojiEditModel>(context, ValueKey.EMOJI_EDIT_FILE_INTERNAL)
-            android.util.Log.d("MyAvatarViewModel", "✅ Loaded ${emojiEditList.size} emojis from EMOJI_EDIT_FILE_INTERNAL")
-
-            emojiEditList.forEach { emojiModel ->
-                val file = java.io.File(emojiModel.pathInternalEdit)
-                if (file.exists()) {
-                    albumList.add(MyAlbumModel(emojiModel.pathInternalEdit, isEmoji = true))
-                }
-            }
-
             _myAvatarList.value = albumList
 
-            android.util.Log.d("MyAvatarViewModel", "✅ Updated myAvatarList with ${albumList.size} items (avatars + emojis)")
+            android.util.Log.d("MyAvatarViewModel", "✅ Updated myAvatarList with ${albumList.size} avatars")
         } catch (e: Exception) {
             android.util.Log.e("MyAvatarViewModel", "❌ ERROR loading avatars: ${e.message}", e)
             _myAvatarList.value = arrayListOf()
@@ -93,17 +82,6 @@ class MyAvatarViewModel : ViewModel() {
             removeAll(avatarDeleteList)
         }
         MediaHelper.writeListToFile(context, ValueKey.EDIT_FILE_INTERNAL, newAvatarOriginList)
-
-        // Delete from emoji edit list
-        val emojiOriginList = MediaHelper
-            .readListFromFile<EmojiEditModel>(context, ValueKey.EMOJI_EDIT_FILE_INTERNAL)
-            .toCollection(ArrayList())
-
-        val emojiDeleteList = emojiOriginList.filter { it.pathInternalEdit in pathList }
-        val newEmojiOriginList = ArrayList(emojiOriginList).apply {
-            removeAll(emojiDeleteList)
-        }
-        MediaHelper.writeListToFile(context, ValueKey.EMOJI_EDIT_FILE_INTERNAL, newEmojiOriginList)
 
         // Update StateFlow
         val myAvatarDeleteList = _myAvatarList.value.filter { it.path in pathList }

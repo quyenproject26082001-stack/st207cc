@@ -90,6 +90,7 @@
     <string name="add_to_telegram">Add To Telegram</string>
     <string name="my_avatar">My Avatar</string>
     <string name="my_design">My Design</string>
+    <string name="my_emoji">My Emoji</string>
     <string name="my_album">My album</string>
     <string name="no_app_found_to_handle_this_action">No app found to handle this action</string>
     <string name="invalid_action_msg">Application not installed</string>
