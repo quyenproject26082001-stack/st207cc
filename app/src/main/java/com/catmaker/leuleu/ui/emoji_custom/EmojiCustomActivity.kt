@@ -92,8 +92,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private var currentCategoryIndex = 0
     private val categories = EmojiApiHelper.getAllCategories()
 
-    // Lưu trữ selected DrawableDraw cho mỗi category
-    private val selectedDraws = mutableMapOf<String, DrawableDraw?>()
+    // Lưu trữ selected DrawableDraw cho mỗi category (cho phép nhiều item)
+    private val selectedDraws = mutableMapOf<String, MutableList<DrawableDraw>>()
 
     // Edit mode support
     private var statusFrom = ValueKey.CREATE
@@ -136,14 +136,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 override fun onClickedDraw(draw: Draw) {}
                 override fun onDeletedDraw(draw: Draw) {
                     // Update selectedDraws when user deletes via icon
-                    val category = categories.find { selectedDraws[it.name] == draw }
-                    if (category != null) {
-                        selectedDraws[category.name] = null
-                        loadLayerData(currentCategoryIndex)
-                    }
-                    // Clean up drawIdMap
                     if (draw is DrawableDraw) {
+                        categories.forEach { category ->
+                            selectedDraws[category.name]?.remove(draw)
+                        }
                         drawIdMap.remove(draw)
+                        loadLayerData(currentCategoryIndex)
                     }
                 }
                 override fun onDragFinishedDraw(draw: Draw) {}
@@ -349,10 +347,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.layoutCustomLayer.addDrawRestored(drawableDraw)
         drawIdMap[drawableDraw] = itemModel.id
 
-        // Restore selectedDraws mapping
-        editModel.selectedByCategory.forEach { (categoryName, savedId) ->
-            if (savedId == itemModel.id) {
-                selectedDraws[categoryName] = drawableDraw
+        // Restore selectedDraws mapping (savedIds là string chứa nhiều ID phân cách bởi dấu phẩy)
+        editModel.selectedByCategory.forEach { (categoryName, savedIds) ->
+            val idList = savedIds?.split(",") ?: emptyList()
+            if (idList.contains(itemModel.id)) {
+                if (selectedDraws[categoryName] == null) {
+                    selectedDraws[categoryName] = mutableListOf()
+                }
+                selectedDraws[categoryName]?.add(drawableDraw)
             }
         }
     }
@@ -400,9 +402,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             drawItems.add(itemModel)
         }
 
-        // Build selectedByCategory mapping
-        selectedDraws.forEach { (categoryName, draw) ->
-            selectedByCategory[categoryName] = draw?.let { drawIdMap[it] }
+        // Build selectedByCategory mapping (lưu list IDs)
+        selectedDraws.forEach { (categoryName, drawList) ->
+            val ids = drawList.mapNotNull { drawIdMap[it] }.joinToString(",")
+            selectedByCategory[categoryName] = ids.ifEmpty { null }
         }
 
         return EmojiEditModel(
@@ -494,7 +497,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         navigationAdapter.submitList(navItems)
 
         // Load items cho category (filter out excluded items)
-        val selectedDraw = selectedDraws[category.name]
+        val selectedList = selectedDraws[category.name] ?: mutableListOf()
         val excluded = EmojiApiHelper.EXCLUDED_ITEMS[category.name] ?: emptySet()
         val items = (1..category.count)
             .filter { it !in excluded }
@@ -502,7 +505,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
                 EmojiLayerItem(
                     imageUrl = imageUrl,
-                    isSelected = selectedDraw?.drawablePath == imageUrl
+                    isSelected = selectedList.any { it.drawablePath == imageUrl }
                 )
             }
             .filter { it.imageUrl !in failedUrls }
@@ -639,46 +642,34 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             val category = categories[currentCategoryIndex]
             val imageUrl = item.imageUrl
 
-            // Toggle selection
-            val currentDraw = selectedDraws[category.name]
-            if (currentDraw?.drawablePath == imageUrl) {
-                // Deselect - remove from DrawView
-                binding.layoutCustomLayer.remove(currentDraw)
-                drawIdMap.remove(currentDraw)
-                selectedDraws[category.name] = null
-            } else {
-                // Select - load image and add to DrawView
-                Glide.with(this)
-                    .asDrawable()
-                    .load(imageUrl)
-                    .into(object : CustomTarget<Drawable>() {
-                        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                            // Remove old draw if exists
-                            currentDraw?.let {
-                                binding.layoutCustomLayer.remove(it)
-                                drawIdMap.remove(it)
-                            }
+            // Add new item (cho phép chọn nhiều lần)
+            Glide.with(this)
+                .asDrawable()
+                .load(imageUrl)
+                .into(object : CustomTarget<Drawable>() {
+                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                        // Create new DrawableDraw
+                        val drawableDraw = DrawableDraw(resource, imageUrl)
+                        binding.layoutCustomLayer.addDraw(drawableDraw)
 
-                            // Create new DrawableDraw
-                            val drawableDraw = DrawableDraw(resource, imageUrl)
-                            binding.layoutCustomLayer.addDraw(drawableDraw)
+                        // Assign UUID for tracking
+                        val id = UUID.randomUUID().toString()
+                        drawIdMap[drawableDraw] = id
 
-                            // Assign UUID for tracking
-                            val id = UUID.randomUUID().toString()
-                            drawIdMap[drawableDraw] = id
-
-                            // Save reference
-                            selectedDraws[category.name] = drawableDraw
+                        // Save reference to list
+                        if (selectedDraws[category.name] == null) {
+                            selectedDraws[category.name] = mutableListOf()
                         }
+                        selectedDraws[category.name]?.add(drawableDraw)
 
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            // Do nothing
-                        }
-                    })
-            }
+                        // Update UI
+                        loadLayerData(currentCategoryIndex)
+                    }
 
-            // Update UI
-            loadLayerData(currentCategoryIndex)
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Do nothing
+                    }
+                })
         }
     }
 

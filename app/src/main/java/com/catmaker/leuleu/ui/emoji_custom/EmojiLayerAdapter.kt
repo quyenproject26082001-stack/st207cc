@@ -13,6 +13,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.catmaker.leuleu.R
 import com.catmaker.leuleu.databinding.ItemCustomizeBinding
+import com.catmaker.leuleu.databinding.ItemEmojiCusBinding
 
 class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHolder>(DiffCallback()) {
 
@@ -20,7 +21,7 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
     var onItemLoadError: ((EmojiLayerItem) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemCustomizeBinding.inflate(
+        val binding = ItemEmojiCusBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
         return ViewHolder(binding)
@@ -30,7 +31,7 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
         holder.bind(getItem(position), position)
     }
 
-    inner class ViewHolder(private val binding: ItemCustomizeBinding) :
+    inner class ViewHolder(private val binding: ItemEmojiCusBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: EmojiLayerItem, position: Int) {
@@ -51,12 +52,8 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
             // Highlight nếu được chọn
             binding.root.alpha = if (item.isSelected) 1f else 0.7f
 
-            // Border nếu selected
-            if (item.isSelected) {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_layer_selected)
-            } else {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_layer)
-            }
+            // Luôn dùng bg_item_emoji_custom (stroke #ABE55A, radius 10dp, white bg)
+            binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom)
 
             binding.root.setOnClickListener {
                 onItemClick(item)
