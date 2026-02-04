@@ -31,6 +31,13 @@ object EmojiApiHelper {
         "More Shape"        // 17 - Shape thêm
     )
 
+    // Items to exclude per category (e.g. contains cigarette)
+    val EXCLUDED_ITEMS = mapOf(
+        "Happy Mouth" to setOf(125, 126, 127, 128, 129,156,157)
+        "Misc" to setOf(83,85,86,87)
+
+    )
+
     fun buildEmojiCustomizeModel(): CustomizeModel {
         val layerList = ArrayList<LayerListModel>()
 
@@ -64,8 +71,10 @@ object EmojiApiHelper {
     private fun buildLayersForCategory(category: EmojiCategory): ArrayList<LayerModel> {
         val layers = ArrayList<LayerModel>()
         val encodedName = URLEncoder.encode(category.name, "UTF-8").replace("+", "%20")
+        val excluded = EXCLUDED_ITEMS[category.name] ?: emptySet()
 
         for (i in 1..category.count) {
+            if (i in excluded) continue
             val imageUrl = if (category.prefix.isNotEmpty()) {
                 "${EmojiApiConfig.BASE_URL}$encodedName/${category.prefix}$i.${category.extension}"
             } else {

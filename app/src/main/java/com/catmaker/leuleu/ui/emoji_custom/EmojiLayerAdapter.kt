@@ -11,7 +11,7 @@ import com.catmaker.leuleu.databinding.ItemCustomizeBinding
 
 class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHolder>(DiffCallback()) {
 
-    var onItemClick: ((Int) -> Unit) = {}
+    var onItemClick: ((EmojiLayerItem) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemCustomizeBinding.inflate(
@@ -44,7 +44,7 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
             }
 
             binding.root.setOnClickListener {
-                onItemClick(position)
+                onItemClick(item)
             }
         }
     }

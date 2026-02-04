@@ -475,15 +475,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
         navigationAdapter.submitList(navItems)
 
-        // Load items cho category
+        // Load items cho category (filter out excluded items)
         val selectedDraw = selectedDraws[category.name]
-        val items = (1..category.count).map { index ->
-            val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
-            EmojiLayerItem(
-                imageUrl = imageUrl,
-                isSelected = selectedDraw?.drawablePath == imageUrl
-            )
-        }
+        val excluded = EmojiApiHelper.EXCLUDED_ITEMS[category.name] ?: emptySet()
+        val items = (1..category.count)
+            .filter { it !in excluded }
+            .map { index ->
+                val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
+                EmojiLayerItem(
+                    imageUrl = imageUrl,
+                    isSelected = selectedDraw?.drawablePath == imageUrl
+                )
+            }
         layerAdapter.submitList(items)
     }
 
@@ -591,9 +594,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             loadLayerData(position)
         }
 
-        layerAdapter.onItemClick = { position ->
+        layerAdapter.onItemClick = { item ->
             val category = categories[currentCategoryIndex]
-            val imageUrl = EmojiApiConfig.getImageUrl(category.name, position + 1)
+            val imageUrl = item.imageUrl
 
             // Toggle selection
             val currentDraw = selectedDraws[category.name]
