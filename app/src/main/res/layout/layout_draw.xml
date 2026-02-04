@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutDraw"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="0dp"
+        android:background="@color/white"
+        android:layoutDirection="ltr"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutToolbarDraw"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layoutDirection="ltr"
+            android:paddingTop="@dimen/_30sdp"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/btnBackDraw"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_arrow_2"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvToolbar"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:fontFamily="@font/nunito_bold"
+                android:layoutDirection="ltr"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="@string/draw"
+                android:textAlignment="center"
+                android:textColor="@color/jet"
+                android:textDirection="ltr"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/btnDone"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="marquee"
+                android:fontFamily="@font/nunito_bold"
+                android:layoutDirection="ltr"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="@string/done"
+                android:textAlignment="center"
+                android:textColor="@color/spiro_disco_ball"
+                android:textDirection="ltr"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/btnBackDraw"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/btnBackDraw" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/viewDraw"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#4D000000"
+            android:elevation="1dp"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/view_gradient_transparent_black"
+            android:elevation="1dp"
+            app:layout_constraintBottom_toTopOf="@id/layoutFeatureDraw"
+            app:layout_constraintTop_toTopOf="@id/layoutFeatureDraw" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/layoutFeatureDraw"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bottom_sheet"
+            android:elevation="1dp"
+            android:layoutDirection="ltr"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="5dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_water_corner_50" />
+
+            <TextView
+                android:id="@+id/tvMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="@font/nunito_bold"
+                android:layoutDirection="ltr"
+                android:text="@string/pen"
+                android:textAlignment="center"
+                android:textColor="@color/jet"
+                android:textDirection="ltr"
+                android:textSize="20sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/layoutColorPicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layoutDirection="ltr"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="18dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="0dp">
+
+                    <com.skydoves.colorpickerview.ColorPickerView
+                        android:id="@+id/colorPicker"
+                        android:layout_width="240dp"
+                        android:layout_height="240dp"
+                        android:layout_gravity="center" />
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="30dp"
+                    android:layout_marginTop="16dp"
+                    app:borderColor_BrightnessSlider="@android:color/darker_gray"
+                    app:cardCornerRadius="30dp"
+                    app:cardElevation="0dp">
+
+                    <com.skydoves.colorpickerview.sliders.AlphaSlideBar
+                        android:id="@+id/sbAlphaSlideBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:borderColor_AlphaSlideBar="@android:color/transparent"
+                        app:selector_AlphaSlideBar="@drawable/colorpickerview_wheel" />
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="30dp"
+                    android:layout_marginTop="16dp"
+                    app:borderColor_BrightnessSlider="@android:color/darker_gray"
+                    app:cardCornerRadius="30dp"
+                    app:cardElevation="0dp">
+
+                    <com.skydoves.colorpickerview.sliders.BrightnessSlideBar
+                        android:id="@+id/sbBrightnessSlide"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:borderColor_BrightnessSlider="@android:color/transparent"
+                        app:selector_BrightnessSlider="@drawable/colorpickerview_wheel" />
+
+                </androidx.cardview.widget.CardView>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/layoutSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24sp"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="48dp"
+                android:layoutDirection="ltr"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:weightSum="10">
+
+                <TextView
+                    android:id="@+id/tvSize"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:ellipsize="marquee"
+                    android:fontFamily="@font/nunito_bold"
+                    android:layoutDirection="ltr"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:singleLine="true"
+                    android:text="@string/size"
+                    android:textAlignment="center"
+                    android:textColor="@color/black"
+                    android:textDirection="ltr"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/sbSize"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="4sp"
+                    android:layout_weight="9"
+                    android:max="99"
+                    android:maxHeight="4dp"
+                    android:minHeight="4dp"
+                    android:progress="50"
+                    android:progressDrawable="@drawable/bg_seekbar"
+                    android:thumb="@drawable/bg_thumb_seekbar" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="80dp"
+                android:layoutDirection="ltr"
+                android:paddingTop="26dp"
+                android:paddingBottom="38dp">
+
+                <ImageView
+                    android:id="@+id/btnPaintDraw"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_selected"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_paint"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/spiro_disco_ball" />
+
+                <ImageView
+                    android:id="@+id/btnEraserDraw"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_eraser"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.catmaker.leuleu.core.custom.drawview.DrawView
+            android:id="@+id/dv"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/white"
+            android:layoutDirection="ltr"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutToolbarDraw" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
