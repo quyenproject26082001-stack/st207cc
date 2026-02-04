@@ -38,8 +38,8 @@ class TextDraw(private val context: Context, drawable: Drawable, filePath: Strin
         textPaint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
         bounds = Rect(0, 0, width, height)
         textRect = Rect(0, 0, width, height)
-        minTextSizePixels = convertSpToPx(6f)
-        maxTextSizePixels = convertSpToPx(20f)
+        maxTextSizePixels = (textRect.height() * 0.25f) // 25% chiều cao khung
+        minTextSizePixels = (textRect.height() * 0.06f)
         textAlign = Layout.Alignment.ALIGN_CENTER
         textPaint.textSize = maxTextSizePixels
     }

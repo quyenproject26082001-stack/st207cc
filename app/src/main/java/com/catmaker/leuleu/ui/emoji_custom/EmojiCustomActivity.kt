@@ -819,6 +819,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             textFontAdapter.submitListReset(textFontList)
 
             rcvTextColor.adapter = textColorAdapter
+            rcvTextFont.visible()
             rcvTextColor.itemAnimator = null
             textColorAdapter.submitListReset(textColorList)
             rcvTextColor.gone()
