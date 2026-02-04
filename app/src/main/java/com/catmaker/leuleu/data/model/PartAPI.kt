@@ -7,7 +7,8 @@ data class PartAPI(
     val parts: String,
     val colorArray: String,
     val quantity: Int,
-    val level: Int
+    val level: Int,
+    val data: String = ""  // "cat" or "emoji"
 )
 
 data class DataAPI(val name: String, val parts: List<PartAPI>)

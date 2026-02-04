@@ -7,7 +7,7 @@ object DomainKey {
     const val SUB_DOMAIN_CAT_STICKER = "/public/app/TT999_Cat_Sticker"
     const val HTTP = "https://"
 
-    const val AVATAR_CHARACTER_API = "avatar2.png"
+    const val AVATAR_CHARACTER_API = "avatar.png"
     const val LAYER_EXTENSION = ".png"
     const val IMAGE_NAVIGATION = "nav.png"
 }

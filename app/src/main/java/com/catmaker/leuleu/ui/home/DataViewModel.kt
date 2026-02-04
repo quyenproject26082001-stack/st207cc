@@ -87,11 +87,37 @@ class DataViewModel() : ViewModel() {
     fun loadDataByType(context: Context, dataType: Int) {
         viewModelScope.launch {
             val list = withContext(Dispatchers.IO) {
-                when (dataType) {
+                val localData = when (dataType) {
                     1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
                     2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
                     else -> arrayListOf()
                 }
+
+                val typeString = when (dataType) {
+                    1 -> "cat"
+                    2 -> "emoji"
+                    else -> ""
+                }
+
+                var apiData = MediaHelper.readListFromFile<CustomizeModel>(context, ValueKey.DATA_FILE_API_INTERNAL)
+                    ?.filter { it.dataType == typeString }
+                    ?.toCollection(ArrayList()) ?: arrayListOf()
+
+                if (apiData.isEmpty() && InternetHelper.checkInternet(context)) {
+                    getAllParts(context).collect { state ->
+                        if (state == HandleState.SUCCESS) {
+                            apiData = MediaHelper.readListFromFile<CustomizeModel>(context, ValueKey.DATA_FILE_API_INTERNAL)
+                                ?.filter { it.dataType == typeString }
+                                ?.toCollection(ArrayList()) ?: arrayListOf()
+                        }
+                    }
+                }
+
+                val combined = ArrayList<CustomizeModel>(localData.size + apiData.size)
+                combined.addAll(localData)
+                combined.addAll(apiData)
+                combined.sortBy { it.level }
+                combined
             }
             _allData.value = list
         }
@@ -169,13 +195,15 @@ class DataViewModel() : ViewModel() {
 
             // Use the minimum level from all parts as the character level
             val characterLevel = sortedParts.minOfOrNull { it.level } ?: 100
+            val characterDataType = data.parts.firstOrNull()?.data ?: ""
 
             val dataApi = CustomizeModel(
                 dataName = data.name,
                 avatar = avatarCharacter,
                 layerList = layerList,
                 level = characterLevel,
-                isFromAPI = true
+                isFromAPI = true,
+                dataType = characterDataType
             )
             allDataAPI.add(dataApi)
         }
