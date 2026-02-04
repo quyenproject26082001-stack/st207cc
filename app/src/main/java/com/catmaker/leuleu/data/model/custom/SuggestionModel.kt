@@ -11,4 +11,5 @@ data class SuggestionModel (
     var pathSelectedList : ArrayList<String> = arrayListOf(),
     var pathInternalRandom: String = "",
     var pathInternalEdit: String = "",
+    var dataType: String = "",
 )

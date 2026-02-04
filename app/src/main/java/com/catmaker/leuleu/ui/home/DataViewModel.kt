@@ -87,16 +87,16 @@ class DataViewModel() : ViewModel() {
     fun loadDataByType(context: Context, dataType: Int) {
         viewModelScope.launch {
             val list = withContext(Dispatchers.IO) {
-                val localData = when (dataType) {
-                    1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET)
-                    2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET)
-                    else -> arrayListOf()
-                }
-
                 val typeString = when (dataType) {
                     1 -> "cat"
                     2 -> "emoji"
                     else -> ""
+                }
+
+                val localData = when (dataType) {
+                    1 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET, typeString)
+                    2 -> AssetHelper.getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET, typeString)
+                    else -> arrayListOf()
                 }
 
                 var apiData = MediaHelper.readListFromFile<CustomizeModel>(context, ValueKey.DATA_FILE_API_INTERNAL)

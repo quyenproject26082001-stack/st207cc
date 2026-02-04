@@ -30,10 +30,10 @@
         app:cardBackgroundColor="@android:color/transparent"
         android:layout_marginTop="10dp"
         android:layout_marginHorizontal="16dp"
+        android:background="@drawable/cat_random_selected"
         app:layout_constraintTop_toBottomOf="@id/layoutActionBar"
         app:strokeColor="@color/transparent"
         app:strokeWidth="0dp"
-        android:background="@drawable/bg_cvtype_avatar"
         app:cardElevation="0dp">
 
         <LinearLayout
@@ -57,32 +57,16 @@
                     android:scaleType="fitXY"
                     />
 
-                <TextView
-                    android:id="@+id/subTabMyAvatar"
-                    android:layout_width="20dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:visibility="gone"
-                    android:background="@drawable/un_selected_tab_sub"
-                    />
-
-                <!--                imvFocusMyAvatar (nền khi chọn)-->
-                <ImageView
-                    android:id="@+id/imvFocusMyAvatar"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:visibility="visible" />
-
                 <!--                tvSpace-->
                 <TextView
                     android:id="@+id/tvSpace"
                     style="@style/single_marquee"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:fontFamily="@font/chewy_regular"
+                    android:fontFamily="@font/roboto_medium"
                     android:gravity="center"
                     android:layout_marginEnd="20dp"
+                    android:layout_marginStart="20dp"
                     android:text="@string/my_pony"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
@@ -107,35 +91,18 @@
                     android:scaleType="fitXY"
                     />
 
-                <TextView
-                    android:id="@+id/subTabMyDesign"
-                    android:layout_width="20dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="start"
-                    android:visibility="gone"
-                    android:background="#291985"
-                    />
-                <!--                imvFocusMyDesign (nền xanh khi chọn)-->
-                <ImageView
-                    android:id="@+id/imvFocusMyDesign"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:scaleX="1"
-                    android:src="@drawable/un_selected_tab_album"
-                    android:visibility="gone" />
-
                 <!--                tvMyDesign-->
                 <TextView
                     android:id="@+id/tvMyDesign"
                     style="@style/single_marquee"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:fontFamily="@font/chewy_regular"
+                    android:fontFamily="@font/roboto_medium"
                     android:gravity="center"
                     android:text="@string/my_design"
+                    android:layout_marginEnd=""
                     android:layout_marginStart="20dp"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="@color/app"
                     android:textSize="16sp" />
 
             </FrameLayout>
