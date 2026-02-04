@@ -161,69 +161,93 @@ class DataViewModel() : ViewModel() {
 
     fun getDataAPI(context: Context, dataList: ArrayList<DataAPI>) {
         val allDataAPI: ArrayList<CustomizeModel> = arrayListOf()
-        // Character 1, Character 2,...
-        dataList.forEachIndexed { indexCharacter, data ->
-            ///public/app/ChibiMaker/1/avatar.png
-            val baseDomain = if (!isFailBaseURL) DomainKey.BASE_URL else DomainKey.BASE_URL_PREVENTIVE
-            val avatarCharacter = "$baseDomain${DomainKey.SUB_DOMAIN}/${data.name}/${DomainKey.AVATAR_CHARACTER_API}"
-            val layerList = ArrayList<LayerListModel>(data.parts.size)
+        val baseDomain = if (!isFailBaseURL) DomainKey.BASE_URL else DomainKey.BASE_URL_PREVENTIVE
 
-            // Sort parts by level in ascending order
-            val sortedParts = data.parts.sortedBy { it.level }
+        // Gom tất cả parts từ tất cả character, group theo (characterName, dataType)
+        dataList.forEach { data ->
+            // Tách parts theo dataType (cat/emoji)
+            val catParts = data.parts.filter { it.data == "cat" }
+            val emojiParts = data.parts.filter { it.data == "emoji" }
 
-            sortedParts.forEachIndexed { indexLayer, dataLayer ->
-                // Handle both "-" and "_" delimiters, similar to local asset loading
-                val layerName = if (dataLayer.parts.contains("-")) {
-                    dataLayer.parts.split("-")
-                } else {
-                    dataLayer.parts.split("_")
-                }
-                val positionCustom = layerName.first().toInt() - 1
-                val positionNavigation = layerName.last().toInt() - 1
-                val imageNavigation = "${baseDomain}${DomainKey.SUB_DOMAIN}/${data.name}/${dataLayer.parts}/${DomainKey.IMAGE_NAVIGATION}"
-                val layer = getDataLayer(baseDomain, dataLayer, dataLayer.parts)
-
-                val layerListModel = LayerListModel(
-                    positionCustom = positionCustom,
-                    positionNavigation = positionNavigation,
-                    imageNavigation = imageNavigation,
-                    layer = layer
-                )
-                layerList.add(layerListModel)
+            // Tạo CustomizeModel cho CAT (nếu có)
+            if (catParts.isNotEmpty()) {
+                val subFolder = "/data_cat_maker"
+                val customizeModel = createCustomizeModel(baseDomain, subFolder, data.name, catParts, "cat")
+                allDataAPI.add(customizeModel)
             }
-            layerList.sortBy { it.positionNavigation }
 
-            // Use the minimum level from all parts as the character level
-            val characterLevel = sortedParts.minOfOrNull { it.level } ?: 100
-            val characterDataType = data.parts.firstOrNull()?.data ?: ""
-
-            val dataApi = CustomizeModel(
-                dataName = data.name,
-                avatar = avatarCharacter,
-                layerList = layerList,
-                level = characterLevel,
-                isFromAPI = true,
-                dataType = characterDataType
-            )
-            allDataAPI.add(dataApi)
+            // Tạo CustomizeModel cho EMOJI (nếu có)
+            if (emojiParts.isNotEmpty()) {
+                val subFolder = "/data_emoji_maker"
+                val customizeModel = createCustomizeModel(baseDomain, subFolder, data.name, emojiParts, "emoji")
+                allDataAPI.add(customizeModel)
+            }
         }
+
         MediaHelper.writeListToFile(context, ValueKey.DATA_FILE_API_INTERNAL, allDataAPI)
         allDataAPI.forEach {
-            Log.d("nbhieu", "avatar: ${it.avatar}")
+            Log.d("nbhieu", "avatar: ${it.avatar}, dataType: ${it.dataType}")
         }
     }
 
-    private fun getDataLayer(baseDomain: String, partData: PartAPI, layer: String): ArrayList<LayerModel> {
+    private fun createCustomizeModel(
+        baseDomain: String,
+        subFolder: String,
+        characterName: String,
+        parts: List<PartAPI>,
+        dataType: String
+    ): CustomizeModel {
+        val avatarCharacter = "$baseDomain${DomainKey.SUB_DOMAIN}$subFolder/$characterName/${DomainKey.AVATAR_CHARACTER_API}"
+        val layerList = ArrayList<LayerListModel>(parts.size)
+
+        // Sort parts by level in ascending order
+        val sortedParts = parts.sortedBy { it.level }
+
+        sortedParts.forEach { dataLayer ->
+            // Handle both "-" and "_" delimiters
+            val layerName = if (dataLayer.parts.contains("-")) {
+                dataLayer.parts.split("-")
+            } else {
+                dataLayer.parts.split("_")
+            }
+            val positionCustom = layerName.first().toInt() - 1
+            val positionNavigation = layerName.last().toInt() - 1
+            val imageNavigation = "${baseDomain}${DomainKey.SUB_DOMAIN}$subFolder/$characterName/${dataLayer.parts}/${DomainKey.IMAGE_NAVIGATION}"
+            val layer = getDataLayer(baseDomain, subFolder, dataLayer, dataLayer.parts)
+
+            val layerListModel = LayerListModel(
+                positionCustom = positionCustom,
+                positionNavigation = positionNavigation,
+                imageNavigation = imageNavigation,
+                layer = layer
+            )
+            layerList.add(layerListModel)
+        }
+        layerList.sortBy { it.positionNavigation }
+
+        val characterLevel = sortedParts.minOfOrNull { it.level } ?: 100
+
+        return CustomizeModel(
+            dataName = characterName,
+            avatar = avatarCharacter,
+            layerList = layerList,
+            level = characterLevel,
+            isFromAPI = true,
+            dataType = dataType
+        )
+    }
+
+    private fun getDataLayer(baseDomain: String, subFolder: String, partData: PartAPI, layer: String): ArrayList<LayerModel> {
         return if (partData.colorArray != "" || partData.colorArray.isNotEmpty()) {
-            getDataAPIColor(baseDomain, partData, layer)
+            getDataAPIColor(baseDomain, subFolder, partData, layer)
         } else {
-            getDataAPINoColor(baseDomain, partData, layer)
+            getDataAPINoColor(baseDomain, subFolder, partData, layer)
         }
     }
 
-    private fun getDataAPINoColor(baseDomain: String, part: PartAPI, layer: String): ArrayList<LayerModel> {
+    private fun getDataAPINoColor(baseDomain: String, subFolder: String, part: PartAPI, layer: String): ArrayList<LayerModel> {
         val layerPath = ArrayList<LayerModel>(part.quantity)
-        val prefix = "$baseDomain${DomainKey.SUB_DOMAIN}/${part.position}/${layer}/"
+        val prefix = "$baseDomain${DomainKey.SUB_DOMAIN}$subFolder/${part.position}/${layer}/"
         val suffix = DomainKey.LAYER_EXTENSION
         for (i in 1..part.quantity) {
             layerPath.add(
@@ -237,10 +261,10 @@ class DataViewModel() : ViewModel() {
         return layerPath
     }
 
-    private fun getDataAPIColor(baseDomain: String, part: PartAPI, layer: String): ArrayList<LayerModel> {
+    private fun getDataAPIColor(baseDomain: String, subFolder: String, part: PartAPI, layer: String): ArrayList<LayerModel> {
         val layerPath = ArrayList<LayerModel>(part.quantity)
         val getColorCode = part.colorArray.split(",")
-        val prefix = "$baseDomain${DomainKey.SUB_DOMAIN}/${part.position}/${layer}/"
+        val prefix = "$baseDomain${DomainKey.SUB_DOMAIN}$subFolder/${part.position}/${layer}/"
         val suffix = DomainKey.LAYER_EXTENSION
 
         for (i in 1..part.quantity) {
