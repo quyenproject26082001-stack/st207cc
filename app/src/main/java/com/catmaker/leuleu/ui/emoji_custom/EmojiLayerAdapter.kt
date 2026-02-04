@@ -1,17 +1,23 @@
 package com.catmaker.leuleu.ui.emoji_custom
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.catmaker.leuleu.R
 import com.catmaker.leuleu.databinding.ItemCustomizeBinding
 
 class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHolder>(DiffCallback()) {
 
     var onItemClick: ((EmojiLayerItem) -> Unit) = {}
+    var onItemLoadError: ((EmojiLayerItem) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemCustomizeBinding.inflate(
@@ -31,6 +37,15 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
                 .placeholder(R.drawable.bg_item_layer)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        onItemLoadError(item)
+                        return false
+                    }
+                    override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        return false
+                    }
+                })
                 .into(binding.imvImage)
 
             // Highlight nếu được chọn

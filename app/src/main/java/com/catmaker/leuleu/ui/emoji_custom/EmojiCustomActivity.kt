@@ -90,6 +90,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     // Map DrawableDraw to its UUID for restore
     private val drawIdMap = mutableMapOf<DrawableDraw, String>()
 
+    // URLs that failed to load — filtered out from all categories
+    private val failedUrls = mutableSetOf<String>()
+
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
     }
@@ -487,6 +490,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     isSelected = selectedDraw?.drawablePath == imageUrl
                 )
             }
+            .filter { it.imageUrl !in failedUrls }
         layerAdapter.submitList(items)
     }
 
@@ -592,6 +596,13 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         navigationAdapter.onItemClick = { position ->
             loadLayerData(position)
+        }
+
+        layerAdapter.onItemLoadError = { item ->
+            if (failedUrls.add(item.imageUrl)) {
+                val currentList = layerAdapter.currentList.filter { it.imageUrl !in failedUrls }
+                layerAdapter.submitList(currentList)
+            }
         }
 
         layerAdapter.onItemClick = { item ->

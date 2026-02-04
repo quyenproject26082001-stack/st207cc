@@ -33,7 +33,7 @@ object EmojiApiHelper {
 
     // Items to exclude per category (e.g. contains cigarette)
     val EXCLUDED_ITEMS = mapOf(
-        "Happy Mouth" to setOf(125, 126, 127, 128, 129,156,157)
+        "Happy Mouth" to setOf(125, 126, 127, 128, 129,156,157),
         "Misc" to setOf(83,85,86,87)
 
     )

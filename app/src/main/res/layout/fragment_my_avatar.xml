@@ -40,7 +40,7 @@
             android:layout_width="256dp"
             android:layout_height="236dp"
             android:adjustViewBounds="true"
-            tools:src="@drawable/img_no_item" />
+            android:src="@drawable/img_no_item" />
 
         <TextView
             style="@style/single_marquee"
