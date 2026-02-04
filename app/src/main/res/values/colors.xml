@@ -45,4 +45,9 @@
     <color name="native_text_color_black">#000000</color>
     <color name="dark">#000000</color>
     <color name="purple_text">#497E00</color>
+
+    <color name="jet">#363636</color>
+    <color name="spiro_disco_ball">#21C3FF</color>
+    <color name="davy_grey">#5B5B5B</color>
+    <color name="water">#BDBDBD</color>
 </resources>

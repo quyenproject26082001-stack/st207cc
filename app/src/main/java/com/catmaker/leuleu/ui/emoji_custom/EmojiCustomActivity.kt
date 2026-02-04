@@ -12,9 +12,12 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import com.skydoves.colorpickerview.ColorEnvelope
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import android.text.Layout
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -40,6 +43,7 @@ import com.catmaker.leuleu.core.extensions.showInterAll
 import com.catmaker.leuleu.core.extensions.tap
 import com.catmaker.leuleu.core.extensions.visible
 import com.catmaker.leuleu.core.extensions.invisible
+import com.catmaker.leuleu.core.extensions.gone
 import com.catmaker.leuleu.core.helper.BitmapHelper
 import com.catmaker.leuleu.core.helper.EmojiApiHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
@@ -76,6 +80,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
     private val navigationAdapter by lazy { EmojiNavigationAdapter() }
     private val layerAdapter by lazy { EmojiLayerAdapter() }
+
+    private var isPaintDraw = false
+    private var isEraserDraw = false
+    private var colorSelected = Color.BLACK
+    private var sizePen = 50
+    private var sizeEraser = 50
 
     private var currentCategoryIndex = 0
     private val categories = EmojiApiHelper.getAllCategories()
@@ -548,40 +558,25 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             // Drawing control buttons
-            btnPen.tap {
-                paintDrawView.eraser(false)
-            }
+            btnPen.tap { handlePaintClick() }
+            btnEraser.tap { handleEraserClick() }
 
-            btnEraser.tap {
-                paintDrawView.eraser(true)
-            }
-
-            btnDrawDone.tap {
-                exitDrawModeAndSave()
-            }
-
-            btnDrawCancel.tap {
-                exitDrawModeAndCancel()
-            }
+            btnDrawDone.tap { exitDrawModeAndSave() }
+            btnDrawCancel.tap { exitDrawModeAndCancel() }
 
             // Size slider
             sbSize.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                     val strokeWidth = (progress * 2).coerceAtLeast(10)
-                    paintDrawView.setStrokeWidth(strokeWidth)
-                    paintDrawView.setStrokeWidthEraser(strokeWidth)
+                    if (isPaintDraw) {
+                        paintDrawView.setStrokeWidth(strokeWidth)
+                    } else if (isEraserDraw) {
+                        paintDrawView.setStrokeWidthEraser(strokeWidth)
+                    }
                 }
-
                 override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
                 override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
             })
-
-            // Color picker
-            colorBlack.tap { paintDrawView.setColor(Color.BLACK) }
-            colorRed.tap { paintDrawView.setColor(Color.RED) }
-            colorBlue.tap { paintDrawView.setColor(Color.BLUE) }
-            colorGreen.tap { paintDrawView.setColor(Color.GREEN) }
-            colorYellow.tap { paintDrawView.setColor(Color.YELLOW) }
 
             // Text button
             btnText.tap {
@@ -993,25 +988,120 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         bottomSheet.show()
     }
 
+    private fun handlePaintClick() {
+        binding.apply {
+            if (isEraserDraw) {
+                sizeEraser = sbSize.progress
+                isEraserDraw = false
+            }
+            isPaintDraw = !isPaintDraw
+            tvMode.text = "Pen"
+            if (isPaintDraw) {
+                // Open pen settings
+                tvMode.visible()
+                layoutColorPicker.visible()
+                layoutSize.visible()
+                viewDraw.visible()
+                sbSize.progress = sizePen
+
+                btnPen.apply {
+                    imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this@EmojiCustomActivity, R.color.spiro_disco_ball))
+                    background = ContextCompat.getDrawable(this@EmojiCustomActivity, R.drawable.bg_draw_selected)
+                }
+                btnEraser.apply {
+                    imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this@EmojiCustomActivity, R.color.davy_grey))
+                    background = ContextCompat.getDrawable(this@EmojiCustomActivity, R.drawable.bg_draw_unselected)
+                }
+
+                colorPicker.setInitialColor(colorSelected)
+                colorPicker.attachAlphaSlider(sbAlphaSlideBar)
+                colorPicker.attachBrightnessSlider(sbBrightnessSlide)
+                colorPicker.setColorListener(object : ColorEnvelopeListener {
+                    override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
+                        colorSelected = envelope.color
+                        paintDrawView.setColor(colorSelected)
+                    }
+                })
+            } else {
+                // Close pen settings → apply and start drawing
+                viewDraw.gone()
+                layoutColorPicker.gone()
+                layoutSize.gone()
+                tvMode.gone()
+
+                sizePen = sbSize.progress
+
+                paintDrawView.eraser(false)
+                paintDrawView.setColor(colorSelected)
+                paintDrawView.setStrokeWidth((sizePen * 2).coerceAtLeast(10))
+            }
+        }
+    }
+
+    private fun handleEraserClick() {
+        binding.apply {
+            if (isPaintDraw) {
+                sizePen = sbSize.progress
+                isPaintDraw = false
+            }
+            isEraserDraw = !isEraserDraw
+            tvMode.text = "Eraser"
+            layoutColorPicker.gone()
+            if (isEraserDraw) {
+                // Open eraser settings
+                sbSize.progress = sizeEraser
+                viewDraw.visible()
+                layoutSize.visible()
+                tvMode.visible()
+
+                btnEraser.apply {
+                    imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this@EmojiCustomActivity, R.color.spiro_disco_ball))
+                    background = ContextCompat.getDrawable(this@EmojiCustomActivity, R.drawable.bg_draw_selected)
+                }
+                btnPen.apply {
+                    imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this@EmojiCustomActivity, R.color.davy_grey))
+                    background = ContextCompat.getDrawable(this@EmojiCustomActivity, R.drawable.bg_draw_unselected)
+                }
+            } else {
+                // Close eraser settings → apply and start drawing
+                viewDraw.gone()
+                layoutSize.gone()
+                tvMode.gone()
+
+                sizeEraser = sbSize.progress
+
+                paintDrawView.eraser(true)
+                paintDrawView.setStrokeWidthEraser((sizeEraser * 2).coerceAtLeast(10))
+            }
+        }
+    }
+
     private fun enterDrawMode() {
         binding.apply {
-            // Show paint view and controls
+            // Show paint view, toolbar, and bottom sheet controls
             paintDrawView.visible()
+            layoutToolbarDraw.visible()
             layoutDrawControls.visible()
+            viewDrawGradient.visible()
 
             // Hide other controls
             btnFlipH.invisible()
             btnFlipV.invisible()
             btnText.invisible()
             btnLayer.invisible()
+            rcvLayer.invisible()
+            flBottomNav.invisible()
 
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
 
-            // Initialize paint settings
-            paintDrawView.setColor(Color.BLACK)
-            paintDrawView.setStrokeWidth(50)
-            paintDrawView.eraser(false)
+            // Initial state: nothing open, user taps Pen or Eraser to configure
+            isPaintDraw = false
+            isEraserDraw = false
+            tvMode.gone()
+            layoutColorPicker.gone()
+            layoutSize.gone()
+            viewDraw.gone()
         }
     }
 
@@ -1040,13 +1130,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // Hide drawing UI
             paintDrawView.invisible()
+            layoutToolbarDraw.invisible()
             layoutDrawControls.invisible()
+            viewDrawGradient.invisible()
+            viewDraw.invisible()
 
             // Show other controls
             btnFlipH.visible()
             btnFlipV.visible()
             btnText.visible()
             btnLayer.visible()
+            rcvLayer.visible()
+            flBottomNav.visible()
 
             // Unlock main DrawView
             layoutCustomLayer.setLocked(false)
@@ -1060,13 +1155,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // Hide drawing UI
             paintDrawView.invisible()
+            layoutToolbarDraw.invisible()
             layoutDrawControls.invisible()
+            viewDrawGradient.invisible()
+            viewDraw.invisible()
 
             // Show other controls
             btnFlipH.visible()
             btnFlipV.visible()
             btnText.visible()
             btnLayer.visible()
+            rcvLayer.visible()
+            flBottomNav.visible()
 
             // Unlock main DrawView
             layoutCustomLayer.setLocked(false)
