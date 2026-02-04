@@ -67,8 +67,8 @@ import com.catmaker.leuleu.data.model.draw.TextDraw
 import com.catmaker.leuleu.dialog.DialogType
 import com.catmaker.leuleu.dialog.YesNoDialog
 import com.catmaker.leuleu.listener.listenerdraw.OnDrawListener
-import com.catmaker.leuleu.ui.add_character.adapter.TextColorAdapter
 import com.catmaker.leuleu.ui.add_character.adapter.TextFontAdapter
+import com.catmaker.leuleu.ui.emoji_custom.adapter.TextColorEmojiAdapter
 import com.catmaker.leuleu.ui.emoji_custom.adapter.LayerAdapter
 import com.catmaker.leuleu.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
@@ -806,7 +806,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 textFontAdapter.submitItem(position, textFontList)
             }
 
-            val textColorAdapter = TextColorAdapter()
+            val textColorAdapter = TextColorEmojiAdapter()
             textColorAdapter.onTextColorClick = { color, position ->
                 edtText.setTextColor(color)
                 selectedColor = color
