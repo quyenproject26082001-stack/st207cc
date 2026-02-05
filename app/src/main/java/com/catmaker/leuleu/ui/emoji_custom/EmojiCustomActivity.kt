@@ -77,6 +77,7 @@ import com.catmaker.leuleu.ui.emoji_custom.adapter.LayerAdapter
 import com.catmaker.leuleu.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.catmaker.leuleu.core.extensions.select
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -1093,7 +1094,6 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnFlipV.invisible()
             btnText.invisible()
             btnLayer.invisible()
-
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
         }
@@ -1101,6 +1101,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         // Show draw overlay and initialize
         drawBinding.apply {
             layoutDraw.visible()
+            tvSize.select()
 
             // Initialize paint settings
             dv.setColor(Color.BLACK)
