@@ -17,7 +17,7 @@ fun Activity.shareApp() {
 }
 
 fun Activity.policy() {
-    val url = "https://sites.google.com/view/pony-oc-pony-avatar-maker/home"
+    val url = "https://sites.google.com/view/cat-emoji-cat-pfp-maker/home"
     val i = Intent(Intent.ACTION_VIEW)
     i.data = url.toUri()
     startActivity(i)

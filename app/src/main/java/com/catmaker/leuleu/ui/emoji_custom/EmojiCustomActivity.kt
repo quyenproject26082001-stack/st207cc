@@ -983,25 +983,33 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 rcvTextColor.visible()
             }
 
+            btnCancel.tap {
+                dialog.dismiss()
+            }
+
             btnDone.tap {
                 val text = edtText.text.toString().trim()
-                if (text.isNotEmpty()) {
-                    val size = 512
-                    val transparentBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-                    val transparentDrawable = BitmapDrawable(resources, transparentBitmap)
-
-                    val textDraw = TextDraw(this@EmojiCustomActivity, transparentDrawable, "text_${System.currentTimeMillis()}")
-                    textDraw.setText(text)
-                    textDraw.setTextColor(selectedColor)
-                    textDraw.setTypeface(ResourcesCompat.getFont(this@EmojiCustomActivity, selectedFontRes) ?: Typeface.DEFAULT)
-                    textDraw.setTextAlign(Layout.Alignment.ALIGN_CENTER)
-                    textDraw.resizeText()
-
-                    binding.layoutCustomLayer.addDraw(textDraw)
-
-                    val id = UUID.randomUUID().toString()
-                    drawIdMap[textDraw] = id
+                if (text.isEmpty()) {
+                    showToast(R.string.please_enter_text)
+                    return@tap
                 }
+
+                val size = 512
+                val transparentBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+                val transparentDrawable = BitmapDrawable(resources, transparentBitmap)
+
+                val textDraw = TextDraw(this@EmojiCustomActivity, transparentDrawable, "text_${System.currentTimeMillis()}")
+                textDraw.setText(text)
+                textDraw.setTextColor(selectedColor)
+                textDraw.setTypeface(ResourcesCompat.getFont(this@EmojiCustomActivity, selectedFontRes) ?: Typeface.DEFAULT)
+                textDraw.setTextAlign(Layout.Alignment.ALIGN_CENTER)
+                textDraw.resizeText()
+
+                binding.layoutCustomLayer.addDraw(textDraw)
+
+                val id = UUID.randomUUID().toString()
+                drawIdMap[textDraw] = id
+
                 dialog.dismiss()
             }
         }
