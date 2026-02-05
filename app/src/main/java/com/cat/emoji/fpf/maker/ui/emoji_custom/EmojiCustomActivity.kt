@@ -611,7 +611,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // Flip buttons
             btnFlipH.tap {
-                if (layoutCustomLayer.getDraws().isNotEmpty()) {
+                if (layoutCustomLayer.getCurrentDraw() != null) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_HORIZONTALLY)
                 } else {
                     showToast(R.string.please_select_item)
@@ -619,7 +619,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             btnFlipV.tap {
-                if (layoutCustomLayer.getDraws().isNotEmpty()) {
+                if (layoutCustomLayer.getCurrentDraw() != null) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_VERTICALLY)
                 } else {
                     showToast(R.string.please_select_item)
@@ -1056,8 +1056,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     viewHolder: RecyclerView.ViewHolder
                 ): Int {
                     val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
-                    val swipeFlags = ItemTouchHelper.LEFT
-                    return makeMovementFlags(dragFlags, swipeFlags)
+                    return makeMovementFlags(dragFlags, 0)
                 }
 
                 override fun onMove(
