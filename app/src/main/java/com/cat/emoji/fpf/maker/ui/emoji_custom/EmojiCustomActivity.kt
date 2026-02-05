@@ -570,7 +570,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         // Load items cho category (filter out excluded items)
         val buildStart = System.currentTimeMillis()
-        val selectedList = selectedDraws[category.name] ?: mutableListOf()
+        val currentDrawPaths = binding.layoutCustomLayer.getDraws().mapNotNull { it.drawablePath }.toSet()
         val excluded = EmojiApiHelper.EXCLUDED_ITEMS[category.name] ?: emptySet()
         val items = (1..category.count)
             .filter { it !in excluded }
@@ -578,7 +578,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
                 EmojiLayerItem(
                     imageUrl = imageUrl,
-                    isSelected = selectedList.any { it.drawablePath == imageUrl }
+                    isSelected = imageUrl in currentDrawPaths
                 )
             }
             .filter { it.imageUrl !in failedUrls }
@@ -807,6 +807,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
      */
     private fun handleUndo() {
         binding.layoutCustomLayer.undo()
+        loadLayerData(currentCategoryIndex)
     }
 
     /**
@@ -814,6 +815,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
      */
     private fun handleRedo() {
         binding.layoutCustomLayer.redo()
+        loadLayerData(currentCategoryIndex)
     }
 
     /**
@@ -1192,7 +1194,16 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private fun exitDrawModeAndSave() {
         val bitmap = drawBinding.dv.save()
 
+        // null = chưa vẽ gì (pathList rỗng)
         if (bitmap == null) {
+            showToast(R.string.please_draw_something)
+            return
+        }
+
+        // Vẽ rồi xóa hết bằng tẩy -> pathList có paths nhưng bitmap toàn transparent
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        if (pixels.all { it == 0 }) {
             showToast(R.string.please_draw_something)
             return
         }
