@@ -623,6 +623,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     drawBinding.layoutColorPickerDraw.gone()
                 } else {
                     drawBinding.layoutColorPickerDraw.visible()
+                    drawBinding.layoutColorPickerDraw.post {
+                        drawBinding.sbAlphaSlideBar.invalidate()
+                        drawBinding.sbBrightnessSlide.invalidate()
+                    }
                 }
             }
 
