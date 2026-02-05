@@ -508,7 +508,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
             btnWhatsapp?.gone()
             btnTelegram?.gone()
             btnDownload?.gone()
-        } else if (viewModel.typeStatus.value == ValueKey.MY_DESIGN_TYPE) {
+        } else if (viewModel.typeStatus.value == ValueKey.MY_DESIGN_TYPE||viewModel.typeStatus.value == ValueKey.EMOJI_TYPE) {
             btnWhatsapp?.gone()
             btnTelegram?.gone()
             btnDownload?.visible()

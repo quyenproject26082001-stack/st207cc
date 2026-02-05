@@ -1,6 +1,7 @@
 package com.cat.emoji.fpf.maker.ui.emoji_custom
 
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
@@ -41,16 +44,24 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
             binding.sflShimmer.startShimmer()
             binding.imvImage.visibility = View.INVISIBLE
 
+            val startTime = System.currentTimeMillis()
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
+                .override(160, 160) // ✅ thêm dòng này (phải giống preload)
+                .diskCacheStrategy(DiskCacheStrategy.DATA) // ✅ thêm (khuyên)
+                .dontAnimate() // ✅ thêm (khuyên)
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        Log.d("EmojiLayerLoad", "FAILED [$position] time=${elapsed}ms url=${item.imageUrl} error=${e?.message}")
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
                         onItemLoadError(item)
                         return false
                     }
                     override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        Log.d("EmojiLayerLoad", "LOADED [$position] time=${elapsed}ms source=$dataSource url=${item.imageUrl}")
                         // Hide shimmer, show image khi load xong
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE

@@ -56,7 +56,7 @@
     <string name="ok">ठीक है</string>
     <string name="wait_a_minute">एक मिनट प्रतीक्षा करें</string>
     <string name="reset">रीसेट करें</string>
-    <string name="download_success">Cat Emoji: Cat PFP Maker एल्बम में सफलतापूर्वक डाउनलोड</string>
+    <string name="download_success">Pony OC: Pony Avatar Maker एल्बम में सफलतापूर्वक डाउनलोड</string>
     <string name="please_check_your_internet">कृपया अपना इंटरनेट जांचें</string>
     <string name="please_select_an_image">कृपया एक छवि चुनें</string>
     <string name="error">त्रुटि</string>
@@ -147,4 +147,6 @@
     <string name="layer">परत</string>
     <string name="my_emoji">मेरा इमोजी</string>
     <string name="cat_emoji_sticker">बिल्ली इमोजी स्टिकर</string>
+    <string name="please_draw_something">कृपया कुछ बनाएं</string>
+    <string name="please_enter_text">कृपया टेक्स्ट दर्ज करें</string>
 </resources>

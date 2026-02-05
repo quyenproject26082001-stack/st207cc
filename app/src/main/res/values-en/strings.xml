@@ -147,6 +147,8 @@
     <string name="emoji_maker">Emoji Maker</string>
     <string name="please_select_item">Please select an item</string>
     <string name="layer">Layer</string>
+    <string name="please_draw_something">Please draw something</string>
+    <string name="please_enter_text">Please enter text</string>
     <string name="my_emoji">My Emoji</string>
     <string name="cat_emoji_sticker">Cat Emoji Sticker</string>
 </resources>

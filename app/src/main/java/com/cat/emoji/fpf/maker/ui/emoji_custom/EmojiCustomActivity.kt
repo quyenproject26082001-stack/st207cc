@@ -18,12 +18,15 @@ import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.Layout
 import android.text.TextWatcher
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.EditText
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -92,6 +95,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private val layerAdapter by lazy { EmojiLayerAdapter() }
 
     private var currentCategoryIndex = 0
+    private val preloadTargets = mutableListOf<com.bumptech.glide.request.target.Target<Drawable>>()
+
     private val categories = EmojiApiHelper.getAllCategories()
 
     // Lưu trữ selected DrawableDraw cho mỗi category (cho phép nhiều item)
@@ -230,6 +235,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         binding.rcvLayer.apply {
+
             adapter = layerAdapter
             itemAnimator = null
         }
@@ -542,8 +548,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun loadLayerData(categoryIndex: Int) {
+        preloadTargets.forEach { Glide.with(this).clear(it) }
+        preloadTargets.clear()
+
+
+        val startTime = System.currentTimeMillis()
         currentCategoryIndex = categoryIndex
         val category = categories[categoryIndex]
+        Log.d("EmojiLayerLoad", "--- loadLayerData START category=${category.name} index=$categoryIndex ---")
 
         // Update navigation selection
         val navItems = categories.mapIndexed { index, cat ->
@@ -554,8 +566,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             )
         }
         navigationAdapter.submitList(navItems)
+        Log.d("EmojiLayerLoad", "navSubmit done time=${System.currentTimeMillis() - startTime}ms")
 
         // Load items cho category (filter out excluded items)
+        val buildStart = System.currentTimeMillis()
         val selectedList = selectedDraws[category.name] ?: mutableListOf()
         val excluded = EmojiApiHelper.EXCLUDED_ITEMS[category.name] ?: emptySet()
         val items = (1..category.count)
@@ -568,7 +582,22 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 )
             }
             .filter { it.imageUrl !in failedUrls }
+        Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms")
+
         layerAdapter.submitList(items)
+        Log.d("EmojiLayerLoad", "--- submitList done total=${System.currentTimeMillis() - startTime}ms ---")
+
+        val preloadList = items.take(20)
+        preloadList.forEach { item ->
+            val t = Glide.with(this)
+                .load(item.imageUrl)
+                .override(160, 160)
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .preload()
+            preloadTargets.add(t)
+        }
+
+
     }
 
     override fun dataObservable() {
