@@ -432,6 +432,7 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
         val baseUrl = "${DomainKey.BASE_URL}${DomainKey.SUB_DOMAIN_CAT_STICKER}/Sticker/$encodedCategory"
 
         lifecycleScope.launch {
+            showLoading()
             val urls = mutableListOf<String>()
             var index = 1
             val maxLimit = 200
@@ -449,6 +450,7 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
                 }
             }
 
+            dismissLoading()
             adapter.submitList(urls)
         }
     }

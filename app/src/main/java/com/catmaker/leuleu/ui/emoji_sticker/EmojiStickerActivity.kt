@@ -58,6 +58,7 @@ class EmojiStickerActivity : BaseActivity<ActivityEmojiStickerBinding>() {
 
     private fun loadCategories() {
         lifecycleScope.launch {
+            showLoading()
             val response = withTimeoutOrNull(5_000) {
                 try {
                     RetrofitClient.api.getStickerCategories()
@@ -68,6 +69,7 @@ class EmojiStickerActivity : BaseActivity<ActivityEmojiStickerBinding>() {
                 } catch (e: Exception) { null }
             }
 
+            dismissLoading()
             if (response?.isSuccessful == true && response.body() != null) {
                 val sorted = response.body()!!.sortedBy { it.level }
                 adapter.submitList(sorted)
