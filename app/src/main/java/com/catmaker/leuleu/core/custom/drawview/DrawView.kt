@@ -674,6 +674,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
             Log.d(
                 "Function: onTouchDown", "CurrentIcon: $currentIcon, HandingDraw: $handlingDraw"
             )
+            hideSelect()
             return false
         }
         invalidate()
