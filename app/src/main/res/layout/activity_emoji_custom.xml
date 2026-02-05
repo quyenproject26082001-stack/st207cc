@@ -28,7 +28,7 @@
     </FrameLayout>
 
     <!-- Layout Image Layer -->
-    <com.catmaker.leuleu.core.custom.drawview.DrawView
+    <com.cat.emoji.fpf.maker.core.custom.drawview.DrawView
         android:id="@+id/layoutCustomLayer"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -41,7 +41,7 @@
         app:layout_constraintTop_toBottomOf="@id/layoutActionBar" />
 
     <!-- Paint Draw View (for drawing) -->
-    <com.catmaker.leuleu.core.custom.paintview.PaintDrawView
+    <com.cat.emoji.fpf.maker.core.custom.paintview.PaintDrawView
         android:id="@+id/paintDrawView"
         android:layout_width="0dp"
         android:layout_height="0dp"

@@ -1,0 +1,14 @@
+package com.cat.emoji.fpf.maker.data.model
+
+import android.os.Parcelable
+
+data class PartAPI(
+    val position: String,
+    val parts: String,
+    val colorArray: String,
+    val quantity: Int,
+    val level: Int,
+    val data: String = ""  // "cat" or "emoji"
+)
+
+data class DataAPI(val name: String, val parts: List<PartAPI>)

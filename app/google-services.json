@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "345570565091",
-    "project_id": "st217-pony-oc-maker",
-    "storage_bucket": "st217-pony-oc-maker.firebasestorage.app"
+    "project_number": "184907679367",
+    "project_id": "st207-catemojicatpfpmaker",
+    "storage_bucket": "st207-catemojicatpfpmaker.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:345570565091:android:6fd6ed13936d6aee261ed6",
+        "mobilesdk_app_id": "1:184907679367:android:a6ae8a50d25679e0c9da22",
         "android_client_info": {
-          "package_name": "com.catmaker.leuleu"
+          "package_name": "com.cat.emoji.fpf.maker"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA0e7UVrMoH02ynePesy9UUIUDgiVSY4as"
+          "current_key": "AIzaSyDMmpVMfmlje_VuN9CAzGC1Gmeb9fW34RE"
         }
       ],
       "services": {

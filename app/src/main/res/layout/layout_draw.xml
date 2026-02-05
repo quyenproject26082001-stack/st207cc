@@ -265,7 +265,7 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <com.catmaker.leuleu.core.custom.paintview.PaintDrawView
+        <com.cat.emoji.fpf.maker.core.custom.paintview.PaintDrawView
             android:id="@+id/dv"
             android:layout_width="match_parent"
             android:layout_height="0dp"

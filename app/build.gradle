@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.catmaker.leuleu'
+    namespace 'com.cat.emoji.fpf.maker'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.catmaker.leuleu"
+        applicationId "com.cat.emoji.fpf.maker"
         minSdk 24
         targetSdk 36
         versionCode 1

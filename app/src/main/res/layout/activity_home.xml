@@ -85,7 +85,7 @@
 
 
             <!--            btnQuickMaker-->
-            <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
+            <com.cat.emoji.fpf.maker.core.custom.text.DoubleStrokeTextView
                 android:id="@+id/tv1"
                 style="@style/single_marquee"
                 android:layout_width="0dp"
@@ -122,7 +122,7 @@
 
 
             <!--            btnQuickMaker-->
-            <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
+            <com.cat.emoji.fpf.maker.core.custom.text.DoubleStrokeTextView
                 android:id="@+id/tvEmojiCustom"
                 style="@style/single_marquee"
                 android:layout_width="0dp"
@@ -162,7 +162,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/btnEmojiCustom" />
 
             <!--            tv2-->
-            <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
+            <com.cat.emoji.fpf.maker.core.custom.text.DoubleStrokeTextView
                 android:id="@+id/tv2"
                 style="@style/single_marquee"
                 android:layout_width="0dp"
@@ -198,7 +198,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/btnQuickMaker" />
 
             <!--            tv3-->
-            <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
+            <com.cat.emoji.fpf.maker.core.custom.text.DoubleStrokeTextView
                 android:id="@+id/tv3"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -238,7 +238,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/btnQuickMaker" />
 
             <!--            tv3-->
-            <com.catmaker.leuleu.core.custom.text.DoubleStrokeTextView
+            <com.cat.emoji.fpf.maker.core.custom.text.DoubleStrokeTextView
                 android:id="@+id/tvStickers"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
