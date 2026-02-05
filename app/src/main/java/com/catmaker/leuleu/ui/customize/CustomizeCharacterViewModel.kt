@@ -665,7 +665,8 @@ class CustomizeCharacterViewModel : ViewModel() {
             isSelectedItemList = ArrayList(isSelectedItemList),
             keySelectedItemList = ArrayList(keySelectedItemList),
             isShowColorList = ArrayList(isShowColorList),
-            pathSelectedList = ArrayList(pathSelectedList)
+            pathSelectedList = ArrayList(pathSelectedList),
+            dataType = _dataCustomize.value?.dataType ?: ""
         )
     }
 

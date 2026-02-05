@@ -3,7 +3,7 @@ package com.catmaker.leuleu.core.utils.key
 object DomainKey {
     const val BASE_URL = "https://lvtglobal.tech"
     const val BASE_URL_PREVENTIVE = "https://lvtglobal.site"
-    const val SUB_DOMAIN = "/public/app/ST215_PonyMaker2"
+    const val SUB_DOMAIN = "/public/app/ST207_CatEmojiCatPFPMaker"
     const val SUB_DOMAIN_CAT_STICKER = "/public/app/TT999_Cat_Sticker"
     const val HTTP = "https://"
 

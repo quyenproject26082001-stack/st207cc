@@ -14,8 +14,11 @@ import com.catmaker.leuleu.core.extensions.select
 import com.catmaker.leuleu.core.extensions.setImageActionBar
 import com.catmaker.leuleu.core.extensions.showInterAll
 import com.catmaker.leuleu.core.extensions.startIntentRightToLeft
+import com.catmaker.leuleu.core.helper.InternetHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
+import com.catmaker.leuleu.dialog.DialogType
+import com.catmaker.leuleu.dialog.YesNoDialog
 import com.catmaker.leuleu.core.utils.key.ValueKey
 import com.catmaker.leuleu.core.utils.state.RateState
 import com.catmaker.leuleu.databinding.ActivityHomeBinding
@@ -46,6 +49,8 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
         binding.tv1.isSelected = true
         binding.tv3.isSelected = true
         binding.tv2.isSelected = true
+        binding.tvEmojiCustom.isSelected = true
+        binding.tvStickers.isSelected = true
 
         // Apply elastic bounce animation to app name
         val elasticBounce = AnimationUtils.loadAnimation(this, R.anim.elastic_bounce)
@@ -58,7 +63,21 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             btnCreate.tap(800) { startIntentRightToLeft(CatEmojiMakerActivity::class.java) }
             btnMyAlbum.tap(800) { showInterAll { startIntentRightToLeft(MyCreationActivity::class.java) } }
             btnQuickMaker.tap(800) { startIntentRightToLeft(RandomCharacterActivity::class.java) }
-            btnEmojiCustom.tap(800) { startIntentRightToLeft(EmojiCustomActivity::class.java) }
+            btnEmojiCustom.tap(800) {
+                if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
+                    startIntentRightToLeft(EmojiCustomActivity::class.java)
+                } else {
+                    val dialog = YesNoDialog(
+                        this@HomeActivity,
+                        R.string.no_internet,
+                        R.string.please_check_your_internet,
+                        isError = true,
+                        dialogType = DialogType.INTERNET
+                    )
+                    dialog.show()
+                    dialog.onYesClick = { dialog.dismiss() }
+                }
+            }
             btnStickers.tap(800) { startIntentRightToLeft(EmojiStickerActivity::class.java) }
         }
     }
@@ -109,9 +128,11 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
 
     private fun updateText() {
         binding.apply {
-            tv1.text = strings(R.string.pony_maker)
-            tv2.text = strings(R.string.trending)
+            tv1.text = strings(R.string.cat_emoji_maker)
+            tv2.text = strings(R.string.quick_maker)
             tv3.text = strings(R.string.my_work)
+            tvStickers.text = strings(R.string.cat_sticker)
+            tvEmojiCustom.text = strings(R.string.cat_emoji_customizer)
         }
     }
 
@@ -140,10 +161,24 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
 
         // Card 2: Slide from left (200ms delay)
         val slideFromLeft = AnimationUtils.loadAnimation(this, R.anim.slide_in_left_home)
-        binding.btnQuickMaker.postDelayed({
-            binding.btnQuickMaker.startAnimation(slideFromLeft)
-            binding.tv2.startAnimation(slideFromLeft)
+//        binding.btnQuickMaker.postDelayed({
+//            binding.btnQuickMaker.startAnimation(slideFromLeft)
+//            binding.tv2.startAnimation(slideFromLeft)
+//        }, 200)
+
+        // Card 2: Slide from left (200ms delay)
+        binding.btnEmojiCustom.postDelayed({
+            binding.btnEmojiCustom.startAnimation(slideFromLeft)
+            binding.tvEmojiCustom.startAnimation(slideFromLeft)
         }, 200)
+
+
+        // Card 2: Slide from left (200ms delay)
+        binding.btnEmojiCustom.postDelayed({
+            binding.btnStickers.startAnimation(slideFromLeft)
+            binding.tvStickers.startAnimation(slideFromLeft)
+        }, 200)
+
 
         // Card 3: Slide from right (400ms delay)
         val slideFromRight2 = AnimationUtils.loadAnimation(this, R.anim.slide_in_right_home)

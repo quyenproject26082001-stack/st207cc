@@ -1,5 +1,6 @@
 package com.catmaker.leuleu.ui.emoji_sticker
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -59,11 +60,22 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
     private val permissionViewModel: PermissionViewModel by viewModels()
     private var pendingDownloadUrls: List<String>? = null
 
+    fun Int.dp(context: Context): Int =
+        (this * context.resources.displayMetrics.density).toInt()
+
     override fun setViewBinding(): ActivityEmojiStickerListBinding {
         return ActivityEmojiStickerListBinding.inflate(LayoutInflater.from(this))
     }
 
     override fun initView() {
+
+
+        binding.actionBar.btnActionBarRight.layoutParams =
+            binding.actionBar.btnActionBarRight.layoutParams.apply {
+                width = 24.dp(this@EmojiStickerListActivity)
+                height = 24.dp(this@EmojiStickerListActivity)
+            }
+
         categoryName = intent.getStringExtra(IntentKey.STICKER_CATEGORY_NAME) ?: ""
 
         binding.rcvStickerList.apply {
@@ -420,6 +432,7 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
         val baseUrl = "${DomainKey.BASE_URL}${DomainKey.SUB_DOMAIN_CAT_STICKER}/Sticker/$encodedCategory"
 
         lifecycleScope.launch {
+            showLoading()
             val urls = mutableListOf<String>()
             var index = 1
             val maxLimit = 200
@@ -437,6 +450,7 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
                 }
             }
 
+            dismissLoading()
             adapter.submitList(urls)
         }
     }

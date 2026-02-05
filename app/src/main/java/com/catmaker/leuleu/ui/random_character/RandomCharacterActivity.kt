@@ -23,6 +23,7 @@ import com.catmaker.leuleu.core.extensions.showInterAll
 import com.catmaker.leuleu.core.extensions.tap
 import com.catmaker.leuleu.core.extensions.startIntentRightToLeft
 import com.catmaker.leuleu.core.extensions.visible
+import com.catmaker.leuleu.core.extensions.gone
 import com.catmaker.leuleu.core.helper.InternetHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
 import com.catmaker.leuleu.core.utils.key.IntentKey
@@ -46,6 +47,7 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
     private val dataViewModel: DataViewModel by viewModels()
     private val customizeCharacterViewModel: CustomizeCharacterViewModel by viewModels()
     private val randomCharacterAdapter by lazy { RandomCharacterAdapter(this) }
+    private var currentTab = "cat"
 
     override fun setViewBinding(): ActivityRandomCharacterBinding {
         return ActivityRandomCharacterBinding.inflate(LayoutInflater.from(this))
@@ -71,6 +73,21 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { showInterAll{handleBackLeftToRight()} }
 
+            btnCatMaker.tap {
+                if (currentTab != "cat") {
+                    currentTab = "cat"
+                    updateTabUI(true)
+                    filterAndSubmit()
+                }
+            }
+
+            btnEmojiCat.tap {
+                if (currentTab != "emoji") {
+                    currentTab = "emoji"
+                    updateTabUI(false)
+                    filterAndSubmit()
+                }
+            }
         }
 
         randomCharacterAdapter.onItemClick = { model -> handleItemClick(model)}
@@ -80,7 +97,7 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
-            setTextActionBar(tvCenter, getString(R.string.trending))
+            setTextActionBar(tvCenter, getString(R.string.quick_maker))
             tvCenter.isSelected =true
         }
     }
@@ -202,10 +219,47 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
             dLog("Item $index: Avatar=${item.avatarPath}, Layers=${item.pathSelectedList.size}")
         }
         dLog("==========================================================")
-        randomCharacterAdapter.submitList(viewModel.randomList)
+        filterAndSubmit()
+        updateTabUI(currentTab == "cat")
+    }
+
+    private fun updateTabUI(isCatTab: Boolean) {
+        binding.apply {
+            if (isCatTab) {
+
+
+                cvType.setBackgroundResource(R.drawable.cat_random_selected)
+                tvSpace.setTextColor(resources.getColor(R.color.white, null))
+                tvMyDesign.setTextColor(resources.getColor(R.color.app, null))
+            } else {
+
+                cvType.setBackgroundResource(R.drawable.emoji_random_selected)
+
+                tvSpace.setTextColor(resources.getColor(R.color.app, null))
+                tvMyDesign.setTextColor(resources.getColor(R.color.white, null))
+            }
+        }
+    }
+
+    private fun filterAndSubmit() {
+        val filtered = viewModel.randomList
+            .filter { it.dataType == currentTab }
+            .take(100)
+        dLog("filterAndSubmit: currentTab=$currentTab, filtered=${filtered.size} items (max 100)")
+        randomCharacterAdapter.submitList(filtered.toList())
     }
 
     private fun handleItemClick(model: SuggestionModel) {
+        android.util.Log.d("RandomCharacter", "========================================")
+        android.util.Log.d("RandomCharacter", "avatarPath: ${model.avatarPath}")
+        android.util.Log.d("RandomCharacter", "dataType: ${model.dataType}")
+        android.util.Log.d("RandomCharacter", "pathSelectedList (${model.pathSelectedList.size}):")
+        model.pathSelectedList.forEachIndexed { index, path ->
+            android.util.Log.d("RandomCharacter", "  [$index] $path")
+        }
+        android.util.Log.d("RandomCharacter", "pathInternalRandom: ${model.pathInternalRandom}")
+        android.util.Log.d("RandomCharacter", "========================================")
+
         customizeCharacterViewModel.positionSelected = dataViewModel.allData.value.indexOfFirst { it.avatar == model.avatarPath }
         // ✅ FIX: Use isFromAPI flag from character data instead of position
         val selectedCharacter = dataViewModel.allData.value.getOrNull(customizeCharacterViewModel.positionSelected)

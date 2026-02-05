@@ -93,90 +93,20 @@ object AssetHelper {
     fun getDataFromAsset(context: Context) : ArrayList<CustomizeModel> {
         val start = System.currentTimeMillis()
         val customList = ArrayList<CustomizeModel>()
-        val assetManager = context.assets
 
-        // "data1, character_2,..."
-        val characterList = assetManager.list(AssetsKey.DATA)
-        val sortedCharacter = MediaHelper.sortAsset(characterList)
-        Log.d("nbhieu", "----------------------------------------------------------------------------------")
+        // Load cat data
+        val catList = getDataFromFolder(context, AssetsKey.DATA_CAT_MAKER, AssetsKey.DATA_CAT_MAKER_ASSET, "cat")
+        customList.addAll(catList)
+        Log.d("nbhieu", "Loaded ${catList.size} cat characters")
 
-        sortedCharacter!!.forEach {
-            Log.d("nbhieu", "sortedCharacter: $it")
-        }
+        // Load emoji data
+        val emojiList = getDataFromFolder(context, AssetsKey.DATA_EMOJI_MAKER, AssetsKey.DATA_EMOJI_MAKER_ASSET, "emoji")
+        customList.addAll(emojiList)
+        Log.d("nbhieu", "Loaded ${emojiList.size} emoji characters")
 
-        Log.d("nbhieu", "----------------------------------------------------------------------------------")
-
-        sortedCharacter.forEachIndexed { indexCharacter, character ->
-            val layerListModelList = ArrayList<LayerListModel>()
-            Log.d("nbhieu", "indexCharacter: $indexCharacter")
-            // "1.30, 2.4, 3.1, 4.22,..."
-            val layer = assetManager.list("${AssetsKey.DATA}/${character}")
-            val allItems = MediaHelper.sortAsset(layer)?.toCollection(ArrayList()) ?: arrayListOf()
-
-            // Tìm avatar file
-            val avatarFile = allItems.find {
-                it.equals("avatar.png", ignoreCase = true) ||
-                it.equals("avatar.jpg", ignoreCase = true) ||
-                it.equals("avatar.webp", ignoreCase = true)
-            }
-
-            // Filter chỉ lấy các folder layer có format đúng (dạng 1-13 hoặc 1_3)
-            val sortedLayer = allItems.filter { item ->
-                val hasHyphen = item.contains("-")
-                val hasUnderscore = item.contains("_")
-
-                if (hasHyphen) {
-                    val parts = item.split("-")
-                    parts.size == 2 && parts[0].toIntOrNull() != null && parts[1].toIntOrNull() != null
-                } else if (hasUnderscore) {
-                    val parts = item.split("_")
-                    parts.size == 2 && parts[0].toIntOrNull() != null && parts[1].toIntOrNull() != null
-                } else {
-                    false
-                }
-            }.toCollection(ArrayList())
-
-            val avatar = "${AssetsKey.DATA_ASSET}${character}/${avatarFile ?: "avatar.png"}"
-            Log.d("nbhieu", "avatar: $avatar")
-
-            Log.d("nbhieu", "----------------------------------------------------------------------------------")
-
-            for (i in 0 until sortedLayer.size) {
-                // Tách 1 và 30 từ "1-30" hoặc "1_30"
-                val layerName = sortedLayer[i]
-                val position = if (layerName.contains("-")) {
-                    layerName.split("-")
-                } else {
-                    layerName.split("_")
-                }
-                val positionCustom = position[0].toInt() - 1
-                val positionNavigation = position[1].toInt() - 1
-
-                // Lấy folder màu hoặc lấy ảnh nếu không có màu, lấy ảnh navigation
-                // data/data1/1.30
-                val folderOrImageList = assetManager.list("${AssetsKey.DATA}/${character}/${sortedLayer[i]}")
-                val folderOrImageSortedList =
-                    MediaHelper.sortAsset(folderOrImageList)?.toCollection(ArrayList()) ?: arrayListOf()
-                //Lấy navigation
-                val navigationImage =
-                    "${AssetsKey.DATA_ASSET}${character}/${sortedLayer[i]}/${folderOrImageSortedList.last()}"
-                folderOrImageSortedList.removeAt(folderOrImageSortedList.size - 1)
-                // Nếu không có folder -> không có màu
-                val layer = if (AssetsKey.FIRST_IMAGE.any { it in folderOrImageSortedList[0] }) {
-                    getDataNoColor(character, folderOrImageSortedList, sortedLayer[i])
-                } else {
-                    getDataColor(assetManager, character, folderOrImageSortedList, sortedLayer[i])
-                }
-                val layerListModel = LayerListModel(positionCustom, positionNavigation, navigationImage, layer)
-                layerListModelList.add(layerListModel)
-            }
-            layerListModelList.sortBy { it.positionNavigation }
-            customList.add(CustomizeModel(character, avatar, layerListModelList, level = 100))
-            Log.d("nbhieu", "----------------------------------------------------------------------------------")
-        }
         MediaHelper.writeListToFile(context, ValueKey.DATA_FILE_INTERNAL, customList)
         customList.forEach {
-            Log.d("nbhieu", "customList: ${it}")
+            Log.d("nbhieu", "customList: ${it.dataName}, dataType: ${it.dataType}")
         }
         Log.d("nbhieu", "count time: ${System.currentTimeMillis() - start}")
         return customList
@@ -224,7 +154,7 @@ object AssetHelper {
     }
 
     // ========== LOAD DATA BY FOLDER (Cat/Emoji) ==========
-    fun getDataFromFolder(context: Context, folderPath: String, assetPrefix: String): ArrayList<CustomizeModel> {
+    fun getDataFromFolder(context: Context, folderPath: String, assetPrefix: String, dataType: String = ""): ArrayList<CustomizeModel> {
         val customList = ArrayList<CustomizeModel>()
         val assetManager = context.assets
 
@@ -278,7 +208,7 @@ object AssetHelper {
                 layerListModelList.add(LayerListModel(positionCustom, positionNavigation, navigationImage, layerData))
             }
             layerListModelList.sortBy { it.positionNavigation }
-            customList.add(CustomizeModel(character, avatar, layerListModelList, level = 100))
+            customList.add(CustomizeModel(character, avatar, layerListModelList, level = 100, dataType = dataType))
         }
         return customList
     }

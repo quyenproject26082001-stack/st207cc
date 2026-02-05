@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
     private val viewModel: SuccessViewModel by viewModels()
     private val permissionViewModel: PermissionViewModel by viewModels()
+    private var tabIndex = -1
 
     override fun setViewBinding(): ActivitySuccessBinding {
         return ActivitySuccessBinding.inflate(LayoutInflater.from(this))
@@ -49,6 +50,7 @@ class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
 
     override fun initView() {
         viewModel.setPath(intent.getStringExtra(IntentKey.INTENT_KEY) ?: "")
+        tabIndex = intent.getIntExtra(IntentKey.TAB_INDEX_KEY, -1)
         setButtonBackgrounds()
     }
 
@@ -94,7 +96,17 @@ class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
             // My Album button
             includeLayoutBottom.btnWhatsapp.tap(2590) {
                 showInterAll {
-                    startIntentRightToLeft(MyCreationActivity::class.java, true)
+                    val intent = android.content.Intent(this@SuccessActivity, MyCreationActivity::class.java)
+                    intent.putExtra(IntentKey.FROM_SAVE, true)
+                    if (tabIndex != -1) {
+                        intent.putExtra(IntentKey.TAB_INDEX_KEY, tabIndex)
+                    }
+                    val options = android.app.ActivityOptions.makeCustomAnimation(
+                        this@SuccessActivity,
+                        R.anim.slide_out_left,
+                        R.anim.slide_in_right
+                    )
+                    startActivity(intent, options.toBundle())
                 }
             }
 

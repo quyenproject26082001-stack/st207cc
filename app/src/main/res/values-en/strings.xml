@@ -125,6 +125,7 @@
     <string name="title_11">Diverse Character Style</string>
     <string name="title_22">Create Your Own Avatar \nHowever You Like</string>
     <string name="cat_sticker">Cat Sticker</string>
+
     <string name="cat_emoji_maker">Cat Emoji Maker</string>
     <string name="cat_emoji_customizer">Cat Emoji Custom</string>
     <string name="mode">Mode:</string>
@@ -133,4 +134,18 @@
     <string name="cancel">Cancel</string>
     <string name="size">Size:</string>
     <string name="draw">Draw</string>
+    <string name="my_emoji_maker">My Emoji Maker</string>
+    <string name="my_emoji_custom">My Emoji Custom</string>
+    <string name="emoji_cat">Emoji Cat</string>
+    <string name="cat_maker_1">Cat maker</string>
+    <string name="emoji_cat_1">Emoji cat</string>
+
+    <string name="selected_count">%d selected</string>
+    <string name="select_stickers">Select stickers</string>
+    <string name="please_select_stickers">Please select stickers</string>
+    <string name="cat_maker">Cat Maker</string>
+    <string name="emoji_maker">Emoji Maker</string>
+    <string name="please_select_item">Please select an item</string>
+    <string name="layer">Layer</string>
+    <string name="my_emoji">My Emoji</string>
 </resources>

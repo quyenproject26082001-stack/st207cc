@@ -84,7 +84,10 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         // Store instance reference for ViewActivity to access
         instanceRef = java.lang.ref.WeakReference(this)
 
-        viewModel.setTypeStatus(ValueKey.AVATAR_TYPE)
+        // Check if tab index is passed from SuccessActivity
+        val tabIndex = intent.getIntExtra(IntentKey.TAB_INDEX_KEY, -1)
+        val initialTab = if (tabIndex != -1) tabIndex else ValueKey.AVATAR_TYPE
+        viewModel.setTypeStatus(initialTab)
         viewModel.setStatusFrom(intent.getBooleanExtra(IntentKey.FROM_SAVE, false))
 
         // Hide action bar buttons by default (only show in selection mode)

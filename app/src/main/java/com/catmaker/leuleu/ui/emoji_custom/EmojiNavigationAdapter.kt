@@ -33,8 +33,12 @@ class EmojiNavigationAdapter : ListAdapter<EmojiNavItem, EmojiNavigationAdapter.
                 .placeholder(R.drawable.bg_item_layer)
                 .into(binding.imvImage)
 
-            // Highlight nếu được chọn
-            binding.root.alpha = if (item.isSelected) 1f else 0.5f
+            // Background theo trạng thái selected
+            if (item.isSelected) {
+                binding.cvContent.setBackgroundResource(R.drawable.bg_emoji_nav_selected)
+            } else {
+                binding.cvContent.setBackgroundResource(R.drawable.bg_emoji_nav_unselected)
+            }
 
             binding.root.setOnClickListener {
                 onItemClick(position)

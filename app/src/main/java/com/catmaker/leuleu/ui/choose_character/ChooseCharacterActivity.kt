@@ -134,6 +134,15 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
 
             android.util.Log.d("ChooseCharacter", "Character isFromAPI: $needsInternet")
             android.util.Log.d("ChooseCharacter", "Character name: ${selectedCharacter?.dataName}")
+            android.util.Log.d("ChooseCharacter", "Character dataType: ${selectedCharacter?.dataType}")
+            android.util.Log.d("ChooseCharacter", "Avatar URL: ${selectedCharacter?.avatar}")
+            selectedCharacter?.layerList?.forEachIndexed { index, layer ->
+                android.util.Log.d("ChooseCharacter", "Layer[$index] nav: ${layer.imageNavigation}")
+                layer.layer.firstOrNull()?.let {
+                    android.util.Log.d("ChooseCharacter", "Layer[$index] image: ${it.image}")
+                }
+            }
+            android.util.Log.d("ChooseCharacter", "========================================")
 
             if (needsInternet) {
                 android.util.Log.d("ChooseCharacter", "API character - checking internet...")
@@ -167,7 +176,12 @@ class ChooseCharacterActivity : BaseActivity<ActivityChooseCharacterBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
-            setTextActionBar(tvCenter, getString(R.string.pony_maker))
+            val title = when (currentDataType) {
+                IntentKey.DATA_TYPE_CAT -> getString(R.string.cat_maker)
+                IntentKey.DATA_TYPE_EMOJI -> getString(R.string.emoji_maker)
+                else -> getString(R.string.pony_maker)
+            }
+            setTextActionBar(tvCenter, title)
             tvCenter.select()
         }
     }

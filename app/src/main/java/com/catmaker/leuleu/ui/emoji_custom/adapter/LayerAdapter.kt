@@ -51,7 +51,7 @@ class LayerAdapter(
                     btnEye.setImageDrawable(
                         ContextCompat.getDrawable(
                             itemView.context,
-                            R.drawable.ic_show
+                            R.drawable.ic_hide
                         )
                     )
                 }

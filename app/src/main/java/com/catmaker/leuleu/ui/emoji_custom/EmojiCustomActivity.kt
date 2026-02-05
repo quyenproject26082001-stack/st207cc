@@ -49,6 +49,7 @@ import com.catmaker.leuleu.core.extensions.visible
 import com.catmaker.leuleu.core.extensions.invisible
 import com.catmaker.leuleu.core.helper.BitmapHelper
 import com.catmaker.leuleu.core.helper.EmojiApiHelper
+import com.catmaker.leuleu.core.helper.InternetHelper
 import com.catmaker.leuleu.core.helper.LanguageHelper
 import com.catmaker.leuleu.core.helper.MediaHelper
 import com.catmaker.leuleu.core.utils.DataLocal
@@ -76,6 +77,7 @@ import com.catmaker.leuleu.ui.emoji_custom.adapter.LayerAdapter
 import com.catmaker.leuleu.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.catmaker.leuleu.core.extensions.select
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -92,8 +94,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private var currentCategoryIndex = 0
     private val categories = EmojiApiHelper.getAllCategories()
 
-    // Lưu trữ selected DrawableDraw cho mỗi category
-    private val selectedDraws = mutableMapOf<String, DrawableDraw?>()
+    // Lưu trữ selected DrawableDraw cho mỗi category (cho phép nhiều item)
+    private val selectedDraws = mutableMapOf<String, MutableList<DrawableDraw>>()
 
     // Edit mode support
     private var statusFrom = ValueKey.CREATE
@@ -113,6 +115,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     override fun initView() {
+        // Check internet before entering screen
+        if (!InternetHelper.isInternetAvailable(this)) {
+            showNoInternetDialog {
+                finish()
+            }
+            return
+        }
+
         // Get statusFrom from intent
         statusFrom = intent.getIntExtra(IntentKey.STATUS_FROM_KEY, ValueKey.CREATE)
 
@@ -127,6 +137,29 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
     }
 
+    private fun showNoInternetDialog(onDismiss: (() -> Unit)? = null) {
+        val dialog = YesNoDialog(
+            this,
+            R.string.no_internet,
+            R.string.please_check_your_internet,
+            isError = true,
+            dialogType = DialogType.INTERNET
+        )
+        dialog.show()
+        dialog.onYesClick = {
+            dialog.dismiss()
+            onDismiss?.invoke()
+        }
+    }
+
+    private fun checkInternetAndExecute(action: () -> Unit) {
+        if (InternetHelper.isInternetAvailable(this)) {
+            action.invoke()
+        } else {
+            showNoInternetDialog()
+        }
+    }
+
     private fun initDrawView() {
         binding.layoutCustomLayer.apply {
             setConstrained(true)
@@ -136,14 +169,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 override fun onClickedDraw(draw: Draw) {}
                 override fun onDeletedDraw(draw: Draw) {
                     // Update selectedDraws when user deletes via icon
-                    val category = categories.find { selectedDraws[it.name] == draw }
-                    if (category != null) {
-                        selectedDraws[category.name] = null
-                        loadLayerData(currentCategoryIndex)
-                    }
-                    // Clean up drawIdMap
                     if (draw is DrawableDraw) {
+                        categories.forEach { category ->
+                            selectedDraws[category.name]?.remove(draw)
+                        }
                         drawIdMap.remove(draw)
+                        loadLayerData(currentCategoryIndex)
                     }
                 }
                 override fun onDragFinishedDraw(draw: Draw) {}
@@ -349,10 +380,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.layoutCustomLayer.addDrawRestored(drawableDraw)
         drawIdMap[drawableDraw] = itemModel.id
 
-        // Restore selectedDraws mapping
-        editModel.selectedByCategory.forEach { (categoryName, savedId) ->
-            if (savedId == itemModel.id) {
-                selectedDraws[categoryName] = drawableDraw
+        // Restore selectedDraws mapping (savedIds là string chứa nhiều ID phân cách bởi dấu phẩy)
+        editModel.selectedByCategory.forEach { (categoryName, savedIds) ->
+            val idList = savedIds?.split(",") ?: emptyList()
+            if (idList.contains(itemModel.id)) {
+                if (selectedDraws[categoryName] == null) {
+                    selectedDraws[categoryName] = mutableListOf()
+                }
+                selectedDraws[categoryName]?.add(drawableDraw)
             }
         }
     }
@@ -400,9 +435,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             drawItems.add(itemModel)
         }
 
-        // Build selectedByCategory mapping
-        selectedDraws.forEach { (categoryName, draw) ->
-            selectedByCategory[categoryName] = draw?.let { drawIdMap[it] }
+        // Build selectedByCategory mapping (lưu list IDs)
+        selectedDraws.forEach { (categoryName, drawList) ->
+            val ids = drawList.mapNotNull { drawIdMap[it] }.joinToString(",")
+            selectedByCategory[categoryName] = ids.ifEmpty { null }
         }
 
         return EmojiEditModel(
@@ -494,7 +530,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         navigationAdapter.submitList(navItems)
 
         // Load items cho category (filter out excluded items)
-        val selectedDraw = selectedDraws[category.name]
+        val selectedList = selectedDraws[category.name] ?: mutableListOf()
         val excluded = EmojiApiHelper.EXCLUDED_ITEMS[category.name] ?: emptySet()
         val items = (1..category.count)
             .filter { it !in excluded }
@@ -502,7 +538,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 val imageUrl = EmojiApiConfig.getImageUrl(category.name, index)
                 EmojiLayerItem(
                     imageUrl = imageUrl,
-                    isSelected = selectedDraw?.drawablePath == imageUrl
+                    isSelected = selectedList.any { it.drawablePath == imageUrl }
                 )
             }
             .filter { it.imageUrl !in failedUrls }
@@ -541,6 +577,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
             actionBar.btnActionBarRightText.tap { handleSave() }
+            actionBar.btnActionBarCenter.tap { confirmReset() }
 
             // Undo/Redo button listeners
             actionBar.btnActionBarCenterLeft.tap { handleUndo() }
@@ -550,12 +587,16 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnFlipH.tap {
                 if (layoutCustomLayer.getDraws().isNotEmpty()) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_HORIZONTALLY)
+                } else {
+                    showToast(R.string.please_select_item)
                 }
             }
 
             btnFlipV.tap {
                 if (layoutCustomLayer.getDraws().isNotEmpty()) {
                     layoutCustomLayer.flipCurrentDraw(DrawKey.FLIP_VERTICALLY)
+                } else {
+                    showToast(R.string.please_select_item)
                 }
             }
 
@@ -582,6 +623,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     drawBinding.layoutColorPickerDraw.gone()
                 } else {
                     drawBinding.layoutColorPickerDraw.visible()
+                    drawBinding.layoutColorPickerDraw.post {
+                        drawBinding.sbAlphaSlideBar.invalidate()
+                        drawBinding.sbBrightnessSlide.invalidate()
+                    }
                 }
             }
 
@@ -625,7 +670,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         navigationAdapter.onItemClick = { position ->
-            loadLayerData(position)
+            checkInternetAndExecute {
+                loadLayerData(position)
+            }
         }
 
         layerAdapter.onItemLoadError = { item ->
@@ -636,29 +683,23 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         layerAdapter.onItemClick = { item ->
-            val category = categories[currentCategoryIndex]
-            val imageUrl = item.imageUrl
+            checkInternetAndExecute {
+                val category = categories[currentCategoryIndex]
+                val imageUrl = item.imageUrl
 
-            // Toggle selection
-            val currentDraw = selectedDraws[category.name]
-            if (currentDraw?.drawablePath == imageUrl) {
-                // Deselect - remove from DrawView
-                binding.layoutCustomLayer.remove(currentDraw)
-                drawIdMap.remove(currentDraw)
-                selectedDraws[category.name] = null
-            } else {
-                // Select - load image and add to DrawView
+                android.util.Log.d("EmojiCustom", "========================================")
+                android.util.Log.d("EmojiCustom", "categoryIndex: $currentCategoryIndex")
+                android.util.Log.d("EmojiCustom", "categoryName: ${category.name}")
+                android.util.Log.d("EmojiCustom", "imageUrl: $imageUrl")
+                android.util.Log.d("EmojiCustom", "isSelected: ${item.isSelected}")
+                android.util.Log.d("EmojiCustom", "========================================")
+
+                // Add new item (cho phép chọn nhiều lần)
                 Glide.with(this)
                     .asDrawable()
                     .load(imageUrl)
                     .into(object : CustomTarget<Drawable>() {
                         override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                            // Remove old draw if exists
-                            currentDraw?.let {
-                                binding.layoutCustomLayer.remove(it)
-                                drawIdMap.remove(it)
-                            }
-
                             // Create new DrawableDraw
                             val drawableDraw = DrawableDraw(resource, imageUrl)
                             binding.layoutCustomLayer.addDraw(drawableDraw)
@@ -667,8 +708,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                             val id = UUID.randomUUID().toString()
                             drawIdMap[drawableDraw] = id
 
-                            // Save reference
-                            selectedDraws[category.name] = drawableDraw
+                            // Save reference to list
+                            if (selectedDraws[category.name] == null) {
+                                selectedDraws[category.name] = mutableListOf()
+                            }
+                            selectedDraws[category.name]?.add(drawableDraw)
+
+                            // Update UI
+                            loadLayerData(currentCategoryIndex)
                         }
 
                         override fun onLoadCleared(placeholder: Drawable?) {
@@ -676,23 +723,21 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                         }
                     })
             }
-
-            // Update UI
-            loadLayerData(currentCategoryIndex)
         }
     }
 
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
+            setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             btnActionBarRightText.visible()
             btnActionBarRight.invisible()
+            btnActionBarCenter.visible()
 
             // Show Undo/Redo buttons
             btnActionBarCenterLeft.visible()
             btnActionBarCenterRight.visible()
             bgBtnActionBar.setBackgroundResource(R.drawable.bg_actionbar)
-
 
             // Set initial state (disabled until first action)
             btnActionBarCenterLeft.alpha = 0.3f
@@ -716,6 +761,52 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         binding.layoutCustomLayer.redo()
     }
 
+    /**
+     * Confirm reset all draws
+     */
+    private fun confirmReset() {
+        if (binding.layoutCustomLayer.getDraws().isEmpty()) {
+            showToast(R.string.please_select_item)
+            return
+        }
+
+        val dialog = YesNoDialog(
+            this,
+            R.string.reset,
+            R.string.change_your_whole_design_are_you_sure,
+            dialogType = DialogType.RESET
+        )
+        dialog.show()
+
+        dialog.onNoClick = {
+            dialog.dismiss()
+            hideNavigation(true)
+        }
+
+        dialog.onYesClick = {
+            dialog.dismiss()
+            hideNavigation(true)
+            handleReset()
+        }
+    }
+
+    /**
+     * Reset all draws and clear selected items
+     */
+    private fun handleReset() {
+        // Remove all draws from canvas
+        binding.layoutCustomLayer.removeAllDraw()
+
+        // Clear selected draws map
+        selectedDraws.clear()
+
+        // Clear draw ID map
+        drawIdMap.clear()
+
+        // Reload current category to refresh UI
+        loadLayerData(currentCategoryIndex)
+    }
+
     private fun confirmExit() {
         val dialog = YesNoDialog(
             this, R.string.exit, R.string.do_you_want_to_exit,
@@ -733,6 +824,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun handleSave() {
+        // Check if there are any items
+        if (binding.layoutCustomLayer.getDraws().isEmpty()) {
+            showToast(R.string.please_select_item)
+            return
+        }
+
         // Hide selection before save
         binding.layoutCustomLayer.hideSelect()
 
@@ -765,6 +862,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
                         val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
                         intent.putExtra(IntentKey.INTENT_KEY, result.path)
+                        intent.putExtra(IntentKey.TAB_INDEX_KEY, ValueKey.EMOJI_TYPE)
                         val options = ActivityOptions.makeCustomAnimation(
                             this@EmojiCustomActivity,
                             R.anim.slide_in_right,
@@ -1007,7 +1105,6 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnFlipV.invisible()
             btnText.invisible()
             btnLayer.invisible()
-
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
         }
@@ -1015,6 +1112,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         // Show draw overlay and initialize
         drawBinding.apply {
             layoutDraw.visible()
+            tvSize.select()
 
             // Initialize paint settings
             dv.setColor(Color.BLACK)

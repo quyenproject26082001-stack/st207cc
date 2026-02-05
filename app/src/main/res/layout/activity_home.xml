@@ -215,7 +215,7 @@
                 app:layout_constraintEnd_toEndOf="@id/btnMyAlbum"
                 app:layout_constraintTop_toTopOf="@+id/btnMyAlbum"
                 app:outerStrokeColor="#75BAE8"
-                app:outerStrokeWidth="3dp"
+                app:outerStrokeWidth="4dp"
 
                />
 

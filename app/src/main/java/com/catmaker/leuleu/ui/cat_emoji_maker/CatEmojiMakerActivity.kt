@@ -41,7 +41,7 @@ class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
     override fun initActionBar() {
         binding.actionBar.apply {
             setImageActionBar(btnActionBarLeft, R.drawable.ic_back)
-            setTextActionBar(tvCenter, getString(R.string.pony_maker))
+            setTextActionBar(tvCenter, getString(R.string.cat_emoji_maker))
             tvCenter.select()
         }
     }

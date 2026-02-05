@@ -2,6 +2,7 @@ package com.catmaker.leuleu.ui.emoji_custom
 
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -13,6 +14,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.catmaker.leuleu.R
 import com.catmaker.leuleu.databinding.ItemCustomizeBinding
+import com.catmaker.leuleu.databinding.ItemEmojiCusBinding
 
 class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHolder>(DiffCallback()) {
 
@@ -20,7 +22,7 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
     var onItemLoadError: ((EmojiLayerItem) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemCustomizeBinding.inflate(
+        val binding = ItemEmojiCusBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
         return ViewHolder(binding)
@@ -30,32 +32,39 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
         holder.bind(getItem(position), position)
     }
 
-    inner class ViewHolder(private val binding: ItemCustomizeBinding) :
+    inner class ViewHolder(private val binding: ItemEmojiCusBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: EmojiLayerItem, position: Int) {
+            // Show shimmer, hide image khi bắt đầu load
+            binding.sflShimmer.visibility = View.VISIBLE
+            binding.sflShimmer.startShimmer()
+            binding.imvImage.visibility = View.INVISIBLE
+
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
-                .placeholder(R.drawable.bg_item_layer)
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        binding.sflShimmer.stopShimmer()
+                        binding.sflShimmer.visibility = View.GONE
                         onItemLoadError(item)
                         return false
                     }
                     override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        // Hide shimmer, show image khi load xong
+                        binding.sflShimmer.stopShimmer()
+                        binding.sflShimmer.visibility = View.GONE
+                        binding.imvImage.visibility = View.VISIBLE
                         return false
                     }
                 })
                 .into(binding.imvImage)
 
-            // Highlight nếu được chọn
-            binding.root.alpha = if (item.isSelected) 1f else 0.7f
-
-            // Border nếu selected
+            // Background theo trạng thái selected
             if (item.isSelected) {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_layer_selected)
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom_selected)
             } else {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_layer)
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom)
             }
 
             binding.root.setOnClickListener {
