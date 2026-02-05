@@ -444,12 +444,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
             }
         }
 
-        // 2. Update bottom navigation selection
-        bottomNavigationCustomizeAdapter.submitList(
-            viewModel.bottomNavigationList.value.mapIndexed { index, model ->
-                model.copy(isSelected = index == viewModel.positionNavSelected)
-            }
-        )
+        // 2. Sync StateFlow + update bottom navigation selection
+        viewModel.syncBottomNavigationSelection()
+        bottomNavigationCustomizeAdapter.submitList(viewModel.bottomNavigationList.value)
 
         // 3. Update layer adapter
         layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected].toList())

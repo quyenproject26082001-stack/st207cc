@@ -9,7 +9,7 @@ import com.catmaker.leuleu.core.extensions.tap
 import com.catmaker.leuleu.data.model.SelectedModel
 import com.catmaker.leuleu.databinding.ItemFontBinding
 
-class TextFontAdapter(val context: Context) : BaseAdapter<SelectedModel, ItemFontBinding>(ItemFontBinding::inflate) {
+class TextFontAdapter(val context: Context, private val isEmojiCustom: Boolean = false) : BaseAdapter<SelectedModel, ItemFontBinding>(ItemFontBinding::inflate) {
     var onTextFontClick: ((Int, Int) -> Unit) = { _, _ -> }
     private var currentSelected = 0
 
@@ -22,9 +22,13 @@ class TextFontAdapter(val context: Context) : BaseAdapter<SelectedModel, ItemFon
                 cvMain.setBackgroundResource(R.drawable.bg_item_font_selected)
                 tvFont.setTextColor(android.graphics.Color.parseColor("#497E00")) // White text
             } else {
-                // Not selected state - white circle background
-                cvMain.setBackgroundResource(R.drawable.bg_item_font_not_selected)
-                tvFont.setTextColor(android.graphics.Color.parseColor("#7AAB36")) // Black text
+                if (isEmojiCustom) {
+                    cvMain.setBackgroundResource(R.drawable.bg_item_font_not_selected_emojicus)
+                    tvFont.setTextColor(android.graphics.Color.WHITE)
+                } else {
+                    cvMain.setBackgroundResource(R.drawable.bg_item_font_not_selected)
+                    tvFont.setTextColor(android.graphics.Color.parseColor("#7AAB36"))
+                }
             }
 
             root.tap { onTextFontClick.invoke(item.color, position) }

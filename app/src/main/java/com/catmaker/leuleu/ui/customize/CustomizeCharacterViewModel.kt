@@ -234,6 +234,17 @@ class CustomizeCharacterViewModel : ViewModel() {
                 .toCollection(ArrayList())
     }
 
+    /**
+     * Sync _bottomNavigationList.value theo positionNavSelected hiện tại.
+     * Gọi sau undo/redo để tránh StateFlow stale.
+     */
+    fun syncBottomNavigationSelection() {
+        _bottomNavigationList.value =
+            _bottomNavigationList.value.mapIndexed { index, model ->
+                model.copy(isSelected = index == positionNavSelected)
+            }.toCollection(ArrayList())
+    }
+
     //----------------------------------------------------------------------------------------------------------------------
     //  Item Nav / Layer
     suspend fun addValueToItemNavList() {

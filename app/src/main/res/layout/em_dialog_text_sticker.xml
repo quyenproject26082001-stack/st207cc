@@ -57,6 +57,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/btnTextFont" />
 
+
+        <TextView
+            android:id="@+id/btnCancel"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14sp"
+            android:fontFamily="@font/nunito_bold"
+            android:gravity="center"
+            android:layoutDirection="ltr"
+            android:text="@string/done"
+            android:textColor="@color/white"
+            android:textDirection="ltr"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/btnTextFont"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnTextFont" />
+
     <EditText
         android:id="@+id/edtText"
         android:layout_width="200dp"

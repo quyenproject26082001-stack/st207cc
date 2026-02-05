@@ -943,7 +943,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 override fun afterTextChanged(s: Editable?) {}
             })
 
-            val textFontAdapter = TextFontAdapter(this@EmojiCustomActivity)
+            val textFontAdapter = TextFontAdapter(this@EmojiCustomActivity, isEmojiCustom = true)
             textFontAdapter.onTextFontClick = { font, position ->
                 edtText.setFont(font)
                 selectedFontRes = font
@@ -1156,17 +1156,20 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private fun exitDrawModeAndSave() {
         val bitmap = drawBinding.dv.save()
 
-        if (bitmap != null) {
-            val filePath = saveFreehandBitmapToFile(bitmap)
-            val drawable = BitmapDrawable(resources, bitmap)
-            val drawableDraw = DrawableDraw(drawable, filePath)
-            binding.layoutCustomLayer.addDraw(drawableDraw)
-
-            val id = UUID.randomUUID().toString()
-            drawIdMap[drawableDraw] = id
-
-            drawBinding.dv.clearAll()
+        if (bitmap == null) {
+            showToast(R.string.please_draw_something)
+            return
         }
+
+        val filePath = saveFreehandBitmapToFile(bitmap)
+        val drawable = BitmapDrawable(resources, bitmap)
+        val drawableDraw = DrawableDraw(drawable, filePath)
+        binding.layoutCustomLayer.addDraw(drawableDraw)
+
+        val id = UUID.randomUUID().toString()
+        drawIdMap[drawableDraw] = id
+
+        drawBinding.dv.clearAll()
 
         // Hide draw overlay
         drawBinding.layoutDraw.gone()
