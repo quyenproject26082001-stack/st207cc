@@ -15,6 +15,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
+import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.core.utils.DataLocal
 import com.facebook.shimmer.ShimmerDrawable
 import java.io.File
@@ -129,6 +130,42 @@ fun loadImage(
         }
     }).into(imageView)
 }
+
+
+fun loadImageChooseCharacter(
+    path: Any,
+    imageView: ImageView,
+    onShowLoading: (() -> Unit)? = null,
+    onDismissLoading: (() -> Unit)? = null
+) {
+    onShowLoading?.invoke()
+    Glide.with(imageView.context).load(path).listener(object : RequestListener<Drawable> {
+        override fun onLoadFailed(
+            e: GlideException?,
+            model: Any?,
+            target: Target<Drawable?>,
+            isFirstResource: Boolean
+        ): Boolean {
+            // Giữ shimmer khi load lỗi
+            return false
+        }
+
+        override fun onResourceReady(
+            resource: Drawable,
+            model: Any,
+            target: Target<Drawable?>?,
+            dataSource: DataSource,
+            isFirstResource: Boolean
+        ): Boolean {
+            onDismissLoading?.invoke()
+            return false
+        }
+    }).into(imageView)
+}
+
+
+
+
 
 @SuppressLint("CheckResult")
 fun ImageView.loadImageFromFile(path: String) {
