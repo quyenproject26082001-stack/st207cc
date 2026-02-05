@@ -135,4 +135,5 @@
     <string name="draw">Draw</string>
     <string name="my_emoji_maker">My Emoji Maker</string>
     <string name="my_emoji_custom">My Emoji Custom</string>
+    <string name="emoji_cat">Emoji Cat</string>
 </resources>

@@ -14,6 +14,9 @@ object IntentKey {
     const val DATA_TYPE_CAT = 1
     const val DATA_TYPE_EMOJI = 2
 
+    // Tab index for MyCreationActivity
+    const val TAB_INDEX_KEY = "TAB_INDEX_KEY"
+
     // Sticker category
     const val STICKER_CATEGORY_NAME = "STICKER_CATEGORY_NAME"
     const val STICKER_CATEGORY_ID = "STICKER_CATEGORY_ID"

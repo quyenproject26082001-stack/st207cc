@@ -49,6 +49,8 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
         binding.tv1.isSelected = true
         binding.tv3.isSelected = true
         binding.tv2.isSelected = true
+        binding.tvEmojiCustom.isSelected = true
+        binding.tvStickers.isSelected = true
 
         // Apply elastic bounce animation to app name
         val elasticBounce = AnimationUtils.loadAnimation(this, R.anim.elastic_bounce)
@@ -130,6 +132,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             tv2.text = strings(R.string.quick_maker)
             tv3.text = strings(R.string.my_work)
             tvStickers.text = strings(R.string.cat_sticker)
+            tvEmojiCustom.text = strings(R.string.cat_emoji_customizer)
         }
     }
 

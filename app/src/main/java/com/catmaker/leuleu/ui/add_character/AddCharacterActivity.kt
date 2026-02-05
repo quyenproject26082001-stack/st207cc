@@ -415,7 +415,7 @@ class AddCharacterActivity : BaseActivity<ActivityAddCharacterBinding>() {
             setImageActionBar(btnActionBarCenter, R.drawable.ic_reset)
             setImageActionBar(btnActionBarRight, R.drawable.ic_save_addbg)
             btnActionBarRight.visible()
-            btnActionBarCenter.invisible()
+            btnActionBarCenter.visible()
             bgBtnActionBar.setBackgroundResource(R.drawable.bg_actionbar)
 
             // Show Undo/Redo buttons

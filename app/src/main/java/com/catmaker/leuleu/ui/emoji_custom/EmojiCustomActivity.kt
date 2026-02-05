@@ -850,6 +850,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
                         val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
                         intent.putExtra(IntentKey.INTENT_KEY, result.path)
+                        intent.putExtra(IntentKey.TAB_INDEX_KEY, ValueKey.EMOJI_TYPE)
                         val options = ActivityOptions.makeCustomAnimation(
                             this@EmojiCustomActivity,
                             R.anim.slide_in_right,
