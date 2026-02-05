@@ -69,8 +69,15 @@ class YesNoDialog(
         when (dialogType) {
             DialogType.LOADING, DialogType.INTERNET -> {
                 binding.btnNo.gone()
+                binding.spaceBetweenButtons.gone()
                 binding.btnYes.setBackgroundResource(R.drawable.bg_yes)
-                (binding.btnYes.layoutParams as LinearLayout.LayoutParams).marginStart = 0
+                if (dialogType == DialogType.INTERNET) {
+                    val marginPx = (50 * context.resources.displayMetrics.density).toInt()
+                    (binding.btnYes.layoutParams as LinearLayout.LayoutParams).apply {
+                        marginStart = marginPx
+                        marginEnd = marginPx
+                    }
+                }
             }
             DialogType.PERMISSION -> {
                 // Set custom backgrounds for PERMISSION dialog buttons

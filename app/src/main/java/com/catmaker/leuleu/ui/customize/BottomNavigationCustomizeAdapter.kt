@@ -39,32 +39,27 @@ class BottomNavigationCustomizeAdapter(private val context: Context) :
 
         fun bind(item: NavigationModel, position: Int) = with(binding) {
 
-            // Apply circular clipping to cvContent (so shimmer/image fills circle and doesn't overflow)
-            cvContent.clipToOutline = false
+            cvContent.clipToOutline = true
 
-
-            // Apply circular clipping to imvImage (shimmer layer - fills full circle)
-            imvImage.clipToOutline = false
-            imvImage.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setOval(0, 0, view.width, view.height)
-                }
-            }
-
-
-            // Apply circular clipping to imvImageBG (actual image layer - with margin)
-            imvImageBG.clipToOutline = false
-            imvImageBG.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setOval(0, 0, view.width, view.height)
-                }
-            }
-
-            val offset = TypedValue.applyDimension(
+            val cornerRadius = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                15f,
+                6.3f,
                 cvContent.resources.displayMetrics
             )
+
+            imvImage.clipToOutline = true
+            imvImage.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
+                }
+            }
+
+            imvImageBG.clipToOutline = true
+            imvImageBG.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
+                }
+            }
 
             // Cancel any running animations to prevent jumps when recycling views
             cvContent.animate().cancel()

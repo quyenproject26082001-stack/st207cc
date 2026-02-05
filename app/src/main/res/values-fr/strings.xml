@@ -146,4 +146,5 @@
     <string name="please_select_item">Sélectionnez un article</string>
     <string name="layer">Calque</string>
     <string name="my_emoji">Mon Emoji</string>
+    <string name="cat_emoji_sticker">Sticker Emoji Chat</string>
 </resources>

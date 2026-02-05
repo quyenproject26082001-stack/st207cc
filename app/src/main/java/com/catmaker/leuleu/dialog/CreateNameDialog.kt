@@ -45,9 +45,7 @@ class CreateNameDialog(val context: Activity) :
                     }
                 }
             }
-            flOutSide.tap {
-                onDismissClick.invoke()
-            }
+            flOutSide.tap { }
         }
     }
 

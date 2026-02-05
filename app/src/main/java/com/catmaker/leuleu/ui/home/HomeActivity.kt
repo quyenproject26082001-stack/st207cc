@@ -78,7 +78,21 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
                     dialog.onYesClick = { dialog.dismiss() }
                 }
             }
-            btnStickers.tap(800) { startIntentRightToLeft(EmojiStickerActivity::class.java) }
+            btnStickers.tap(800) {
+                if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
+                    startIntentRightToLeft(EmojiStickerActivity::class.java)
+                } else {
+                    val dialog = YesNoDialog(
+                        this@HomeActivity,
+                        R.string.no_internet,
+                        R.string.please_check_your_internet,
+                        isError = true,
+                        dialogType = DialogType.INTERNET
+                    )
+                    dialog.show()
+                    dialog.onYesClick = { dialog.dismiss() }
+                }
+            }
         }
     }
 

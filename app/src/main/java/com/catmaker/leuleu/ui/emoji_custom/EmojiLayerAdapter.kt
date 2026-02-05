@@ -62,9 +62,9 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
 
             // Background theo trạng thái selected
             if (item.isSelected) {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom_selected)
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_shadow_slt)
             } else {
-                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_emoji_custom)
+                binding.cardLayerItem.setBackgroundResource(R.drawable.bg_item_shadow_uslt)
             }
 
             binding.root.setOnClickListener {
