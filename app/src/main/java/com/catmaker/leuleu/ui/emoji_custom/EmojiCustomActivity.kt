@@ -131,9 +131,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         loadNavigationData()
         loadLayerData(0)
 
-        // If in EDIT mode, restore edit data
         if (statusFrom == ValueKey.EDIT) {
             restoreEditData()
+        } else {
+            addDefaultShape()
         }
     }
 
@@ -158,6 +159,31 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         } else {
             showNoInternetDialog()
         }
+    }
+
+    private fun addDefaultShape() {
+        val imageUrl = EmojiApiConfig.getImageUrl("Shape", 1)
+        Glide.with(this)
+            .asDrawable()
+            .load(imageUrl)
+            .into(object : CustomTarget<Drawable>() {
+                override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                    val drawableDraw = DrawableDraw(resource, imageUrl)
+                    binding.layoutCustomLayer.addDraw(drawableDraw)
+
+                    val id = UUID.randomUUID().toString()
+                    drawIdMap[drawableDraw] = id
+
+                    if (selectedDraws["Shape"] == null) {
+                        selectedDraws["Shape"] = mutableListOf()
+                    }
+                    selectedDraws["Shape"]?.add(drawableDraw)
+
+                    loadLayerData(currentCategoryIndex)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {}
+            })
     }
 
     private fun initDrawView() {

@@ -41,6 +41,7 @@
     <color name="native_bg">#66AC0506</color>
     <color name="native_bg_view">#66AC0506</color>
     <color name="colorPrimary">#33393A</color>
+    <color name="colorPrimary1">#ABE55A</color>
     <color name="native_text_color_btn">#FFFFFF</color>
     <color name="native_text_color">#FFFFFF</color>
     <color name="native_text_color_black">#000000</color>

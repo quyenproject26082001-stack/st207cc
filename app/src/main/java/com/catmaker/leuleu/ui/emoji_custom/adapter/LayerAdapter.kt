@@ -24,7 +24,7 @@ class LayerAdapter(
         }
 
         override fun areContentsTheSame(oldItem: DrawableDraw, newItem: DrawableDraw): Boolean {
-            return oldItem == newItem
+            return oldItem.drawablePath == newItem.drawablePath && oldItem.isHide == newItem.isHide
         }
     }).build()
 ) {
@@ -71,12 +71,26 @@ class LayerAdapter(
                 }
 
                 // Item background - highlight selected
+                val isSelected = position == selectItemPosition
                 itemView.setBackgroundColor(
-                    if (position == selectItemPosition)
-                        ContextCompat.getColor(itemView.context, R.color.colorPrimary)
-                    else
+                    if (isSelected) {
+                        ContextCompat.getColor(itemView.context, R.color.colorPrimary1)
+
+                    }else {
                         ContextCompat.getColor(itemView.context, android.R.color.white)
+                    }
                 )
+
+                // Tint btnEye / btnMove white khi selected
+                if (isSelected) {
+                    val whiteColor = ContextCompat.getColor(itemView.context, android.R.color.white)
+                    btnEye.setColorFilter(whiteColor)
+                    btnMove.setColorFilter(whiteColor)
+                    tvLayer.setTextColor(whiteColor)
+                } else {
+                    btnEye.clearColorFilter()
+                    btnMove.clearColorFilter()
+                }
 
                 // Item click - select layer
                 itemView.setOnClickListener {

@@ -6,7 +6,9 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_layer_dialog"
     android:orientation="vertical"
-    android:padding="16dp">
+
+    android:paddingVertical="16dp"
+    >
 
     <View
         android:layout_width="56dp"
