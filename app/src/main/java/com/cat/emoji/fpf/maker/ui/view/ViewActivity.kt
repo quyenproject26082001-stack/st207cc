@@ -141,7 +141,7 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.pathInternal.collect { path ->
-                    loadImage(this@ViewActivity, path, binding.imvImage)
+                    binding.imvImage.loadImageFromFile(path)
                 }
             }
         }

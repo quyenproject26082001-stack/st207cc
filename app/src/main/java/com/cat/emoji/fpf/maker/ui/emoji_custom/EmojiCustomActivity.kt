@@ -1,6 +1,7 @@
 package com.cat.emoji.fpf.maker.ui.emoji_custom
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ActivityOptions
 import android.app.Dialog
 import android.content.Intent
@@ -105,6 +106,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     // Edit mode support
     private var statusFrom = ValueKey.CREATE
     private var currentEditModel: EmojiEditModel? = null
+    private var savedPath: String? = null
 
     // Map DrawableDraw to its UUID for restore
     private val drawIdMap = mutableMapOf<DrawableDraw, String>()
@@ -881,11 +883,20 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         dialog.show()
         dialog.onYesClick = {
             dialog.dismiss()
-            showInterAll { finish() }
+            showInterAll { finishWithResult() }
         }
         dialog.onNoClick = {
             dialog.dismiss()
         }
+    }
+
+    private fun finishWithResult() {
+        if (statusFrom == ValueKey.EDIT && savedPath != null) {
+            setResult(Activity.RESULT_OK, Intent().apply {
+                putExtra("NEW_PATH", savedPath)
+            })
+        }
+        finish()
     }
 
     private fun handleSave() {
@@ -925,16 +936,20 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                             else -> addEmojiToEditList(result.path)
                         }
 
-                        val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
-                        intent.putExtra(IntentKey.INTENT_KEY, result.path)
-                        intent.putExtra(IntentKey.TAB_INDEX_KEY, ValueKey.EMOJI_TYPE)
-                        val options = ActivityOptions.makeCustomAnimation(
-                            this@EmojiCustomActivity,
-                            R.anim.slide_in_right,
-                            R.anim.slide_out_left
-                        )
+                        // Store saved path for returning result
+                        savedPath = result.path
+
                         dismissLoading(true)
                         withContext(Dispatchers.Main) {
+                            // Go to SuccessActivity
+                            val intent = Intent(this@EmojiCustomActivity, SuccessActivity::class.java)
+                            intent.putExtra(IntentKey.INTENT_KEY, result.path)
+                            intent.putExtra(IntentKey.TAB_INDEX_KEY, ValueKey.EMOJI_TYPE)
+                            val options = ActivityOptions.makeCustomAnimation(
+                                this@EmojiCustomActivity,
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left
+                            )
                             showInterAll {
                                 startActivity(intent, options.toBundle())
                             }
