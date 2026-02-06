@@ -8,6 +8,7 @@ import com.cat.emoji.fpf.maker.core.extensions.hideNavigation
 import com.cat.emoji.fpf.maker.core.extensions.tap
 import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.core.base.BaseDialog
+import com.cat.emoji.fpf.maker.core.extensions.select
 import com.cat.emoji.fpf.maker.core.extensions.strings
 import com.cat.emoji.fpf.maker.databinding.DialogConfirmBinding
 
@@ -35,6 +36,7 @@ class YesNoDialog(
     var onDismissClick: (() -> Unit) = {}
 
     override fun initView() {
+        binding.tvDescription.select()
         initText()
         initBackground()
         if (isError) {
