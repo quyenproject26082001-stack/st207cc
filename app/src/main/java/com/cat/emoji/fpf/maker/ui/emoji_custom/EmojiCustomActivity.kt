@@ -1074,9 +1074,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         bottomSheetBinding.apply {
             val adapter = LayerAdapter(binding.layoutCustomLayer) { draw, position ->
-                binding.layoutCustomLayer.selectCurrentDraw(draw)
-                drawSelect = draw
-                isSwipe = true
+                // Only select if draw is not hidden
+                if (!draw.isHide) {
+                    binding.layoutCustomLayer.selectCurrentDraw(draw)
+                    drawSelect = draw
+                    isSwipe = true
+                }
             }
 
             rcv.adapter = adapter

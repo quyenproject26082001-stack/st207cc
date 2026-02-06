@@ -881,7 +881,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
 
     private fun targetHandlingDraw(): DrawableDraw? {
         for (i in drawList.indices.reversed()) {
-            if (isFocusDraw(drawList[i], downX, downY)) {
+            if (!drawList[i].isHide && isFocusDraw(drawList[i], downX, downY)) {
                 return drawList[i]
             }
         }

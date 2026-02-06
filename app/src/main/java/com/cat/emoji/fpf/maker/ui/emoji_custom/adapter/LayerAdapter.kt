@@ -65,6 +65,10 @@ class LayerAdapter(
                 btnEye.setOnClickListener {
                     val clickPosition = adapterPosition
                     if (clickPosition != RecyclerView.NO_POSITION) {
+                        // If this draw is currently selected and we're hiding it, deselect it first
+                        if (!draw.isHide && drawView.getCurrentDraw() == draw) {
+                            drawView.hideSelect()
+                        }
                         drawView.showOrHideDraw(draw, position)
                         notifyItemChanged(clickPosition)
                     }

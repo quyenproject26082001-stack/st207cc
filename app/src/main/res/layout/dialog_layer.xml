@@ -6,13 +6,12 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_layer_dialog"
     android:orientation="vertical"
-
     android:paddingVertical="16dp"
     >
 
     <View
         android:layout_width="56dp"
-        android:layout_height="4.5dp"
+        android:layout_height="3dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
         android:background="@color/app" />
@@ -21,7 +20,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="5dp"
         android:text="Layer"
         android:textAlignment="center"
         android:textColor="#000000"
@@ -31,13 +30,13 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="16dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rcv"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="200dp"
             android:overScrollMode="never"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
