@@ -240,9 +240,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         binding.rcvLayer.apply {
-
             adapter = layerAdapter
             itemAnimator = null
+            setHasFixedSize(true)
+            setItemViewCacheSize(20)
         }
     }
 
@@ -314,11 +315,15 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         itemModel.text?.let { textDraw.setText(it) }
         itemModel.textColor?.let { textDraw.setTextColor(it) }
 
-        // Restore typeface
-        val typeface = when (itemModel.idTypeFace) {
-            1 -> Typeface.DEFAULT_BOLD
-            2 -> Typeface.MONOSPACE
-            else -> Typeface.DEFAULT
+        // Restore typeface from font resource ID
+        val typeface = if (itemModel.idTypeFace != 0) {
+            try {
+                ResourcesCompat.getFont(this, itemModel.idTypeFace) ?: Typeface.DEFAULT
+            } catch (e: Exception) {
+                Typeface.DEFAULT
+            }
+        } else {
+            Typeface.DEFAULT
         }
         textDraw.setTypeface(typeface)
         textDraw.idTypeFace = itemModel.idTypeFace
@@ -592,12 +597,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         layerAdapter.submitList(items)
         Log.d("EmojiLayerLoad", "--- submitList done total=${System.currentTimeMillis() - startTime}ms ---")
 
-        val preloadList = items.take(20)
+        // Preload more items with better caching
+        val preloadList = items.take(30)
         preloadList.forEach { item ->
             val t = Glide.with(this)
                 .load(item.imageUrl)
                 .override(160, 160)
-                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .skipMemoryCache(false)
                 .preload()
             preloadTargets.add(t)
         }
@@ -1056,6 +1063,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 textDraw.setText(text)
                 textDraw.setTextColor(selectedColor)
                 textDraw.setTypeface(ResourcesCompat.getFont(this@EmojiCustomActivity, selectedFontRes) ?: Typeface.DEFAULT)
+                textDraw.idTypeFace = selectedFontRes
                 textDraw.setTextAlign(Layout.Alignment.ALIGN_CENTER)
                 textDraw.resizeText()
 

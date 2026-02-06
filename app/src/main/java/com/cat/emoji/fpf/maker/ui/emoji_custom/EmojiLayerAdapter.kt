@@ -44,25 +44,21 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
             binding.sflShimmer.startShimmer()
             binding.imvImage.visibility = View.INVISIBLE
 
-            val startTime = System.currentTimeMillis()
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
-                .override(160, 160) // ✅ thêm dòng này (phải giống preload)
-                .diskCacheStrategy(DiskCacheStrategy.DATA) // ✅ thêm (khuyên)
-                .dontAnimate() // ✅ thêm (khuyên)
+                .override(160, 160)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .skipMemoryCache(false)
+                .thumbnail(0.25f)
+                .dontAnimate()
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-                        val elapsed = System.currentTimeMillis() - startTime
-                        Log.d("EmojiLayerLoad", "FAILED [$position] time=${elapsed}ms url=${item.imageUrl} error=${e?.message}")
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
                         onItemLoadError(item)
                         return false
                     }
                     override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
-                        val elapsed = System.currentTimeMillis() - startTime
-                        Log.d("EmojiLayerLoad", "LOADED [$position] time=${elapsed}ms source=$dataSource url=${item.imageUrl}")
-                        // Hide shimmer, show image khi load xong
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
                         binding.imvImage.visibility = View.VISIBLE
