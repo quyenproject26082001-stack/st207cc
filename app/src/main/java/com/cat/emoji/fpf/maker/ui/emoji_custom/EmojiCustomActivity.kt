@@ -1295,6 +1295,44 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             confirmExit()
         }
     }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyUiCustomize()
+            hideNavigation(true)
+
+            window.decorView.removeCallbacks(reHideRunnable)
+            window.decorView.postDelayed(reHideRunnable, 1500)
+        } else {
+            window.decorView.removeCallbacks(reHideRunnable)
+        }
+    }
+
+    private val reHideRunnable = Runnable {
+        applyUiCustomize()
+        hideNavigation(true)
+    }
+    @Suppress("DEPRECATION")
+    private fun applyUiCustomize() {
+        // Cho phép app tự vẽ màu system bar
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
+        // Transparent status bar
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+        // Flags
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        // nếu muốn icon status bar đen thì thêm:
+        // or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    }
 }
 
 // Data classes
