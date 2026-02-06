@@ -115,6 +115,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     // URLs that failed to load — filtered out from all categories
     private val failedUrls = mutableSetOf<String>()
 
+    // Track if color picker has been initialized
+    private var isColorPickerInitialized = false
+
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
     }
@@ -679,6 +682,11 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 } else {
                     drawBinding.layoutColorPickerDraw.visible()
                     drawBinding.layoutColorPickerDraw.post {
+                        // Select center to initialize sliders with default color (first time only)
+                        if (!isColorPickerInitialized) {
+                            drawBinding.colorPicker.selectCenter()
+                            isColorPickerInitialized = true
+                        }
                         drawBinding.sbAlphaSlideBar.invalidate()
                         drawBinding.sbBrightnessSlide.invalidate()
                     }
@@ -1181,6 +1189,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
         }
+
+        // Reset color picker initialization flag
+        isColorPickerInitialized = false
 
         // Show draw overlay and initialize
         drawBinding.apply {
