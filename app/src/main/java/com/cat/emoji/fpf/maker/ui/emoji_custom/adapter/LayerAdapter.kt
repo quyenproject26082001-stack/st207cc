@@ -90,6 +90,7 @@ class LayerAdapter(
                 } else {
                     btnEye.clearColorFilter()
                     btnMove.clearColorFilter()
+                    tvLayer.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.black))
                 }
 
                 // Item click - select layer
@@ -126,5 +127,10 @@ class LayerAdapter(
 
     fun resetItemSelected() {
         selectItemPosition = RecyclerView.NO_POSITION
+    }
+
+    fun setSelectedPosition(position: Int) {
+        selectItemPosition = position
+        notifyDataSetChanged()
     }
 }

@@ -1074,6 +1074,15 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             rcv.adapter = adapter
             adapter.submitList(drawList)
 
+            // Restore selected position from current draw
+            val currentDraw = binding.layoutCustomLayer.getCurrentDraw()
+            if (currentDraw != null) {
+                val currentIndex = drawList.indexOf(currentDraw)
+                if (currentIndex != -1) {
+                    adapter.setSelectedPosition(currentIndex)
+                }
+            }
+
             if (drawList.isNotEmpty()) {
                 tvLayerEmpty.visibility = View.GONE
             } else {
