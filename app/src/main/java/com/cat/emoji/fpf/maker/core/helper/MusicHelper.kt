@@ -9,17 +9,19 @@ object MusicHelper {
     private var isPrepared = false
 
     fun init(context: Context) {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(context.applicationContext, R.raw.sound)
-            mediaPlayer?.isLooping = true
-            isPrepared = true
-        }
+        // Music disabled
+//        if (mediaPlayer == null) {
+//            mediaPlayer = MediaPlayer.create(context.applicationContext, R.raw.sound)
+//            mediaPlayer?.isLooping = true
+//            isPrepared = true
+//        }
     }
 
     fun play() {
-        if (isPrepared && mediaPlayer?.isPlaying == false) {
-            mediaPlayer?.start()
-        }
+        // Music disabled
+//        if (isPrepared && mediaPlayer?.isPlaying == false) {
+//            mediaPlayer?.start()
+//        }
     }
 
     fun pause() {

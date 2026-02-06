@@ -166,7 +166,7 @@ class MyEmojiFragment : BaseFragment<FragmentMyEmojiBinding>() {
                     val options = android.app.ActivityOptions.makeCustomAnimation(
                         myAlbumActivity, R.anim.slide_out_left, R.anim.slide_in_right
                     )
-                    myAlbumActivity.showInterAll { startActivity(intent, options.toBundle()) }
+                    myAlbumActivity.showInterAll { startActivity(intent) }
                 } else {
                     myAlbumActivity.showToast(R.string.error)
                 }

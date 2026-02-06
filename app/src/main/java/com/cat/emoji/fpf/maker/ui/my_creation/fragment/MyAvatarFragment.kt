@@ -192,7 +192,7 @@ class MyAvatarFragment : BaseFragment<FragmentMyAvatarBinding>() {
                     val option = ActivityOptions.makeCustomAnimation(
                         myAlbumActivity, R.anim.slide_out_left, R.anim.slide_in_right
                     )
-                    myAlbumActivity.showInterAll { startActivity(intent, option.toBundle()) }
+                    myAlbumActivity.showInterAll { startActivity(intent) }
                 }
             }
         }
