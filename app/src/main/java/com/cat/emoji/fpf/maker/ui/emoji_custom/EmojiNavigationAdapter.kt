@@ -1,5 +1,7 @@
 package com.cat.emoji.fpf.maker.ui.emoji_custom
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -35,9 +37,9 @@ class EmojiNavigationAdapter : ListAdapter<EmojiNavItem, EmojiNavigationAdapter.
 
             // Background theo trạng thái selected
             if (item.isSelected) {
-                binding.cvContent.setBackgroundResource(R.drawable.bg_emoji_nav_selected)
+                binding.cvContent.setCardBackgroundColor(Color.parseColor("#FFCC00"))
             } else {
-                binding.cvContent.setBackgroundResource(R.drawable.bg_emoji_nav_unselected)
+                binding.cvContent.setCardBackgroundColor(Color.WHITE)
             }
 
             binding.root.setOnClickListener {
