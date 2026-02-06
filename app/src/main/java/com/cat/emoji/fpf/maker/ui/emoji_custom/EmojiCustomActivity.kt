@@ -1191,6 +1191,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnLayer.invisible()
             // Lock the main DrawView to prevent interaction
             layoutCustomLayer.setLocked(true)
+            // Hide action bar to prevent accidental save
+            actionBar.root.gone()
         }
 
         // Reset color picker initialization flag
@@ -1224,9 +1226,21 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         // Vẽ rồi xóa hết bằng tẩy -> pathList có paths nhưng bitmap toàn transparent
-        val pixels = IntArray(bitmap.width * bitmap.height)
-        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        if (pixels.all { it == 0 }) {
+        // Check alpha channel instead of full pixel value
+        var hasVisiblePixel = false
+        val sampleSize = 20 // Sample every 20 pixels for performance
+        outerLoop@ for (y in 0 until bitmap.height step sampleSize) {
+            for (x in 0 until bitmap.width step sampleSize) {
+                val pixel = bitmap.getPixel(x, y)
+                val alpha = (pixel shr 24) and 0xff
+                if (alpha > 0) {
+                    hasVisiblePixel = true
+                    break@outerLoop
+                }
+            }
+        }
+
+        if (!hasVisiblePixel) {
             showToast(R.string.please_draw_something)
             return
         }
@@ -1251,6 +1265,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnText.visible()
             btnLayer.visible()
             layoutCustomLayer.setLocked(false)
+            actionBar.root.visible()
         }
     }
 
@@ -1267,6 +1282,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             btnText.visible()
             btnLayer.visible()
             layoutCustomLayer.setLocked(false)
+            actionBar.root.visible()
         }
     }
 

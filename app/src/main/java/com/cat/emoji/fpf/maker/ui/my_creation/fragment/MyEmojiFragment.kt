@@ -18,10 +18,12 @@ import com.cat.emoji.fpf.maker.core.extensions.gone
 import com.cat.emoji.fpf.maker.core.extensions.hideNavigation
 import com.cat.emoji.fpf.maker.core.extensions.showInterAll
 import com.cat.emoji.fpf.maker.core.extensions.visible
+import com.cat.emoji.fpf.maker.core.helper.InternetHelper
 import com.cat.emoji.fpf.maker.core.helper.LanguageHelper
 import com.cat.emoji.fpf.maker.core.utils.key.IntentKey
 import com.cat.emoji.fpf.maker.core.utils.key.ValueKey
 import com.cat.emoji.fpf.maker.databinding.FragmentMyEmojiBinding
+import com.cat.emoji.fpf.maker.dialog.DialogType
 import com.cat.emoji.fpf.maker.dialog.YesNoDialog
 import com.cat.emoji.fpf.maker.ui.emoji_custom.EmojiCustomActivity
 import com.cat.emoji.fpf.maker.ui.my_creation.MyCreationActivity
@@ -146,6 +148,12 @@ class MyEmojiFragment : BaseFragment<FragmentMyEmojiBinding>() {
     }
 
     private fun handleEditClick(pathInternal: String) {
+        // Check internet before entering edit mode
+        if (!InternetHelper.isInternetAvailable(myAlbumActivity)) {
+            showNoInternetDialog()
+            return
+        }
+
         lifecycleScope.launch(Dispatchers.IO) {
             myAlbumActivity.showLoading()
             val success = viewModel.prepareEmojiEdit(myAlbumActivity, pathInternal)
@@ -163,6 +171,21 @@ class MyEmojiFragment : BaseFragment<FragmentMyEmojiBinding>() {
                     myAlbumActivity.showToast(R.string.error)
                 }
             }
+        }
+    }
+
+    private fun showNoInternetDialog() {
+        val dialog = YesNoDialog(
+            myAlbumActivity,
+            R.string.no_internet,
+            R.string.please_check_your_internet,
+            isError = true,
+            dialogType = DialogType.INTERNET
+        )
+        dialog.show()
+        dialog.onYesClick = {
+            dialog.dismiss()
+            myAlbumActivity.hideNavigation()
         }
     }
 
