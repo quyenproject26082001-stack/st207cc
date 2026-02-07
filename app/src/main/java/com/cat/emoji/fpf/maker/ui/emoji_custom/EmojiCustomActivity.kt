@@ -754,7 +754,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             // Layer button
-            btnLayer.tap {
+            btnLayer.tap(2000) {
                 showLayerBottomSheet()
             }
         }

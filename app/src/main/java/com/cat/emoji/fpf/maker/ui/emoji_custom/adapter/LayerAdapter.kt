@@ -69,7 +69,7 @@ class LayerAdapter(
                         if (!draw.isHide && drawView.getCurrentDraw() == draw) {
                             drawView.hideSelect()
                         }
-                        drawView.showOrHideDraw(draw, position)
+                        drawView.showOrHideDraw(draw, clickPosition)
                         notifyItemChanged(clickPosition)
                     }
                 }
@@ -103,7 +103,7 @@ class LayerAdapter(
                     if (clickPosition != RecyclerView.NO_POSITION) {
                         selectItemPosition = clickPosition
                         notifyDataSetChanged()
-                        onClick.invoke(draw, position)
+                        onClick.invoke(draw, clickPosition)
                     }
                 }
             }
@@ -126,7 +126,22 @@ class LayerAdapter(
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         drawView.exchangeLayers(fromPosition, toPosition)
-        notifyItemMoved(fromPosition, toPosition)
+
+        // Update adapter's list to match the new order
+        val newList = currentList.toMutableList()
+        val item = newList.removeAt(fromPosition)
+        newList.add(toPosition, item)
+        submitList(newList)
+
+        // Update selected position if affected by the move
+        if (selectItemPosition != RecyclerView.NO_POSITION) {
+            selectItemPosition = when {
+                selectItemPosition == fromPosition -> toPosition
+                fromPosition < toPosition && selectItemPosition in (fromPosition + 1)..toPosition -> selectItemPosition - 1
+                fromPosition > toPosition && selectItemPosition in toPosition until fromPosition -> selectItemPosition + 1
+                else -> selectItemPosition
+            }
+        }
     }
 
     fun resetItemSelected() {

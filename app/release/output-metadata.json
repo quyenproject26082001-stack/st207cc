@@ -13,7 +13,7 @@
       "attributes": [],
       "versionCode": 1,
       "versionName": "1.0.0",
-      "outputFile": "ST189_Pixcel Character Maker_v1.0.2_11.27.2025-release.apk"
+      "outputFile": "ST_207_v1.0.0_02.07.2026-release.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/ST189_Pixcel Character Maker_v1.0.2_11.27.2025-release.dm"
+        "baselineProfiles/1/ST_207_v1.0.0_02.07.2026-release.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/ST190_Pixcel Character Maker_v1.0.2_11.27.2025-release.dm"
+        "baselineProfiles/0/ST_207_v1.0.0_02.07.2026-release.dm"
       ]
     }
   ],
