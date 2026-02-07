@@ -69,6 +69,8 @@ class BottomNavigationCustomizeAdapter(private val context: Context) :
                 imvImageBG.background = null // hoặc Color.TRANSPARENT nếu bạn thích
 
                 cvContent.setBackgroundResource(R.drawable.bg_select_navi_shape)
+                cvContent.strokeWidth = 0
+
             } else {
                 imvImage.setBackgroundColor(Color.TRANSPARENT)
                 imvImageBG.background = null
