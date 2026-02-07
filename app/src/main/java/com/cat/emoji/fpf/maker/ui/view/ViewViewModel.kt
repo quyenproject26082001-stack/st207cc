@@ -34,17 +34,39 @@ class ViewViewModel : ViewModel() {
         } else {
             emit(HandleState.LOADING)
             try {
+                // First try to remove from the generic EDIT_FILE_INTERNAL (SuggestionModel)
                 val originList = MediaHelper
                     .readListFromFile<SuggestionModel>(context, ValueKey.EDIT_FILE_INTERNAL)
-                    .toCollection(ArrayList())
+                    .toMutableList()
 
-                val editDelete = originList.first { it.pathInternalEdit == path }
+                val editDelete = originList.firstOrNull { it.pathInternalEdit == path }
 
-                originList.remove(editDelete)
+                if (editDelete != null) {
+                    originList.remove(editDelete)
+                    MediaHelper.writeListToFile(context, ValueKey.EDIT_FILE_INTERNAL, originList)
+                    emit(HandleState.SUCCESS)
+                    return@flow
+                }
 
-                MediaHelper.writeListToFile(context, ValueKey.EDIT_FILE_INTERNAL, originList)
+                // If not found there, try the emoji edit file (emoji edits are stored separately)
+                val emojiList = MediaHelper
+                    .readListFromFile<com.cat.emoji.fpf.maker.data.model.custom.EmojiEditModel>(
+                        context, ValueKey.EMOJI_EDIT_FILE_INTERNAL
+                    )
+                    .toMutableList()
 
-                emit(HandleState.SUCCESS)
+                val emojiDelete = emojiList.firstOrNull { it.pathInternalEdit == path }
+
+                if (emojiDelete != null) {
+                    emojiList.remove(emojiDelete)
+                    MediaHelper.writeListToFile(context, ValueKey.EMOJI_EDIT_FILE_INTERNAL, emojiList)
+                    emit(HandleState.SUCCESS)
+                    return@flow
+                }
+
+                // Item not found in either list -> fail
+                Log.e("ViewViewModel", "deleteFile: item not found in edit lists for path=$path")
+                emit(HandleState.FAIL)
             } catch (e: Exception) {
                 Log.e("nbhieu", "deleteFile: $e")
                 emit(HandleState.FAIL)
