@@ -83,4 +83,5 @@
 
 -keep class com.cat.emoji.fpf.maker.ui.splash.SplashActivity.** {*; }
 -keep class com.cat.emoji.fpf.maker.data.** {*; }
+-keep class com.cat.emoji.fpf.maker.ui.** {*; }
 -keep public class com.google.android.gms.** { public protected *; }

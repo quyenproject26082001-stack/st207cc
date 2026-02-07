@@ -3,6 +3,7 @@ package com.cat.emoji.fpf.maker.ui.emoji_sticker.adapter
 import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.core.base.BaseAdapter
 import com.cat.emoji.fpf.maker.core.extensions.loadImage
+import com.cat.emoji.fpf.maker.core.extensions.loadImageStickerList
 import com.cat.emoji.fpf.maker.core.extensions.tap
 import com.cat.emoji.fpf.maker.databinding.ItemCatEmojiStickerListBinding
 
@@ -57,7 +58,7 @@ class CatEmojiStickerListAdapter : BaseAdapter<String, ItemCatEmojiStickerListBi
 
     override fun onBind(binding: ItemCatEmojiStickerListBinding, item: String, position: Int) {
         binding.apply {
-            loadImage(item, imvImage, onShowLoading = {
+            loadImageStickerList(item, imvImage, onShowLoading = {
                 sflShimmer.visibility = android.view.View.VISIBLE
                 sflShimmer.showShimmer(true)
             }, onDismissLoading = {

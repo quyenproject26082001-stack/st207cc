@@ -35,11 +35,20 @@ object EmojiApiHelper {
     val EXCLUDED_ITEMS = mapOf(
         "Happy Mouth" to setOf(125, 126, 127, 128, 129, 130, 134, 156, 157, 158, 160),
         "Misc" to setOf(83,85,86,87),
-        "Hair" to setOf(17),
+        "Hair" to setOf(17, 130),              // ✅ thêm 130
         "Eyebrows" to setOf(134,159),
         "Nose" to setOf(134,159),
         "Hats" to setOf(17),
-        "Mask" to setOf(18)
+        "Mask" to setOf(18),
+
+
+        "Eyes Big" to setOf(256, 257),   // ✅ add theo log mới
+
+        // ✅ New 404 excludes from your log:
+        "Eyes" to setOf(111),
+        "Sad Mouth" to setOf(198),
+        "Hands" to setOf(2, 36, 61, 64, 92, 120, 125, 163),
+        "Backgrounds" to setOf(32)                // bg_32.jpg (404)
     )
 
     fun buildEmojiCustomizeModel(): CustomizeModel {

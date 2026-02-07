@@ -3,6 +3,7 @@ package com.cat.emoji.fpf.maker.ui.emoji_sticker.adapter
 import android.util.Log
 import com.cat.emoji.fpf.maker.core.base.BaseAdapter
 import com.cat.emoji.fpf.maker.core.extensions.loadImage
+import com.cat.emoji.fpf.maker.core.extensions.loadImageStickerList
 import com.cat.emoji.fpf.maker.core.extensions.tap
 import com.cat.emoji.fpf.maker.core.utils.key.DomainKey
 import com.cat.emoji.fpf.maker.data.model.StickerCategoryModel
@@ -18,7 +19,7 @@ class CatEmojiStickerAdapter : BaseAdapter<StickerCategoryModel, ItemCatEmojiSti
             val encodedCategory = URLEncoder.encode(item.category, "UTF-8").replace("+", "%20")
             val thumbUrl = "${DomainKey.BASE_URL}${DomainKey.SUB_DOMAIN_CAT_STICKER}/Sticker/$encodedCategory/1${DomainKey.LAYER_EXTENSION}"
             Log.d("StickerAdapter", "Loading thumb URL: $thumbUrl")
-            loadImage(thumbUrl, imvImage, onShowLoading = {
+            loadImageStickerList(thumbUrl, imvImage, onShowLoading = {
                 sflShimmer.visibility = android.view.View.VISIBLE
                 sflShimmer.showShimmer(true)
             }, onDismissLoading = {

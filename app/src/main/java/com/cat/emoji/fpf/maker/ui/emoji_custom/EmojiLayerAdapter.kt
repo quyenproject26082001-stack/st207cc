@@ -1,6 +1,7 @@
 package com.cat.emoji.fpf.maker.ui.emoji_custom
 
 import android.graphics.drawable.Drawable
+import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,16 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
 
     var onItemClick: ((EmojiLayerItem) -> Unit) = {}
     var onItemLoadError: ((EmojiLayerItem) -> Unit) = {}
+
+    var onItemSlow: ((EmojiLayerItem, Long) -> Unit) = { _, _ -> }
+
+
+    private val slowUrls = mutableSetOf<String>()
+    private val badUrls = mutableSetOf<String>()
+
+
+    val startMs = SystemClock.elapsedRealtime()
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemEmojiCusBinding.inflate(
@@ -55,10 +66,34 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
+
+                        val url = item.imageUrl
+
+
+                        // ✅ Lấy category từ URL (ví dụ: Eyes%20Big -> Eyes Big)
+                        val categoryFromUrl = try {
+                            val encoded = java.net.URL(url).path
+                                .substringAfter("/emojis/")
+                                .substringBeforeLast("/") // Eyes%20Big
+                            java.net.URLDecoder.decode(encoded, "UTF-8") // Eyes Big
+                        } catch (ex: Exception) {
+                            "unknown"
+                        }
+                        // Nếu muốn thấy nguyên nhân chi tiết theo từng source:
+                        e?.rootCauses?.forEachIndexed { i, cause ->
+                            android.util.Log.e("EmojiGlide", "  rootCause[$i]=${cause.javaClass.simpleName}: ${cause.message}")
+                        }
+
                         onItemLoadError(item)
                         return false
                     }
                     override fun onResourceReady(resource: Drawable, model: Any?, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        val took = android.os.SystemClock.elapsedRealtime() - startMs
+
+                        // ✅ GỌI Ở ĐÂY
+                        if (took >= 1200) {
+                            onItemSlow(item, took)
+                        }
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
                         binding.imvImage.visibility = View.VISIBLE
@@ -78,6 +113,14 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
                 onItemClick(item)
             }
         }
+    }
+
+    private fun dumpBadSlowUrls() {
+        Log.e("EmojiGlide", "===== BAD URLS (${badUrls.size}) =====")
+        badUrls.forEach { Log.e("EmojiGlide", it) }
+
+        Log.w("EmojiGlide", "===== SLOW URLS (${slowUrls.size}) =====")
+        slowUrls.forEach { Log.w("EmojiGlide", it) }
     }
 
     class DiffCallback : DiffUtil.ItemCallback<EmojiLayerItem>() {

@@ -120,8 +120,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     // Track if color picker has been initialized
     private var isColorPickerInitialized = false
 
+    private val failHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var failRunnable: Runnable? = null
+    private  val FAIL_DEBOUNCE_MS = 200L
+
+
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
+    }
+
+    override fun onDestroy() {
+        failHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 
     override fun initView() {
@@ -592,18 +602,26 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 )
             }
             .filter { it.imageUrl !in failedUrls }
+        // ✅ ĐẶT LOG Ở ĐÂY (sau khi items đã build xong)
+        Log.d("ExcludeCheck", "category=${category.name} excluded=$excluded size=${items.size}")
+        Log.d("ExcludeCheck", "hasEyesBig256=${items.any { it.imageUrl.endsWith("/256.png") }}")
+        Log.d("ExcludeCheck", "hasEyesBig257=${items.any { it.imageUrl.endsWith("/257.png") }}")
+        Log.d("ExcludeCheck", "hasHair130=${items.any { it.imageUrl.endsWith("/130.png") }}")
+
         Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms")
+
+
+
 
         layerAdapter.submitList(items)
         Log.d("EmojiLayerLoad", "--- submitList done total=${System.currentTimeMillis() - startTime}ms ---")
 
         // Preload more items with better caching
-        val preloadList = items.take(30)
+        val preloadList = items.take(5)
         preloadList.forEach { item ->
             val t = Glide.with(this)
                 .load(item.imageUrl)
-                .override(160, 160)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .skipMemoryCache(false)
                 .preload()
             preloadTargets.add(t)
@@ -747,11 +765,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
         }
 
-        layerAdapter.onItemLoadError = { item ->
-            if (failedUrls.add(item.imageUrl)) {
-                val currentList = layerAdapter.currentList.filter { it.imageUrl !in failedUrls }
-                layerAdapter.submitList(currentList)
+        layerAdapter.onItemLoadError = onItemLoadError@{ item ->
+            val added = failedUrls.add(item.imageUrl)
+            if (!added) return@onItemLoadError
+
+            failRunnable?.let { failHandler.removeCallbacks(it) }
+
+            failRunnable = Runnable {
+                val filtered = layerAdapter.currentList.filter { it.imageUrl !in failedUrls }
+                layerAdapter.submitList(filtered)
             }
+
+            failHandler.postDelayed(failRunnable!!, FAIL_DEBOUNCE_MS)
         }
 
         layerAdapter.onItemClick = { item ->
