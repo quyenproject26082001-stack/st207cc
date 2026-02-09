@@ -56,20 +56,24 @@ class LayerAdapter(
                     )
                 }
 
-                // Load drawable preview
+                // Load drawable preview - clear previous image to avoid showing stale data
+                Glide.with(itemView.context)
+                    .clear(img)
                 Glide.with(itemView.context)
                     .load(draw.drawable)
                     .into(img)
 
                 // Eye button click - toggle show/hide
                 btnEye.setOnClickListener {
-                    val clickPosition = adapterPosition
+                    val clickPosition = bindingAdapterPosition
                     if (clickPosition != RecyclerView.NO_POSITION) {
+                        // Get the correct draw object from current list position
+                        val currentDraw = getItem(clickPosition)
                         // If this draw is currently selected and we're hiding it, deselect it first
-                        if (!draw.isHide && drawView.getCurrentDraw() == draw) {
+                        if (!currentDraw.isHide && drawView.getCurrentDraw() == currentDraw) {
                             drawView.hideSelect()
                         }
-                        drawView.showOrHideDraw(draw, clickPosition)
+                        drawView.showOrHideDraw(currentDraw, clickPosition)
                         notifyItemChanged(clickPosition)
                     }
                 }
@@ -99,11 +103,13 @@ class LayerAdapter(
 
                 // Item click - select layer
                 itemView.setOnClickListener {
-                    val clickPosition = adapterPosition
+                    val clickPosition = bindingAdapterPosition
                     if (clickPosition != RecyclerView.NO_POSITION) {
                         selectItemPosition = clickPosition
                         notifyDataSetChanged()
-                        onClick.invoke(draw, clickPosition)
+                        // Get the correct draw object from current list position
+                        val currentDraw = getItem(clickPosition)
+                        onClick.invoke(currentDraw, clickPosition)
                     }
                 }
             }
