@@ -262,9 +262,9 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         return drawList.size
     }
 
-    fun getDraws(): List<DrawableDraw> {
-        return drawList
-    }
+        fun getDraws(): List<DrawableDraw> {
+            return drawList
+        }
 
     fun rotateZoomCurrentDraw(event: MotionEvent) {
         rotateZoomDraw(handlingDraw, event)
@@ -544,6 +544,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
     private fun configTextDraw(textDraw: TextDraw, checkClone: Boolean): TextDraw {
         val drawableNew = textDraw.drawable.constantState!!.newDrawable().mutate()
         val textDrawNew = TextDraw(context, drawableNew, textDraw.drawablePath)
+        textDrawNew.id = textDraw.id
         val matrix = Matrix(textDraw.getMatrix())
         if (checkClone) {
             matrix.postTranslate(0.0F, 30.0F)
@@ -566,6 +567,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
     private fun configDrawDraw(drawDraw: DrawDraw, checkClone: Boolean): DrawDraw {
         val drawable = drawDraw.drawable.constantState!!.newDrawable().mutate()
         val drawDrawNew = DrawDraw(drawable, drawDraw.drawablePath)
+        drawDrawNew.id = drawDraw.id
         val matrix = Matrix(drawDraw.getMatrix())
         if (checkClone) {
             matrix.postTranslate(0.0F, 30.0F)
@@ -971,6 +973,7 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
     ): DrawableDraw {
         val drawable = drawableDraw.getOriginalDrawable().constantState!!.newDrawable().mutate()
         val drawableDrawNew = DrawableDraw(drawable, drawableDraw.drawablePath)
+        drawableDrawNew.id = drawableDraw.id
         val matrix = Matrix(drawableDraw.getMatrix())
         if (checkClone) {
             matrix.postTranslate(0.0F, 30.0F)

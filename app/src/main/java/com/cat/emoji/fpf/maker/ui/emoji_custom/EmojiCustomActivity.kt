@@ -538,6 +538,19 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         val indexEdit = editList.indexOfFirst { it.pathInternalEdit == oldPath }
         if (indexEdit != -1) {
+            // Delete old file before updating to new path
+            try {
+                val oldFile = java.io.File(oldPath)
+                if (oldFile.exists()) {
+                    val deleted = oldFile.delete()
+                    android.util.Log.d("EmojiCustomActivity", "Deleted old file: $oldPath, success: $deleted")
+                } else {
+                    android.util.Log.w("EmojiCustomActivity", "Old file not found: $oldPath")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("EmojiCustomActivity", "Error deleting old file: ${e.message}", e)
+            }
+
             editList[indexEdit] = createEditModel(pathInternal)
             MediaHelper.writeListToFile(this, ValueKey.EMOJI_EDIT_FILE_INTERNAL, editList)
         }
@@ -754,7 +767,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             // Layer button
-            btnLayer.tap {
+            btnLayer.tap(2000) {
                 showLayerBottomSheet()
             }
         }
@@ -1105,7 +1118,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun showLayerBottomSheet() {
-        val drawList = binding.layoutCustomLayer.getDraws()
+        // Use a snapshot list to avoid sharing mutable drawList with the adapter
+        val drawList = binding.layoutCustomLayer.getDraws().toList()
 
         if (drawList.isEmpty()) {
             showToast(R.string.please_select_item)
@@ -1131,6 +1145,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             rcv.adapter = adapter
+            val defaultAnimator = rcv.itemAnimator
+
             adapter.submitList(drawList)
 
             // Restore selected position from current draw
@@ -1150,6 +1166,22 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // ItemTouchHelper for drag to reorder and swipe to delete
             ItemTouchHelper(object : ItemTouchHelper.Callback() {
+                private val dragTag = "LayerDrag"
+                private var isDragging = false
+
+                override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                    super.onSelectedChanged(viewHolder, actionState)
+                    val pos = viewHolder?.bindingAdapterPosition ?: RecyclerView.NO_POSITION
+                    val layoutPos = viewHolder?.layoutPosition ?: RecyclerView.NO_POSITION
+                    val absPos = viewHolder?.absoluteAdapterPosition ?: RecyclerView.NO_POSITION
+                    Log.d(dragTag, "ITH selectedChanged state=$actionState pos=$pos layout=$layoutPos abs=$absPos")
+                    if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && !isDragging) {
+                        isDragging = true
+                        adapter.startDrag()
+                        rcv.itemAnimator = null
+                    }
+                }
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1163,10 +1195,39 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     viewHolder: RecyclerView.ViewHolder,
                     target: RecyclerView.ViewHolder
                 ): Boolean {
-                    val fromPosition = viewHolder.adapterPosition
-                    val toPosition = target.adapterPosition
+                    val fromPosition = viewHolder.bindingAdapterPosition
+                    val toPosition = target.bindingAdapterPosition
+                    if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) {
+                        Log.w(
+                            dragTag,
+                            "ITH onMove rejected from=$fromPosition to=$toPosition " +
+                                "vhLayout=${viewHolder.layoutPosition} tgtLayout=${target.layoutPosition}"
+                        )
+                        return false
+                    }
+                    Log.d(
+                        dragTag,
+                        "ITH onMove from=$fromPosition to=$toPosition " +
+                            "vhLayout=${viewHolder.layoutPosition} tgtLayout=${target.layoutPosition}"
+                    )
                     adapter.onItemMove(fromPosition, toPosition)
                     return true
+                }
+
+                override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                    super.clearView(recyclerView, viewHolder)
+                    Log.d(
+                        dragTag,
+                        "ITH clearView pos=${viewHolder.bindingAdapterPosition} " +
+                            "layout=${viewHolder.layoutPosition} abs=${viewHolder.absoluteAdapterPosition} " +
+                            "listSize=${adapter.currentList.size}"
+                    )
+                    if (isDragging) {
+                        adapter.endDrag {
+                            rcv.itemAnimator = null
+                        }
+                        isDragging = false
+                    }
                 }
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -1174,8 +1235,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                         binding.layoutCustomLayer.remove(drawSelect)
 
                         val position = viewHolder.adapterPosition
-                        val updatedList = drawList.toMutableList()
-                        updatedList.removeAt(position)
+                        val updatedList = adapter.currentList.toMutableList()
+                        if (position in updatedList.indices) {
+                            updatedList.removeAt(position)
+                        }
 
                         adapter.resetItemSelected()
                         adapter.submitList(updatedList)
@@ -1199,6 +1262,23 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     actionState: Int,
                     isCurrentlyActive: Boolean
                 ) {
+                    val clampedDY = if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                        val itemView: View = viewHolder.itemView
+                        val rvTop = recyclerView.paddingTop
+                        val rvBottom = recyclerView.height - recyclerView.paddingBottom
+                        val projectedTop = itemView.top + dY
+                        val projectedBottom = itemView.bottom + dY
+                        var newDY = dY
+                        if (projectedTop < rvTop) {
+                            newDY += (rvTop - projectedTop)
+                        } else if (projectedBottom > rvBottom) {
+                            newDY -= (projectedBottom - rvBottom)
+                        }
+                        newDY
+                    } else {
+                        dY
+                    }
+
                     if (isSwipe && actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                         val itemView: View = viewHolder.itemView
                         val height = itemView.bottom.toFloat() - itemView.top.toFloat()
@@ -1222,7 +1302,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                         )
                         c.drawBitmap(icon, null, iconDest, paint)
                     }
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, clampedDY, actionState, isCurrentlyActive)
                 }
             }).attachToRecyclerView(rcv)
         }

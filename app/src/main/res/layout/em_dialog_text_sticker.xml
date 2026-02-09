@@ -43,11 +43,11 @@
 
     <TextView
         android:id="@+id/btnDone"
-        android:layout_width="50dp"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="14sp"
         android:fontFamily="@font/nunito_bold"
-        android:gravity="center"
+        android:gravity="end"
         android:layoutDirection="ltr"
         android:text="@string/done"
         android:textColor="@color/white"
@@ -60,11 +60,11 @@
 
         <TextView
             android:id="@+id/btnCancel"
-            android:layout_width="50dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="14sp"
             android:fontFamily="@font/nunito_bold"
-            android:gravity="center"
+            android:gravity="start"
             android:layoutDirection="ltr"
             android:text="@string/cancel"
             android:textColor="@color/white"

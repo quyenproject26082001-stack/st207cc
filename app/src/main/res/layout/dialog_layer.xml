@@ -23,6 +23,8 @@
         android:layout_marginTop="5dp"
         android:text="Layer"
         android:textAlignment="center"
+        android:background="@color/white"
+
         android:textColor="#000000"
         android:textSize="18sp"
         android:fontFamily="@font/nunito_bold" />
@@ -37,6 +39,7 @@
             android:id="@+id/rcv"
             android:layout_width="match_parent"
             android:layout_height="200dp"
+            android:background="@color/white"
             android:overScrollMode="never"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"

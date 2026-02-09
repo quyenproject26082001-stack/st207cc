@@ -27,6 +27,7 @@ import com.cat.emoji.fpf.maker.core.extensions.setImageActionBar
 import com.cat.emoji.fpf.maker.core.extensions.setTextActionBar
 import com.cat.emoji.fpf.maker.core.extensions.strings
 import com.cat.emoji.fpf.maker.core.extensions.tap
+import com.cat.emoji.fpf.maker.core.helper.InternetHelper
 import com.cat.emoji.fpf.maker.core.helper.LanguageHelper
 import com.cat.emoji.fpf.maker.core.helper.UnitHelper
 import com.cat.emoji.fpf.maker.core.utils.key.IntentKey
@@ -34,6 +35,7 @@ import com.cat.emoji.fpf.maker.core.utils.key.RequestKey
 import com.cat.emoji.fpf.maker.core.utils.key.ValueKey
 import com.cat.emoji.fpf.maker.core.utils.state.HandleState
 import com.cat.emoji.fpf.maker.databinding.ActivityViewBinding
+import com.cat.emoji.fpf.maker.dialog.DialogType
 import com.cat.emoji.fpf.maker.dialog.YesNoDialog
 import com.cat.emoji.fpf.maker.ui.customize.CustomizeCharacterActivity
 import com.cat.emoji.fpf.maker.ui.emoji_custom.EmojiCustomActivity
@@ -333,7 +335,27 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
         }
     }
 
+    private fun showNoInternetDialog() {
+        val dialog = YesNoDialog(
+            this@ViewActivity,
+            R.string.no_internet,
+            R.string.please_check_your_internet,
+            isError = true,
+            dialogType = DialogType.INTERNET
+        )
+        dialog.show()
+        dialog.onYesClick = {
+            dialog.dismiss()
+            hideNavigation()
+        }
+    }
     private fun handleEmojiEditClick(pathInternal: String) {
+        // Check internet before entering edit mode
+        if (!InternetHelper.isInternetAvailable(this@ViewActivity)) {
+            showNoInternetDialog()
+            return
+        }
+
         lifecycleScope.launch(Dispatchers.IO) {
             showLoading()
             val success = myAvatarViewModel.prepareEmojiEdit(this@ViewActivity, pathInternal)

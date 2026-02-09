@@ -41,6 +41,10 @@ class MyAvatarAdapter(val context: Context) :
     }
 
     override fun onBind(binding: ItemMyAlbumBinding, item: MyAlbumModel, position: Int) {
+        // Not used - see onBindHolder for actual implementation
+    }
+
+    override fun onBindHolder(holder: BaseViewHolder, binding: ItemMyAlbumBinding, item: MyAlbumModel, position: Int) {
         binding.apply {
             // Optimized Glide loading with thumbnail, size override, and caching
             val file = File(item.path)
@@ -74,13 +78,21 @@ class MyAvatarAdapter(val context: Context) :
                 if (items.any { album -> album.isShowSelection }) {
                     return@setOnLongClickListener false
                 } else {
-                    onLongClick.invoke(position)
+                    val currentPosition = holder.bindingAdapterPosition
+                    if (currentPosition != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                        onLongClick.invoke(currentPosition)
+                    }
                     return@setOnLongClickListener true
                 }
             }
             btnEdit.tap { onEditClick.invoke(item.path) }
             btnDelete.tap { onDeleteClick.invoke(item.path) }
-            btnSelect.tap { onItemTick.invoke(position) }
+            btnSelect.tap {
+                val currentPosition = holder.bindingAdapterPosition
+                if (currentPosition != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                    onItemTick.invoke(currentPosition)
+                }
+            }
         }
     }
 }
