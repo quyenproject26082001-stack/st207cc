@@ -538,6 +538,19 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         val indexEdit = editList.indexOfFirst { it.pathInternalEdit == oldPath }
         if (indexEdit != -1) {
+            // Delete old file before updating to new path
+            try {
+                val oldFile = java.io.File(oldPath)
+                if (oldFile.exists()) {
+                    val deleted = oldFile.delete()
+                    android.util.Log.d("EmojiCustomActivity", "Deleted old file: $oldPath, success: $deleted")
+                } else {
+                    android.util.Log.w("EmojiCustomActivity", "Old file not found: $oldPath")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("EmojiCustomActivity", "Error deleting old file: ${e.message}", e)
+            }
+
             editList[indexEdit] = createEditModel(pathInternal)
             MediaHelper.writeListToFile(this, ValueKey.EMOJI_EDIT_FILE_INTERNAL, editList)
         }
