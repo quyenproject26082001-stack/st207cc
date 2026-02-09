@@ -97,6 +97,7 @@ class LayerAdapter(
 
                     val clickPosition = bindingAdapterPosition
                     android.util.Log.e("LayerAdapter", "🔴 CLICK - bindingAdapterPosition=$clickPosition")
+                    android.util.Log.e("LayerAdapter", "🔴 CLICK - selectItemPosition=$selectItemPosition")
 
                     if (clickPosition != RecyclerView.NO_POSITION) {
                         // Get the correct draw object from current list position
@@ -105,14 +106,32 @@ class LayerAdapter(
                         android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.hashCode=${currentDraw.hashCode()}")
                         android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.drawablePath=${currentDraw.drawablePath}")
                         android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.drawable.hashCode=${currentDraw.drawable.hashCode()}")
-                        android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw == draw? ${currentDraw == draw}")
-                        android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.drawablePath == draw.drawablePath? ${currentDraw.drawablePath == draw.drawablePath}")
+                        android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.isHide=${currentDraw.isHide}")
+                        android.util.Log.e("LayerAdapter", "🔴 CLICK - drawView.getCurrentDraw()=${drawView.getCurrentDraw()?.drawablePath}")
 
-                        // If this draw is currently selected and we're hiding it, deselect it first
-                        if (!currentDraw.isHide && drawView.getCurrentDraw() == currentDraw) {
-                            drawView.hideSelect()
-                        }
+                        // Check if this is the selected item
+                        val isSelectedPosition = clickPosition == selectItemPosition
+                        val isCurrentlySelected = drawView.getCurrentDraw() == currentDraw
+                        android.util.Log.e("LayerAdapter", "🔴 CLICK - isSelectedPosition=$isSelectedPosition")
+                        android.util.Log.e("LayerAdapter", "🔴 CLICK - isCurrentlySelected=$isCurrentlySelected")
+
+                        // Toggle hide/show
                         drawView.showOrHideDraw(currentDraw, clickPosition)
+                        android.util.Log.e("LayerAdapter", "🔴 ACTION - After toggle, currentDraw.isHide=${currentDraw.isHide}")
+
+                        // Sync selection state:
+                        // - If this is the selected position AND draw is now visible, ensure it's selected in DrawView
+                        // - If this is the selected position AND draw is now hidden, deselect in DrawView
+                        if (isSelectedPosition) {
+                            if (!currentDraw.isHide) {
+                                android.util.Log.e("LayerAdapter", "🔴 ACTION - Selected item is now visible, ensuring DrawView selection")
+                                drawView.selectCurrentDraw(currentDraw)
+                            } else {
+                                android.util.Log.e("LayerAdapter", "🔴 ACTION - Selected item is now hidden, hiding DrawView selection")
+                                drawView.hideSelect()
+                            }
+                        }
+
                         notifyItemChanged(clickPosition)
 
                         android.util.Log.e("LayerAdapter", "🔴 AFTER CLICK - notifyItemChanged($clickPosition) called")
