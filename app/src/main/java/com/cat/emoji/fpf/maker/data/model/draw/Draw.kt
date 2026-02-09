@@ -9,12 +9,14 @@ import androidx.annotation.IntDef
 import androidx.annotation.IntRange
 import com.cat.emoji.fpf.maker.core.extensions.toRect
 import com.cat.emoji.fpf.maker.core.utils.key.DrawKey
+import java.util.UUID
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 
 abstract class Draw {
+    var id: String = UUID.randomUUID().toString()
     var isText: Boolean = false
     var isCharacter: Boolean = false
     var textContent: String? = null

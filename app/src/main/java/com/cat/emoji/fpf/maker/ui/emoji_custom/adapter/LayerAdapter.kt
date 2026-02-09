@@ -20,11 +20,11 @@ class LayerAdapter(
 ) : ListAdapter<DrawableDraw, LayerAdapter.LayerVH>(
     AsyncDifferConfig.Builder(object : DiffUtil.ItemCallback<DrawableDraw>() {
         override fun areItemsTheSame(oldItem: DrawableDraw, newItem: DrawableDraw): Boolean {
-            return oldItem.drawablePath == newItem.drawablePath
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: DrawableDraw, newItem: DrawableDraw): Boolean {
-            return oldItem.drawablePath == newItem.drawablePath && oldItem.isHide == newItem.isHide
+            return oldItem.id == newItem.id && oldItem.isHide == newItem.isHide
         }
     }).build()
 ) {
@@ -78,6 +78,10 @@ class LayerAdapter(
                 }
 
                 // Load drawable preview - clear previous image to avoid showing stale data
+                // Reset ImageView state to avoid ghosting from reused holders
+                img.setImageDrawable(null)
+                img.alpha = 1f
+                img.clearColorFilter()
                 Glide.with(itemView.context)
                     .clear(img)
                 Glide.with(itemView.context)
@@ -209,10 +213,10 @@ class LayerAdapter(
    //     android.util.Log.w("LayerAdapter", "🔄 MOVE - moving item.drawablePath=${item.drawablePath}")
         newList.add(toPosition, item)
 
-        android.util.Log.w("LayerAdapter", "🔄 MOVE - New list order:")
-        newList.forEachIndexed { index, drawableDraw ->
-    //        android.util.Log.w("LayerAdapter", "  [$index] ${drawableDraw.drawablePath}")
-        }
+//        android.util.Log.w("LayerAdapter", "🔄 MOVE - New list order:")
+//        newList.forEachIndexed { index, drawableDraw ->
+//    //        android.util.Log.w("LayerAdapter", "  [$index] ${drawableDraw.drawablePath}")
+//        }
 
         // Update selected position if affected by the move
         if (selectItemPosition != RecyclerView.NO_POSITION) {

@@ -1212,6 +1212,23 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     actionState: Int,
                     isCurrentlyActive: Boolean
                 ) {
+                    val clampedDY = if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                        val itemView: View = viewHolder.itemView
+                        val rvTop = recyclerView.paddingTop
+                        val rvBottom = recyclerView.height - recyclerView.paddingBottom
+                        val projectedTop = itemView.top + dY
+                        val projectedBottom = itemView.bottom + dY
+                        var newDY = dY
+                        if (projectedTop < rvTop) {
+                            newDY += (rvTop - projectedTop)
+                        } else if (projectedBottom > rvBottom) {
+                            newDY -= (projectedBottom - rvBottom)
+                        }
+                        newDY
+                    } else {
+                        dY
+                    }
+
                     if (isSwipe && actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                         val itemView: View = viewHolder.itemView
                         val height = itemView.bottom.toFloat() - itemView.top.toFloat()
@@ -1235,7 +1252,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                         )
                         c.drawBitmap(icon, null, iconDest, paint)
                     }
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, clampedDY, actionState, isCurrentlyActive)
                 }
             }).attachToRecyclerView(rcv)
         }
