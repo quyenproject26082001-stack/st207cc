@@ -1164,6 +1164,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // ItemTouchHelper for drag to reorder and swipe to delete
             ItemTouchHelper(object : ItemTouchHelper.Callback() {
+                private var lastCommittedOrder: List<DrawableDraw>? = null
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1184,6 +1186,15 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     }
                     adapter.onItemMove(fromPosition, toPosition)
                     return true
+                }
+
+                override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                    super.clearView(recyclerView, viewHolder)
+                    val currentOrder = adapter.currentList
+                    if (currentOrder.isNotEmpty() && currentOrder != lastCommittedOrder) {
+                        binding.layoutCustomLayer.reorderDraws(currentOrder)
+                        lastCommittedOrder = currentOrder.toList()
+                    }
                 }
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {

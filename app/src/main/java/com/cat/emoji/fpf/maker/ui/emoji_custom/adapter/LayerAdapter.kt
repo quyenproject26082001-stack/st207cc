@@ -96,8 +96,14 @@ class LayerAdapter(
                 img.clearColorFilter()
                 Glide.with(itemView.context)
                     .clear(img)
+                // Use a cloned drawable to avoid sharing mutable state with canvas rendering
+                val previewDrawable = try {
+                    draw.getOriginalDrawable()
+                } catch (e: Exception) {
+                    draw.drawable.constantState?.newDrawable()?.mutate() ?: draw.drawable
+                }
                 Glide.with(itemView.context)
-                    .load(draw.drawable)
+                    .load(previewDrawable)
                     .into(img)
 
  //               android.util.Log.d("LayerAdapter", "📌 BIND - img.tag=${img.tag}")
@@ -218,9 +224,7 @@ class LayerAdapter(
 //        android.util.Log.w("LayerAdapter", "🔄 MOVE - fromPosition=$fromPosition → toPosition=$toPosition")
 //        android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition BEFORE=$selectItemPosition")
 
-        drawView.exchangeLayers(fromPosition, toPosition)
-
-        // Update adapter's list to match the new order
+        // Update adapter's list to match the new order (preview only)
         val newList = currentList.toMutableList()
         val item = newList.removeAt(fromPosition)
    //     android.util.Log.w("LayerAdapter", "🔄 MOVE - moving item.drawablePath=${item.drawablePath}")

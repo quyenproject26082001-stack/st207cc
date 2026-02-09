@@ -392,6 +392,19 @@ open class DrawView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         return handlingDraw
     }
 
+    /**
+     * Reorder draw list to match the given order.
+     * Uses the same instances to preserve state; commits one undo step.
+     */
+    fun reorderDraws(newOrder: List<DrawableDraw>) {
+        if (newOrder.size != drawList.size) return
+        if (!drawList.containsAll(newOrder)) return
+        drawList.clear()
+        drawList.addAll(newOrder)
+        saveDrawState()
+        invalidate()
+    }
+
     public val redoList = ArrayList<List<DrawableDraw>>()
 
     /**
