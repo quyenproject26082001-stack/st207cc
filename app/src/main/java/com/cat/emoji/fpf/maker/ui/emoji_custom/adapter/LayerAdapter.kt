@@ -180,6 +180,7 @@ class LayerAdapter(
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         android.util.Log.w("LayerAdapter", "🔄🔄🔄 MOVE ITEM 🔄🔄🔄")
         android.util.Log.w("LayerAdapter", "🔄 MOVE - fromPosition=$fromPosition → toPosition=$toPosition")
+        android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition BEFORE=$selectItemPosition")
 
         drawView.exchangeLayers(fromPosition, toPosition)
 
@@ -204,6 +205,13 @@ class LayerAdapter(
                 else -> selectItemPosition
             }
             android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition: $oldSelectPos → $selectItemPosition")
+
+            // Sync DrawView selection with new position
+            if (selectItemPosition != RecyclerView.NO_POSITION && selectItemPosition < newList.size) {
+                val selectedDraw = newList[selectItemPosition]
+                android.util.Log.w("LayerAdapter", "🔄 MOVE - Syncing DrawView to select: ${selectedDraw.drawablePath} at position $selectItemPosition")
+                drawView.selectCurrentDraw(selectedDraw)
+            }
         }
 
         // Submit list and force rebind affected items
