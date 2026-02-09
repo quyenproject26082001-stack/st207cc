@@ -1,6 +1,7 @@
 package com.cat.emoji.fpf.maker.ui.emoji_custom.adapter
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -13,6 +14,7 @@ import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.core.custom.drawview.DrawView
 import com.cat.emoji.fpf.maker.data.model.draw.DrawableDraw
 import com.cat.emoji.fpf.maker.databinding.ItemLayerBinding
+import java.util.concurrent.Executor
 
 class LayerAdapter(
     private val drawView: DrawView,
@@ -26,8 +28,18 @@ class LayerAdapter(
         override fun areContentsTheSame(oldItem: DrawableDraw, newItem: DrawableDraw): Boolean {
             return oldItem.id == newItem.id && oldItem.isHide == newItem.isHide
         }
-    }).build()
+    })
+        // Make diff synchronous to keep drag reorder and canvas order in sync
+        .setBackgroundThreadExecutor(DIRECT_EXECUTOR)
+        .setMainThreadExecutor(DIRECT_EXECUTOR)
+        .build()
 ) {
+
+    companion object {
+        private val DIRECT_EXECUTOR = Executor { it.run() }
+        private const val TAG = "LayerDrag"
+        private const val LOG_ENABLED = true
+    }
 
     private var selectItemPosition = RecyclerView.NO_POSITION
 
@@ -201,6 +213,7 @@ class LayerAdapter(
     }
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
+        logOrder("before move", fromPosition, toPosition)
 //        android.util.Log.w("LayerAdapter", "🔄🔄🔄 MOVE ITEM 🔄🔄🔄")
 //        android.util.Log.w("LayerAdapter", "🔄 MOVE - fromPosition=$fromPosition → toPosition=$toPosition")
 //        android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition BEFORE=$selectItemPosition")
@@ -244,6 +257,7 @@ class LayerAdapter(
             val maxPos = kotlin.math.max(fromPosition, toPosition)
    //         android.util.Log.w("LayerAdapter", "🔄 MOVE - Force rebind positions $minPos to $maxPos")
             notifyItemRangeChanged(minPos, maxPos - minPos + 1)
+            logOrder("after move", fromPosition, toPosition)
         }
 
     //    android.util.Log.w("LayerAdapter", "🔄🔄🔄 END MOVE 🔄🔄🔄")
@@ -256,5 +270,32 @@ class LayerAdapter(
     fun setSelectedPosition(position: Int) {
         selectItemPosition = position
         notifyDataSetChanged()
+    }
+
+    private fun logOrder(label: String, fromPosition: Int, toPosition: Int) {
+        if (!LOG_ENABLED) return
+        val draws = drawView.getDraws()
+        Log.d(TAG, "$label from=$fromPosition to=$toPosition rcvSize=${currentList.size} canvasSize=${draws.size}")
+
+        currentList.forEachIndexed { index, item ->
+            val canvasIndex = draws.indexOfFirst { it.id == item.id }
+            Log.d(
+                TAG,
+                "RCV[$index] id=${item.id} path=${shortPath(item.drawablePath)} canvasIndex=$canvasIndex"
+            )
+        }
+
+        draws.forEachIndexed { index, item ->
+            val rcvIndex = currentList.indexOfFirst { it.id == item.id }
+            Log.d(
+                TAG,
+                "CANVAS[$index] id=${item.id} path=${shortPath(item.drawablePath)} rcvIndex=$rcvIndex"
+            )
+        }
+    }
+
+    private fun shortPath(path: String): String {
+        val max = 32
+        return if (path.length <= max) path else path.takeLast(max)
     }
 }

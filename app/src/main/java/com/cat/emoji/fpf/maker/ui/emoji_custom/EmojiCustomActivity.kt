@@ -1118,7 +1118,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun showLayerBottomSheet() {
-        val drawList = binding.layoutCustomLayer.getDraws()
+        // Use a snapshot list to avoid sharing mutable drawList with the adapter
+        val drawList = binding.layoutCustomLayer.getDraws().toList()
 
         if (drawList.isEmpty()) {
             showToast(R.string.please_select_item)
@@ -1176,8 +1177,11 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     viewHolder: RecyclerView.ViewHolder,
                     target: RecyclerView.ViewHolder
                 ): Boolean {
-                    val fromPosition = viewHolder.adapterPosition
-                    val toPosition = target.adapterPosition
+                    val fromPosition = viewHolder.bindingAdapterPosition
+                    val toPosition = target.bindingAdapterPosition
+                    if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) {
+                        return false
+                    }
                     adapter.onItemMove(fromPosition, toPosition)
                     return true
                 }
@@ -1187,8 +1191,10 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                         binding.layoutCustomLayer.remove(drawSelect)
 
                         val position = viewHolder.adapterPosition
-                        val updatedList = drawList.toMutableList()
-                        updatedList.removeAt(position)
+                        val updatedList = adapter.currentList.toMutableList()
+                        if (position in updatedList.indices) {
+                            updatedList.removeAt(position)
+                        }
 
                         adapter.resetItemSelected()
                         adapter.submitList(updatedList)
