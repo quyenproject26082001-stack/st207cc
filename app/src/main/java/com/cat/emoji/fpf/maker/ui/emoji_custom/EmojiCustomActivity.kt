@@ -714,22 +714,32 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // Paint / Eraser toggle
             drawBinding.btnPaintDraw.tap {
+                // Check if already in paint mode (toggle color picker)
+                val alreadyInPaintMode = drawBinding.btnEraserDraw.background == null
+
                 drawBinding.dv.eraser(false)
                 drawBinding.btnPaintDraw.setBackgroundResource(R.drawable.bg_selected)
                 drawBinding.btnEraserDraw.setBackgroundResource(0)
-                if (drawBinding.layoutColorPickerDraw.visibility == View.VISIBLE) {
-                    drawBinding.layoutColorPickerDraw.gone()
-                } else {
-                    drawBinding.layoutColorPickerDraw.visible()
-                    drawBinding.layoutColorPickerDraw.post {
-                        // Select center to initialize sliders with default color (first time only)
-                        if (!isColorPickerInitialized) {
-                            drawBinding.colorPicker.selectCenter()
-                            isColorPickerInitialized = true
+
+                if (alreadyInPaintMode) {
+                    // Already in paint mode → toggle color picker
+                    if (drawBinding.layoutColorPickerDraw.visibility == View.VISIBLE) {
+                        drawBinding.layoutColorPickerDraw.gone()
+                    } else {
+                        drawBinding.layoutColorPickerDraw.visible()
+                        drawBinding.layoutColorPickerDraw.post {
+                            // Select center to initialize sliders with default color (first time only)
+                            if (!isColorPickerInitialized) {
+                                drawBinding.colorPicker.selectCenter()
+                                isColorPickerInitialized = true
+                            }
+                            drawBinding.sbAlphaSlideBar.invalidate()
+                            drawBinding.sbBrightnessSlide.invalidate()
                         }
-                        drawBinding.sbAlphaSlideBar.invalidate()
-                        drawBinding.sbBrightnessSlide.invalidate()
                     }
+                } else {
+                    // Coming from eraser mode → close color picker
+                    drawBinding.layoutColorPickerDraw.gone()
                 }
             }
 

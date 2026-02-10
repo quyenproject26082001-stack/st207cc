@@ -11,6 +11,8 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="0dp"
         android:background="@color/white"
+        android:clickable="true"
+        android:focusable="true"
         android:layoutDirection="ltr"
         android:visibility="gone"
         tools:visibility="visible"
@@ -129,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:layoutDirection="ltr"
                 android:orientation="vertical"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="wrap_content"
