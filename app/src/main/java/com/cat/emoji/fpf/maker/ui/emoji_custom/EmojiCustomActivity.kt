@@ -1145,6 +1145,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             }
 
             rcv.adapter = adapter
+            val defaultAnimator = rcv.itemAnimator
+
             adapter.submitList(drawList)
 
             // Restore selected position from current draw
@@ -1164,6 +1166,22 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
             // ItemTouchHelper for drag to reorder and swipe to delete
             ItemTouchHelper(object : ItemTouchHelper.Callback() {
+                private val dragTag = "LayerDrag"
+                private var isDragging = false
+
+                override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                    super.onSelectedChanged(viewHolder, actionState)
+                    val pos = viewHolder?.bindingAdapterPosition ?: RecyclerView.NO_POSITION
+                    val layoutPos = viewHolder?.layoutPosition ?: RecyclerView.NO_POSITION
+                    val absPos = viewHolder?.absoluteAdapterPosition ?: RecyclerView.NO_POSITION
+                    Log.d(dragTag, "ITH selectedChanged state=$actionState pos=$pos layout=$layoutPos abs=$absPos")
+                    if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && !isDragging) {
+                        isDragging = true
+                        adapter.startDrag()
+                        rcv.itemAnimator = null
+                    }
+                }
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1180,10 +1198,36 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     val fromPosition = viewHolder.bindingAdapterPosition
                     val toPosition = target.bindingAdapterPosition
                     if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) {
+                        Log.w(
+                            dragTag,
+                            "ITH onMove rejected from=$fromPosition to=$toPosition " +
+                                "vhLayout=${viewHolder.layoutPosition} tgtLayout=${target.layoutPosition}"
+                        )
                         return false
                     }
+                    Log.d(
+                        dragTag,
+                        "ITH onMove from=$fromPosition to=$toPosition " +
+                            "vhLayout=${viewHolder.layoutPosition} tgtLayout=${target.layoutPosition}"
+                    )
                     adapter.onItemMove(fromPosition, toPosition)
                     return true
+                }
+
+                override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                    super.clearView(recyclerView, viewHolder)
+                    Log.d(
+                        dragTag,
+                        "ITH clearView pos=${viewHolder.bindingAdapterPosition} " +
+                            "layout=${viewHolder.layoutPosition} abs=${viewHolder.absoluteAdapterPosition} " +
+                            "listSize=${adapter.currentList.size}"
+                    )
+                    if (isDragging) {
+                        adapter.endDrag {
+                            rcv.itemAnimator = null
+                        }
+                        isDragging = false
+                    }
                 }
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {

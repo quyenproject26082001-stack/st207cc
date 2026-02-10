@@ -14,6 +14,7 @@ import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.core.custom.drawview.DrawView
 import com.cat.emoji.fpf.maker.data.model.draw.DrawableDraw
 import com.cat.emoji.fpf.maker.databinding.ItemLayerBinding
+import java.util.Collections
 import java.util.concurrent.Executor
 
 class LayerAdapter(
@@ -39,9 +40,15 @@ class LayerAdapter(
         private val DIRECT_EXECUTOR = Executor { it.run() }
         private const val TAG = "LayerDrag"
         private const val LOG_ENABLED = true
+        private const val PAYLOAD_POSITION = "payload_position"
     }
 
+    private var dragList: MutableList<DrawableDraw>? = null
     private var selectItemPosition = RecyclerView.NO_POSITION
+
+    init {
+        setHasStableIds(true)
+    }
 
     override fun submitList(list: List<DrawableDraw>?) {
 //        android.util.Log.d("LayerAdapter", "📋📋📋 SUBMIT LIST 📋📋📋")
@@ -53,8 +60,41 @@ class LayerAdapter(
    //     android.util.Log.d("LayerAdapter", "📋📋📋 END SUBMIT 📋📋📋")
     }
 
+    private fun getItemAt(position: Int): DrawableDraw? {
+        val list = dragList
+        return if (list != null) {
+            list.getOrNull(position)
+        } else {
+            currentList.getOrNull(position)
+        }
+    }
+
+    fun startDrag() {
+        if (dragList == null) {
+            dragList = currentList.toMutableList()
+            if (LOG_ENABLED) {
+                Log.d(TAG, "startDrag size=${dragList?.size ?: 0}")
+            }
+        }
+    }
+
+    fun endDrag(onCommitted: (() -> Unit)? = null) {
+        val list = dragList ?: return
+        dragList = null
+        submitList(list.toList()) {
+            if (itemCount > 0) {
+                notifyItemRangeChanged(0, itemCount, PAYLOAD_POSITION)
+            }
+            onCommitted?.invoke()
+        }
+    }
+
     inner class LayerVH(private val binding: ItemLayerBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        fun bindLabel(position: Int) {
+            binding.tvLayer.text = "${itemView.context.getString(R.string.layer)} ${position + 1}"
+        }
 
         @SuppressLint("CheckResult", "SetTextI18n")
         fun bindData(draw: DrawableDraw, position: Int) {
@@ -65,7 +105,7 @@ class LayerAdapter(
 //            android.util.Log.d("LayerAdapter", "📌 BIND - draw.drawable.hashCode=${draw.drawable.hashCode()}")
 
             binding.apply {
-                tvLayer.text = "${itemView.context.getString(R.string.layer)} ${position + 1}"
+                bindLabel(position)
 
  //               android.util.Log.d("LayerAdapter", "📌 BIND - tvLayer.text=${tvLayer.text}")
 
@@ -117,7 +157,7 @@ class LayerAdapter(
 
                     if (clickPosition != RecyclerView.NO_POSITION) {
                         // Get the correct draw object from current list position
-                        val currentDraw = getItem(clickPosition)
+                        val currentDraw = getItemAt(clickPosition) ?: return@setOnClickListener
 
 //                        android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.hashCode=${currentDraw.hashCode()}")
 //                        android.util.Log.e("LayerAdapter", "🔴 CLICK - currentDraw.drawablePath=${currentDraw.drawablePath}")
@@ -187,7 +227,7 @@ class LayerAdapter(
                         selectItemPosition = clickPosition
                         notifyDataSetChanged()
                         // Get the correct draw object from current list position
-                        val currentDraw = getItem(clickPosition)
+                        val currentDraw = getItemAt(clickPosition) ?: return@setOnClickListener
    //                     android.util.Log.i("LayerAdapter", "💡 CLICK - currentDraw.drawablePath=${currentDraw.drawablePath}")
                         onClick.invoke(currentDraw, clickPosition)
                     }
@@ -207,27 +247,46 @@ class LayerAdapter(
     }
 
     override fun onBindViewHolder(holder: LayerVH, position: Int) {
-        val item = getItem(position)
+        val item = getItemAt(position) ?: return
     //    android.util.Log.d("LayerAdapter", "⚙️ onBindViewHolder - position=$position, item.drawablePath=${item.drawablePath}")
         holder.bindData(item, position)
     }
 
+    override fun onBindViewHolder(holder: LayerVH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains(PAYLOAD_POSITION)) {
+            holder.bindLabel(position)
+            return
+        }
+        super.onBindViewHolder(holder, position, payloads)
+    }
+
+    override fun getItemId(position: Int): Long {
+        val item = getItemAt(position) ?: return RecyclerView.NO_ID
+        return item.id.hashCode().toLong()
+    }
+
     fun onItemMove(fromPosition: Int, toPosition: Int) {
-        logOrder("before move", fromPosition, toPosition)
-//        android.util.Log.w("LayerAdapter", "🔄🔄🔄 MOVE ITEM 🔄🔄🔄")
-//        android.util.Log.w("LayerAdapter", "🔄 MOVE - fromPosition=$fromPosition → toPosition=$toPosition")
-//        android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition BEFORE=$selectItemPosition")
+        val list = dragList ?: run {
+            if (LOG_ENABLED) {
+                Log.w(TAG, "onItemMove ignored: dragList is null")
+            }
+            return
+        }
+        if (LOG_ENABLED) {
+            Log.d(TAG, "onItemMove from=$fromPosition to=$toPosition listSize=${list.size}")
+        }
+        logOrder("before move", fromPosition, toPosition, list)
+//        android.util.Log.w("LayerAdapter", "???????????? MOVE ITEM ????????????")
+//        android.util.Log.w("LayerAdapter", "???? MOVE - fromPosition=$fromPosition ??? toPosition=$toPosition")
+//        android.util.Log.w("LayerAdapter", "???? MOVE - selectItemPosition BEFORE=$selectItemPosition")
 
         drawView.exchangeLayers(fromPosition, toPosition)
 
-        // Update adapter's list to match the new order
-        val newList = currentList.toMutableList()
-        val item = newList.removeAt(fromPosition)
-   //     android.util.Log.w("LayerAdapter", "🔄 MOVE - moving item.drawablePath=${item.drawablePath}")
-        newList.add(toPosition, item)
+        // Update adapter's drag list to match the new order
+        Collections.swap(list, fromPosition, toPosition)
 
-//        android.util.Log.w("LayerAdapter", "🔄 MOVE - New list order:")
-//        newList.forEachIndexed { index, drawableDraw ->
+//        android.util.Log.w("LayerAdapter", "???? MOVE - New list order:")
+//        list.forEachIndexed { index, drawableDraw ->
 //    //        android.util.Log.w("LayerAdapter", "  [$index] ${drawableDraw.drawablePath}")
 //        }
 
@@ -240,27 +299,20 @@ class LayerAdapter(
                 fromPosition > toPosition && selectItemPosition in toPosition until fromPosition -> selectItemPosition + 1
                 else -> selectItemPosition
             }
-    //        android.util.Log.w("LayerAdapter", "🔄 MOVE - selectItemPosition: $oldSelectPos → $selectItemPosition")
+//        android.util.Log.w("LayerAdapter", "???? MOVE - selectItemPosition: $oldSelectPos ??? $selectItemPosition")
 
             // Sync DrawView selection with new position
-            if (selectItemPosition != RecyclerView.NO_POSITION && selectItemPosition < newList.size) {
-                val selectedDraw = newList[selectItemPosition]
-    //            android.util.Log.w("LayerAdapter", "🔄 MOVE - Syncing DrawView to select: ${selectedDraw.drawablePath} at position $selectItemPosition")
+            if (selectItemPosition != RecyclerView.NO_POSITION && selectItemPosition < list.size) {
+                val selectedDraw = list[selectItemPosition]
+//            android.util.Log.w("LayerAdapter", "???? MOVE - Syncing DrawView to select: ${selectedDraw.drawablePath} at position $selectItemPosition")
                 drawView.selectCurrentDraw(selectedDraw)
             }
         }
 
-        // Submit list and force rebind affected items
-        submitList(newList) {
-            // Force rebind the range of affected positions to update ViewHolders
-            val minPos = kotlin.math.min(fromPosition, toPosition)
-            val maxPos = kotlin.math.max(fromPosition, toPosition)
-   //         android.util.Log.w("LayerAdapter", "🔄 MOVE - Force rebind positions $minPos to $maxPos")
-            notifyItemRangeChanged(minPos, maxPos - minPos + 1)
-            logOrder("after move", fromPosition, toPosition)
-        }
+        notifyItemMoved(fromPosition, toPosition)
+        logOrder("after move", fromPosition, toPosition, list)
 
-    //    android.util.Log.w("LayerAdapter", "🔄🔄🔄 END MOVE 🔄🔄🔄")
+//    android.util.Log.w("LayerAdapter", "???????????? END MOVE ????????????")
     }
 
     fun resetItemSelected() {
@@ -272,12 +324,12 @@ class LayerAdapter(
         notifyDataSetChanged()
     }
 
-    private fun logOrder(label: String, fromPosition: Int, toPosition: Int) {
+    private fun logOrder(label: String, fromPosition: Int, toPosition: Int, list: List<DrawableDraw> = currentList) {
         if (!LOG_ENABLED) return
         val draws = drawView.getDraws()
         Log.d(TAG, "$label from=$fromPosition to=$toPosition rcvSize=${currentList.size} canvasSize=${draws.size}")
 
-        currentList.forEachIndexed { index, item ->
+        list.forEachIndexed { index, item ->
             val canvasIndex = draws.indexOfFirst { it.id == item.id }
             Log.d(
                 TAG,
@@ -286,7 +338,7 @@ class LayerAdapter(
         }
 
         draws.forEachIndexed { index, item ->
-            val rcvIndex = currentList.indexOfFirst { it.id == item.id }
+            val rcvIndex = list.indexOfFirst { it.id == item.id }
             Log.d(
                 TAG,
                 "CANVAS[$index] id=${item.id} path=${shortPath(item.drawablePath)} rcvIndex=$rcvIndex"
