@@ -16,6 +16,10 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.text.Editable
 import android.text.Layout
 import android.text.TextWatcher
@@ -124,6 +128,29 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private var failRunnable: Runnable? = null
     private  val FAIL_DEBOUNCE_MS = 200L
 
+    // Network state tracking
+    private var isNetworkAvailable = true
+    private var connectivityManager: ConnectivityManager? = null
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            val wasOffline = !isNetworkAvailable
+            isNetworkAvailable = true
+
+            // Nếu trước đó offline, bây giờ online lại -> reload category hiện tại
+            if (wasOffline) {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    loadLayerData(currentCategoryIndex)
+                }
+            }
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            isNetworkAvailable = false
+        }
+    }
+
 
     override fun setViewBinding(): ActivityEmojiCustomBinding {
         return ActivityEmojiCustomBinding.inflate(LayoutInflater.from(this))
@@ -131,6 +158,14 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
     override fun onDestroy() {
         failHandler.removeCallbacksAndMessages(null)
+
+        // Unregister network callback
+        try {
+            connectivityManager?.unregisterNetworkCallback(networkCallback)
+        } catch (e: Exception) {
+            Log.e("EmojiCustomActivity", "Error unregistering network callback: ${e.message}")
+        }
+
         super.onDestroy()
     }
 
@@ -141,6 +176,17 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 finish()
             }
             return
+        }
+
+        // Register network callback để track network state
+        connectivityManager = getSystemService(ConnectivityManager::class.java)
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        try {
+            connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)
+        } catch (e: Exception) {
+            Log.e("EmojiCustomActivity", "Error registering network callback: ${e.message}")
         }
 
         // Get statusFrom from intent
@@ -614,14 +660,21 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     isSelected = imageUrl in currentDrawPaths
                 )
             }
-            .filter { it.imageUrl !in failedUrls }
+            // CHỈ filter failedUrls khi có mạng, nếu không có mạng thì giữ nguyên list
+            .let { itemList ->
+                if (isNetworkAvailable) {
+                    itemList.filter { it.imageUrl !in failedUrls }
+                } else {
+                    itemList
+                }
+            }
         // ✅ ĐẶT LOG Ở ĐÂY (sau khi items đã build xong)
         Log.d("ExcludeCheck", "category=${category.name} excluded=$excluded size=${items.size}")
         Log.d("ExcludeCheck", "hasEyesBig256=${items.any { it.imageUrl.endsWith("/256.png") }}")
         Log.d("ExcludeCheck", "hasEyesBig257=${items.any { it.imageUrl.endsWith("/257.png") }}")
         Log.d("ExcludeCheck", "hasHair130=${items.any { it.imageUrl.endsWith("/130.png") }}")
 
-        Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms")
+        Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms networkAvailable=$isNetworkAvailable")
 
 
 
@@ -789,6 +842,12 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         }
 
         layerAdapter.onItemLoadError = onItemLoadError@{ item ->
+            // CHỈ xử lý failed items khi có mạng
+            // Khi không có mạng, không remove items khỏi rcv
+            if (!isNetworkAvailable) {
+                return@onItemLoadError
+            }
+
             val added = failedUrls.add(item.imageUrl)
             if (!added) return@onItemLoadError
 
