@@ -1235,12 +1235,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                                 if (newPos != RecyclerView.NO_POSITION) {
                                     val lm = rcv.layoutManager
                                     if (lm is LinearLayoutManager) {
-                                        val first = lm.findFirstVisibleItemPosition()
-                                        val last = lm.findLastVisibleItemPosition()
-                                        val isVisible = first != RecyclerView.NO_POSITION &&
-                                            last != RecyclerView.NO_POSITION &&
-                                            newPos in first..last
-                                        if (!isVisible) {
+                                        val view = lm.findViewByPosition(newPos)
+                                        val isAlignedTop = view != null && view.top == rcv.paddingTop
+                                        if (!isAlignedTop) {
                                             val scroller = object : LinearSmoothScroller(rcv.context) {
                                                 override fun getVerticalSnapPreference(): Int = SNAP_TO_START
                                             }
@@ -1248,7 +1245,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                                             lm.startSmoothScroll(scroller)
                                         }
                                     } else {
-                                        if (lm?.findViewByPosition(newPos) == null) {
+                                        val view = lm?.findViewByPosition(newPos)
+                                        if (view == null) {
                                             rcv.smoothScrollToPosition(newPos)
                                         }
                                     }
