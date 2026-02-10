@@ -69,6 +69,15 @@ class LayerAdapter(
         }
     }
 
+    fun getItemAtPosition(position: Int): DrawableDraw? {
+        return getItemAt(position)
+    }
+
+    fun findPositionById(id: String): Int {
+        val list = dragList ?: currentList
+        return list.indexOfFirst { it.id == id }
+    }
+
     fun startDrag() {
         if (dragList == null) {
             dragList = currentList.toMutableList()

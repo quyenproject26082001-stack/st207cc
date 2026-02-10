@@ -33,6 +33,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -1168,6 +1170,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             ItemTouchHelper(object : ItemTouchHelper.Callback() {
                 private val dragTag = "LayerDrag"
                 private var isDragging = false
+                private var draggedId: String? = null
 
                 override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
                     super.onSelectedChanged(viewHolder, actionState)
@@ -1178,6 +1181,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && !isDragging) {
                         isDragging = true
                         adapter.startDrag()
+                        draggedId = adapter.getItemAtPosition(pos)?.id
                         rcv.itemAnimator = null
                     }
                 }
@@ -1224,6 +1228,32 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                     )
                     if (isDragging) {
                         adapter.endDrag {
+                            val id = draggedId
+                            draggedId = null
+                            if (id != null) {
+                                val newPos = adapter.findPositionById(id)
+                                if (newPos != RecyclerView.NO_POSITION) {
+                                    val lm = rcv.layoutManager
+                                    if (lm is LinearLayoutManager) {
+                                        val first = lm.findFirstVisibleItemPosition()
+                                        val last = lm.findLastVisibleItemPosition()
+                                        val isVisible = first != RecyclerView.NO_POSITION &&
+                                            last != RecyclerView.NO_POSITION &&
+                                            newPos in first..last
+                                        if (!isVisible) {
+                                            val scroller = object : LinearSmoothScroller(rcv.context) {
+                                                override fun getVerticalSnapPreference(): Int = SNAP_TO_START
+                                            }
+                                            scroller.targetPosition = newPos
+                                            lm.startSmoothScroll(scroller)
+                                        }
+                                    } else {
+                                        if (lm?.findViewByPosition(newPos) == null) {
+                                            rcv.smoothScrollToPosition(newPos)
+                                        }
+                                    }
+                                }
+                            }
                             rcv.itemAnimator = null
                         }
                         isDragging = false
