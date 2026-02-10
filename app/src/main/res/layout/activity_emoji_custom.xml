@@ -237,26 +237,38 @@
         app:layout_constraintTop_toBottomOf="@+id/btnFlip" />
 
 
+    <FrameLayout
+        android:id="@+id/bg_frame_tool"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_frame_tool"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        />
+
     <ImageView
         android:id="@+id/btnFlipH"
         android:layout_width="20dp"
         android:layout_height="20dp"
+        android:layout_marginStart="28dp"
         android:src="@drawable/ic_flip_emoji_h"
-        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnFlipV"
-        android:layout_marginBottom="7dp"
-        android:layout_marginStart="20dp"/>
+        app:layout_constraintTop_toTopOf="@id/bg_frame_tool"
+        app:layout_constraintBottom_toBottomOf="@id/bg_frame_tool"
+        app:layout_constraintStart_toStartOf="@id/bg_frame_tool"
+        />
 
     <ImageView
         android:id="@+id/btnFlipV"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_flip_emoji_v"
+        app:layout_constraintTop_toTopOf="@id/bg_frame_tool"
         app:layout_constraintEnd_toStartOf="@id/btnDraw"
-        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintBottom_toBottomOf="@id/bg_frame_tool"
         app:layout_constraintStart_toEndOf="@id/btnFlipH"
-        android:layout_marginBottom="7dp"
 
         />
 
@@ -265,9 +277,10 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_draw"
-        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintBottom_toBottomOf="@id/bg_frame_tool"
         app:layout_constraintStart_toEndOf="@id/btnFlipV"
-        android:layout_marginBottom="7dp"
+        app:layout_constraintTop_toTopOf="@id/bg_frame_tool"
+
         app:layout_constraintEnd_toStartOf="@id/btnText"
         />
 
@@ -276,9 +289,9 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_text_emoji"
-        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
+        app:layout_constraintBottom_toBottomOf="@id/bg_frame_tool"
         app:layout_constraintStart_toEndOf="@id/btnDraw"
-        android:layout_marginBottom="7dp"
+        app:layout_constraintTop_toTopOf="@id/bg_frame_tool"
         app:layout_constraintEnd_toStartOf="@id/btnLayer"
         />
 
@@ -287,12 +300,11 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_layer"
-        app:layout_constraintBottom_toTopOf="@+id/rcvLayer"
-        app:layout_constraintStart_toEndOf="@id/btnText"
-        android:layout_marginBottom="7dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="28dp"
+        app:layout_constraintBottom_toBottomOf="@id/bg_frame_tool"
+        app:layout_constraintTop_toTopOf="@id/bg_frame_tool"
         app:tint="@color/app"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/bg_frame_tool"
       />
 
 

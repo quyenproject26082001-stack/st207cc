@@ -8,6 +8,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.databinding.ItemBottomNavigationBinding
 
@@ -32,6 +35,9 @@ class EmojiNavigationAdapter : ListAdapter<EmojiNavItem, EmojiNavigationAdapter.
         fun bind(item: EmojiNavItem, position: Int) {
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
+                .override(72, 72) // tuỳ size icon nav của bạn
+                .apply(RequestOptions.downsampleOf(DownsampleStrategy.AT_MOST))
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .placeholder(R.drawable.bg_item_layer)
                 .into(binding.imvImage)
 

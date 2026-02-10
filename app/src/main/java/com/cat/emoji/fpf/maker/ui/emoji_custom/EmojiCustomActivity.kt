@@ -137,6 +137,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             val wasOffline = !isNetworkAvailable
             isNetworkAvailable = true
 
+            // Update adapter network state
+            layerAdapter.isNetworkAvailable = true
+
             // Nếu trước đó offline, bây giờ online lại -> reload category hiện tại
             if (wasOffline) {
                 lifecycleScope.launch(Dispatchers.Main) {
@@ -148,6 +151,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         override fun onLost(network: Network) {
             super.onLost(network)
             isNetworkAvailable = false
+
+            // Update adapter network state
+            layerAdapter.isNetworkAvailable = false
         }
     }
 
@@ -630,11 +636,13 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         preloadTargets.forEach { Glide.with(this).clear(it) }
         preloadTargets.clear()
 
+        // Update adapter network state
+        layerAdapter.isNetworkAvailable = isNetworkAvailable
 
         val startTime = System.currentTimeMillis()
         currentCategoryIndex = categoryIndex
         val category = categories[categoryIndex]
-        Log.d("EmojiLayerLoad", "--- loadLayerData START category=${category.name} index=$categoryIndex ---")
+      //  Log.d("EmojiLayerLoad", "--- loadLayerData START category=${category.name} index=$categoryIndex ---")
 
         // Update navigation selection
         val navItems = categories.mapIndexed { index, cat ->
@@ -645,7 +653,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
             )
         }
         navigationAdapter.submitList(navItems)
-        Log.d("EmojiLayerLoad", "navSubmit done time=${System.currentTimeMillis() - startTime}ms")
+    //    Log.d("EmojiLayerLoad", "navSubmit done time=${System.currentTimeMillis() - startTime}ms")
 
         // Load items cho category (filter out excluded items)
         val buildStart = System.currentTimeMillis()
@@ -669,18 +677,18 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
                 }
             }
         // ✅ ĐẶT LOG Ở ĐÂY (sau khi items đã build xong)
-        Log.d("ExcludeCheck", "category=${category.name} excluded=$excluded size=${items.size}")
-        Log.d("ExcludeCheck", "hasEyesBig256=${items.any { it.imageUrl.endsWith("/256.png") }}")
-        Log.d("ExcludeCheck", "hasEyesBig257=${items.any { it.imageUrl.endsWith("/257.png") }}")
-        Log.d("ExcludeCheck", "hasHair130=${items.any { it.imageUrl.endsWith("/130.png") }}")
-
-        Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms networkAvailable=$isNetworkAvailable")
-
+//        Log.d("ExcludeCheck", "category=${category.name} excluded=$excluded size=${items.size}")
+//        Log.d("ExcludeCheck", "hasEyesBig256=${items.any { it.imageUrl.endsWith("/256.png") }}")
+//        Log.d("ExcludeCheck", "hasEyesBig257=${items.any { it.imageUrl.endsWith("/257.png") }}")
+//        Log.d("ExcludeCheck", "hasHair130=${items.any { it.imageUrl.endsWith("/130.png") }}")
+//
+//        Log.d("EmojiLayerLoad", "items built: count=${items.size} excluded=${excluded.size} failed=${failedUrls.size} buildTime=${System.currentTimeMillis() - buildStart}ms networkAvailable=$isNetworkAvailable")
+//
 
 
 
         layerAdapter.submitList(items)
-        Log.d("EmojiLayerLoad", "--- submitList done total=${System.currentTimeMillis() - startTime}ms ---")
+ //       Log.d("EmojiLayerLoad", "--- submitList done total=${System.currentTimeMillis() - startTime}ms ---")
 
         // Preload more items with better caching
         val preloadList = items.take(5)

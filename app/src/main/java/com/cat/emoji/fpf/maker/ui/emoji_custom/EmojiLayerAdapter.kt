@@ -14,7 +14,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.cat.emoji.fpf.maker.R
 import com.cat.emoji.fpf.maker.databinding.ItemCustomizeBinding
@@ -27,6 +29,8 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
 
     var onItemSlow: ((EmojiLayerItem, Long) -> Unit) = { _, _ -> }
 
+    // Track network availability
+    var isNetworkAvailable: Boolean = true
 
     private val slowUrls = mutableSetOf<String>()
     private val badUrls = mutableSetOf<String>()
@@ -57,13 +61,25 @@ class EmojiLayerAdapter : ListAdapter<EmojiLayerItem, EmojiLayerAdapter.ViewHold
 
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
-                .override(160, 160)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .skipMemoryCache(false)
-                .thumbnail(0.25f)
-                .dontAnimate()
+                .override(160,160)
+//                .apply(RequestOptions.downsampleOf(DownsampleStrategy.AT_MOST))
+//                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+//                .thumbnail(0.25f)
+//                .dontAnimate()
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        // Nếu không có mạng, giữ shimmer chạy tiếp
+                        if (!isNetworkAvailable) {
+                            // Giữ shimmer hiển thị và chạy
+                            binding.sflShimmer.visibility = View.VISIBLE
+                            if (!binding.sflShimmer.isShimmerStarted) {
+                                binding.sflShimmer.startShimmer()
+                            }
+                            binding.imvImage.visibility = View.INVISIBLE
+                            return true // Không hiển thị error
+                        }
+
+                        // Có mạng nhưng load fail -> hide shimmer và báo lỗi
                         binding.sflShimmer.stopShimmer()
                         binding.sflShimmer.visibility = View.GONE
 
