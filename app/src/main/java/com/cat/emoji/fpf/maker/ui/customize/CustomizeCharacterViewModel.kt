@@ -327,6 +327,7 @@ class CustomizeCharacterViewModel : ViewModel() {
         setItemNavList(positionNavSelected, randomLayer)
         if (isMoreColors) {
             setColorItemNav(positionNavSelected, randomColor!!)
+            updateAllItemsColor(randomColor, positionNavSelected)
         }
         return pathRandom to isMoreColors
     }
@@ -367,6 +368,7 @@ class CustomizeCharacterViewModel : ViewModel() {
             setItemNavList(i, randomLayer)
             if (isMoreColors) {
                 setColorItemNav(i, randomColor)
+                updateAllItemsColor(randomColor, i)
             }
         }
         return isOutTurn
@@ -378,6 +380,7 @@ class CustomizeCharacterViewModel : ViewModel() {
             val positionSelected = if (index == 0) 1 else 0
             setItemNavList(index, positionSelected)
             setColorItemNav(index, 0)
+            updateAllItemsColor(0, index)
         }
         val pathDefault = _dataCustomize.value!!.layerList.first().layer.first().image
         pathSelectedList[_dataCustomize.value!!.layerList.first().positionCustom] = pathDefault
@@ -422,7 +425,7 @@ class CustomizeCharacterViewModel : ViewModel() {
         }
         setColorListMost(
             getAllColor.groupingBy { it }.eachCount()
-                .filter { it.value > 3 }.keys.toCollection(ArrayList())
+                .filter { it.value > 1 }.keys.toCollection(ArrayList())
         )
     }
 
@@ -479,8 +482,8 @@ class CustomizeCharacterViewModel : ViewModel() {
      * - Skip NONE và RANDOM buttons
      * - Skip items không có màu (listImageColor rỗng)
      */
-    suspend fun updateAllItemsColor(colorPosition: Int) {
-        val currentNavIndex = positionNavSelected
+    suspend fun updateAllItemsColor(colorPosition: Int, navIndex: Int = positionNavSelected) {
+        val currentNavIndex = navIndex
         val currentList = itemNavList[currentNavIndex]
 
         // Validate: Check list không rỗng
