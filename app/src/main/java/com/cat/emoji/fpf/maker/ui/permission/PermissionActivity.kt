@@ -205,7 +205,7 @@ class PermissionActivity : BaseActivity<ActivityPermissionBinding>() {
             this@PermissionActivity,
             getString(R.string.native_per),
             binding.nativeAds,
-            R.layout.ads_native_big_btn_bottom
+            R.layout.ads_native_big_btn_top
         )
     }
 }

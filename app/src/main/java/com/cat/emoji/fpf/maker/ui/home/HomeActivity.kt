@@ -65,7 +65,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             btnQuickMaker.tap(800) { showInterAll {   startIntentRightToLeft(RandomCharacterActivity::class.java)} }
             btnEmojiCustom.tap(800) {
                 if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
-                   showInterAll {  startIntentRightToLeft(EmojiCustomActivity::class.java)}
+                    startIntentRightToLeft(EmojiCustomActivity::class.java)
                 } else {
                     val dialog = YesNoDialog(
                         this@HomeActivity,

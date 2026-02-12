@@ -48,7 +48,7 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         } else {
             Intent(this, IntroActivity::class.java)
         }
-        Admob.getInstance().setTimeLimitShowAds(30000)
+        Admob.getInstance().setTimeLimitShowAds(3000)
         interCallBack = object : InterCallback() {
             override fun onNextAction() {
                 super.onNextAction()

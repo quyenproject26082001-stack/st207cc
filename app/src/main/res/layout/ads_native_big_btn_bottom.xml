@@ -52,7 +52,7 @@
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:text=""
-                        android:textColor="@color/white"
+                        android:textColor="@color/dark"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -64,7 +64,7 @@
                         android:layout_weight="1"
                         android:gravity="bottom"
                         android:lines="1"
-                        android:textColor="@color/white"
+                        android:textColor="@color/dark"
                         android:textSize="@dimen/_10sdp" />
 
 
@@ -82,7 +82,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="20dp"
-                    android:textColor="@color/white"
+                    android:textColor="@color/dark"
                     android:textSize="12sp" />
 
             </LinearLayout>

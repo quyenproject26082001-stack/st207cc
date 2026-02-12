@@ -45,7 +45,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
                     binding.nativeAds.gone()
                     // Set lại width về 100dp
                     params.width = (140 * resources.displayMetrics.density).toInt()  // Chiều rộng
-                    params.height = (40 * resources.displayMetrics.density).toInt() // Chiều cao
+                    params.height = (45 * resources.displayMetrics.density).toInt() // Chiều cao
                     binding.btnNext.layoutParams = params
                     binding.btnNext.setTextColor(resources.getColor(R.color.white, null))
                     binding.btnNext.setBackgroundResource(R.drawable.bg_next_button)
