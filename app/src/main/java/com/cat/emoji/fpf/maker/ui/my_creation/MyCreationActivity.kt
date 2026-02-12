@@ -448,7 +448,7 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
             exitSelectionMode()
         }
 
-        // initNativeCollab()
+        initNativeCollab()
         android.util.Log.w("MyCreationActivity", "🔄 onRestart() END")
     }
 
@@ -601,4 +601,19 @@ class MyCreationActivity : WhatsappSharingActivity<ActivityAlbumBinding>() {
         getVisibleEmojiFragment()?.resetSelectionMode()
         getVisibleDesignFragment()?.resetSelectionMode()
     }
+
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_myWork), binding.flNativeCollab)
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+        Admob.getInstance().loadNativeAd(
+            this,
+            getString(R.string.native_categoryMaker),
+            binding.nativeAds,
+            R.layout.ads_native_banner
+        )
+    }
+
 }

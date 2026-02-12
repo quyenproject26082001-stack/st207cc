@@ -41,6 +41,7 @@ import com.cat.emoji.fpf.maker.databinding.ActivityEmojiStickerListBinding
 import com.cat.emoji.fpf.maker.dialog.CreateNameDialog
 import com.cat.emoji.fpf.maker.ui.emoji_sticker.adapter.CatEmojiStickerListAdapter
 import com.cat.emoji.fpf.maker.ui.permission.PermissionViewModel
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -59,6 +60,8 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
     private val okHttpClient = OkHttpClient()
     private val permissionViewModel: PermissionViewModel by viewModels()
     private var pendingDownloadUrls: List<String>? = null
+
+
 
     fun Int.dp(context: Context): Int =
         (this * context.resources.displayMetrics.density).toInt()
@@ -467,5 +470,19 @@ class EmojiStickerListActivity : WhatsappSharingActivity<ActivityEmojiStickerLis
             Log.e("StickerList", "Error checking URL: $url", e)
             false
         }
+    }
+
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_detailSticker), binding.flNativeCollab)
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initNativeCollab()
     }
 }

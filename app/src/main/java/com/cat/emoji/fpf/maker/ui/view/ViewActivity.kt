@@ -21,10 +21,12 @@ import com.cat.emoji.fpf.maker.core.extensions.hideNavigation
 import com.cat.emoji.fpf.maker.core.extensions.invisible
 import com.cat.emoji.fpf.maker.core.extensions.loadImage
 import com.cat.emoji.fpf.maker.core.extensions.loadImageFromFile
+import com.cat.emoji.fpf.maker.core.extensions.loadNativeCollabAds
 import com.cat.emoji.fpf.maker.core.extensions.requestPermission
 import com.cat.emoji.fpf.maker.core.extensions.select
 import com.cat.emoji.fpf.maker.core.extensions.setImageActionBar
 import com.cat.emoji.fpf.maker.core.extensions.setTextActionBar
+import com.cat.emoji.fpf.maker.core.extensions.showInterAll
 import com.cat.emoji.fpf.maker.core.extensions.strings
 import com.cat.emoji.fpf.maker.core.extensions.tap
 import com.cat.emoji.fpf.maker.core.helper.InternetHelper
@@ -44,6 +46,7 @@ import com.cat.emoji.fpf.maker.ui.my_creation.fragment.MyAvatarFragment
 import com.cat.emoji.fpf.maker.ui.my_creation.MyCreationActivity
 import com.cat.emoji.fpf.maker.ui.my_creation.view_model.MyAvatarViewModel
 import com.cat.emoji.fpf.maker.ui.permission.PermissionViewModel
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -246,7 +249,7 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
 
     private fun handleBack() {
         resetMyCreationSelectionMode()
-        handleBackLeftToRight()
+       showInterAll { handleBackLeftToRight() }
     }
 
     private fun resetMyCreationSelectionMode() {
@@ -328,8 +331,8 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
                             putExtra(IntentKey.STATUS_FROM_KEY, ValueKey.EDIT)
                         }
 
-                    editLauncher.launch(intent)
-                    overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right)
+                   showInterAll{ editLauncher.launch(intent)
+                    overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right)}
                 }
             }
         }
@@ -367,8 +370,8 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
                     val intent = Intent(this@ViewActivity, EmojiCustomActivity::class.java).apply {
                         putExtra(IntentKey.STATUS_FROM_KEY, ValueKey.EDIT)
                     }
-                    editLauncher.launch(intent)
-                    overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right)
+                   showInterAll{ editLauncher.launch(intent)
+                    overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right) }
                 } else {
                     showToast(R.string.error)
                 }
@@ -397,4 +400,18 @@ class ViewActivity : BaseActivity<ActivityViewBinding>() {
     override fun onBackPressed() {
         handleBack()
     }
+
+
+    fun initNativeCollab() {
+        loadNativeCollabAds(R.string.native_cl_detail, binding.flNativeCollab)
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+
+    }
+
+
+
+
 }

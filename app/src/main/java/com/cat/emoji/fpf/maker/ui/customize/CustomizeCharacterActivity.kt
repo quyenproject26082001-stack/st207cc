@@ -35,6 +35,7 @@ import com.cat.emoji.fpf.maker.core.helper.MediaHelper
 import com.cat.emoji.fpf.maker.data.model.custom.SuggestionModel
 import com.cat.emoji.fpf.maker.ui.add_character.AddCharacterActivity
 import com.cat.emoji.fpf.maker.ui.my_creation.MyCreationActivity
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -661,9 +662,9 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                                         setResult(RESULT_OK, data)
 
                                         // ✅ 2) VẪN SANG AddCharacterActivity như bạn muốn
-                                        showInterAll {
+
                                             startIntentRightToLeft(AddCharacterActivity::class.java, result.path)
-                                        }
+
                                     }
                                 }
 
@@ -677,12 +678,12 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
                                     }
                                     withContext(Dispatchers.Main) {
                                         logEvent("click_item_${viewModel.positionSelected}_done")
-                                        showInterAll {
+
                                             startIntentRightToLeft(
                                                 AddCharacterActivity::class.java,
                                                 result.path
                                             )
-                                        }
+
                                     }
                                 }
                             }
@@ -767,22 +768,19 @@ class CustomizeCharacterActivity : BaseActivity<ActivityCustomizeBinding>() {
         confirmExit()
     }
 
-//    fun initNativeCollab() {
-//        loadNativeCollabAds(
-//            R.string.native_cl_custom,
-//            binding.flNativeCollab,
-//            binding.flBottomNav,
-//            bottomLoadSuccess = 80
-//        )
-//    }
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_customMaker),
+            binding.flNativeCollab
+        )
+    }
 
-//    override fun initAds() {
-//        initNativeCollab()
-//    }
+    override fun initAds() {
+        initNativeCollab()
+    }
 
     override fun onRestart() {
         super.onRestart()
-        // initNativeCollab()
+         initNativeCollab()
 
     }
 

@@ -14,6 +14,7 @@ import com.cat.emoji.fpf.maker.core.utils.key.IntentKey
 import com.cat.emoji.fpf.maker.databinding.ActivityCatEmojiMakerBinding
 import com.cat.emoji.fpf.maker.ui.choose_character.ChooseCharacterActivity
 import com.cat.emoji.fpf.maker.ui.emoji_custom.EmojiCustomActivity
+import com.lvt.ads.util.Admob
 
 class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
 
@@ -45,4 +46,25 @@ class CatEmojiMakerActivity : BaseActivity<ActivityCatEmojiMakerBinding>() {
             tvCenter.select()
         }
     }
+
+    override fun initAds() {
+        initNativeCollab()
+        Admob.getInstance().loadNativeAd(
+            this,
+            getString(R.string.native_maker),
+            binding.nativeAds,
+            R.layout.ads_native_banner
+        )
+    }
+
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_maker), binding.flNativeCollab)
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initNativeCollab()
+    }
+
+
 }

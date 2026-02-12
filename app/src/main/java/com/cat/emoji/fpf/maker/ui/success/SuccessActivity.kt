@@ -37,6 +37,7 @@ import com.cat.emoji.fpf.maker.databinding.ActivitySuccessBinding
 import com.cat.emoji.fpf.maker.ui.home.HomeActivity
 import com.cat.emoji.fpf.maker.ui.my_creation.MyCreationActivity
 import com.cat.emoji.fpf.maker.ui.permission.PermissionViewModel
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.launch
 
 class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
@@ -89,7 +90,7 @@ class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
                         startIntentWithClearTop(HomeActivity::class.java)
                     }
                 }
-                btnActionBarLeft.tap { showInterAll { handleBack() } }
+                btnActionBarLeft.tap {  handleBack()  }
 
             }
 
@@ -106,7 +107,7 @@ class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
                         R.anim.slide_out_left,
                         R.anim.slide_in_right
                     )
-                    startActivity(intent, options.toBundle())
+                    showInterAll {  startActivity(intent, options.toBundle()) }
                 }
             }
 
@@ -177,6 +178,20 @@ class SuccessActivity : BaseActivity<ActivitySuccessBinding>() {
                 permissionViewModel.updateStorageGranted(sharePreference, false)
             }
         }
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+    }
+    fun initNativeCollab() {
+
+        Admob.getInstance().loadNativeAd(
+            this,
+            getString(R.string.native_success),
+            binding.nativeAds,
+            R.layout.ads_native_big_btn_top
+        )
+
     }
 
     @android.annotation.SuppressLint("MissingSuperCall")

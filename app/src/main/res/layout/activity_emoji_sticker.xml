@@ -22,23 +22,39 @@
             layout="@layout/layout_actionbar" />
     </FrameLayout>
 
+    <!--    native_ads-->
+    <FrameLayout
+        android:id="@+id/native_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/layoutActionBar">
+
+        <include layout="@layout/ads_native_collap_banner_shimmer" />
+    </FrameLayout>
 
     <!-- rcvRandomCharacter -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcvSticker"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="3dp"
         android:layout_marginBottom="0dp"
         android:paddingHorizontal="8dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutActionBar"
+        app:layout_constraintTop_toBottomOf="@id/native_ads"
         app:spanCount="2"
         tools:listitem="@layout/item_cat_emoji_sticker" />
 
+    <!--    flNativeCollab-->
+    <FrameLayout
+        android:id="@+id/flNativeCollab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent">
 
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

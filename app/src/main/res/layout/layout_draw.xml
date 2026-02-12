@@ -3,13 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
     xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutDraw"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="0dp"
+        android:layout_marginBottom="80dp"
         android:background="@color/white"
         android:clickable="true"
         android:focusable="true"
@@ -285,8 +286,19 @@
             android:id="@+id/paintGl"
             />
 
+
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <FrameLayout
+        android:id="@+id/flNativeCollab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent">
 
+        <include layout="@layout/ads_shimmer_collap_native" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

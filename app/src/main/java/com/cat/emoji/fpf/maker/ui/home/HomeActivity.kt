@@ -62,10 +62,10 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             actionBar.btnActionBarRight.tap(800) { startIntentRightToLeft(SettingsActivity::class.java) }
             btnCreate.tap(800) { startIntentRightToLeft(CatEmojiMakerActivity::class.java) }
             btnMyAlbum.tap(800) { showInterAll { startIntentRightToLeft(MyCreationActivity::class.java) } }
-            btnQuickMaker.tap(800) { startIntentRightToLeft(RandomCharacterActivity::class.java) }
+            btnQuickMaker.tap(800) { showInterAll {   startIntentRightToLeft(RandomCharacterActivity::class.java)} }
             btnEmojiCustom.tap(800) {
                 if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
-                    startIntentRightToLeft(EmojiCustomActivity::class.java)
+                   showInterAll {  startIntentRightToLeft(EmojiCustomActivity::class.java)}
                 } else {
                     val dialog = YesNoDialog(
                         this@HomeActivity,
@@ -80,7 +80,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
             }
             btnStickers.tap(800) {
                 if (InternetHelper.isInternetAvailable(this@HomeActivity)) {
-                    startIntentRightToLeft(EmojiStickerActivity::class.java)
+                   showInterAll{ startIntentRightToLeft(EmojiStickerActivity::class.java) }
                 } else {
                     val dialog = YesNoDialog(
                         this@HomeActivity,
@@ -155,7 +155,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
         deleteTempFolder()
         LanguageHelper.setLocale(this)
         updateText()
-        //initNativeCollab()
+        initNativeCollab()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -202,13 +202,15 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
         }, 400)
     }
 
-//    fun initNativeCollab() {
-//        loadNativeCollabAds(R.string.native_cl_home, binding.flNativeCollab, binding.scvMain)
-//    }
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_home), binding.flNativeCollab)
+    }
 
-//    override fun initAds() {
-//        initNativeCollab()
-//        Admob.getInstance().loadInterAll(this, getString(R.string.inter_all))
-//        Admob.getInstance().loadNativeAll(this, getString(R.string.native_all))
-//    }
+    override fun initAds() {
+        initNativeCollab()
+        Admob.getInstance().loadInterAll(this, getString(R.string.inter_all))
+        Admob.getInstance().loadNativeAll(this, getString(R.string.native_all))
+    }
+
+
 }

@@ -85,7 +85,9 @@ import com.cat.emoji.fpf.maker.ui.emoji_custom.adapter.LayerAdapter
 import com.cat.emoji.fpf.maker.ui.success.SuccessActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.cat.emoji.fpf.maker.core.extensions.loadNativeCollabAds
 import com.cat.emoji.fpf.maker.core.extensions.select
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -98,6 +100,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
     private val navigationAdapter by lazy { EmojiNavigationAdapter() }
     private val layerAdapter by lazy { EmojiLayerAdapter() }
+
+
+    private var isDrawModeAdsLoaded = false
 
     private var currentCategoryIndex = 0
     private val preloadTargets = mutableListOf<com.bumptech.glide.request.target.Target<Drawable>>()
@@ -171,6 +176,8 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         } catch (e: Exception) {
             Log.e("EmojiCustomActivity", "Error unregistering network callback: ${e.message}")
         }
+
+        isDrawModeAdsLoaded = false
 
         super.onDestroy()
     }
@@ -735,7 +742,7 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
 
         binding.apply {
             actionBar.btnActionBarLeft.tap { confirmExit() }
-            actionBar.btnActionBarRightText.tap { handleSave() }
+            actionBar.btnActionBarRightText.tap { showInterAll {handleSave() } }
             actionBar.btnActionBarCenter.tap { confirmReset() }
 
             // Undo/Redo button listeners
@@ -1388,6 +1395,16 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     }
 
     private fun enterDrawMode() {
+
+        // ✅ Chỉ load ads lần đầu tiên
+        if (!isDrawModeAdsLoaded) {
+            loadNativeCollabAds(R.string.native_cl_Draw, drawBinding.flNativeCollab)
+            isDrawModeAdsLoaded = true
+        }
+        drawBinding.flNativeCollab.visible()
+
+
+
         binding.apply {
             // Hide other controls
             btnFlipH.invisible()
@@ -1477,6 +1494,9 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
     private fun exitDrawModeAndCancel() {
         drawBinding.dv.clearAll()
 
+
+        drawBinding.flNativeCollab.gone()
+
         // Hide draw overlay
         drawBinding.layoutDraw.gone()
 
@@ -1538,6 +1558,24 @@ class EmojiCustomActivity : BaseActivity<ActivityEmojiCustomBinding>() {
         // nếu muốn icon status bar đen thì thêm:
         // or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
     }
+    override fun initAds() {
+        initNativeCollab()
+    }
+
+    fun initNativeCollab() {
+
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_customEmoji), binding.flNativeCollab)
+
+
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initAds()
+    }
+
+
+
 }
 
 // Data classes

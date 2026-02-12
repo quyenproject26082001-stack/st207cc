@@ -32,19 +32,20 @@
     <color name="color_19">#BD773B</color>
     <color name="colorapp">#A1CCEF</color>
 
-    <color name="native_bg_ad">#66AC0506</color>
-    <color name="native_bg_btn">#BA0101</color>
-    <color name="native_btn_bg">#BA0101</color>
-    <color name="native_collap_btn_bg">#BA0101</color>
+    <color name="native_bg_ad">#80F1F5E4</color>
+    <color name="native_bg_btn">#497E00</color>
+    <color name="native_btn_bg">#497E00</color>
+    <color name="native_collap_btn_bg">#497E00</color>
     <color name="color_app">#A1CCEF</color>
     <color name="blue_app">#A1CCEF</color>
-    <color name="native_bg">#66AC0506</color>
+    <color name="native_bg">#80F1F5E4</color>
     <color name="native_bg_view">#66AC0506</color>
     <color name="colorPrimary">#33393A</color>
     <color name="colorPrimary1">#ABE55A</color>
-    <color name="native_text_color_btn">#FFFFFF</color>
-    <color name="native_text_color">#FFFFFF</color>
+    <color name="native_text_color_btn">#000000</color>
+    <color name="native_text_color">#000000</color>
     <color name="native_text_color_black">#000000</color>
+    <color name="native_text_color_intro">#000000</color>
     <color name="dark">#000000</color>
     <color name="purple_text">#497E00</color>
     <color name="jet">#363636</color>

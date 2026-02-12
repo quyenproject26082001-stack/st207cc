@@ -20,6 +20,7 @@ import com.cat.emoji.fpf.maker.databinding.ActivityEmojiStickerBinding
 import com.cat.emoji.fpf.maker.dialog.DialogType
 import com.cat.emoji.fpf.maker.dialog.YesNoDialog
 import com.cat.emoji.fpf.maker.ui.emoji_sticker.adapter.CatEmojiStickerAdapter
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -51,7 +52,7 @@ class EmojiStickerActivity : BaseActivity<ActivityEmojiStickerBinding>() {
                 intent.putExtra(IntentKey.STICKER_CATEGORY_ID, item.id)
                 intent.putExtra(IntentKey.STICKER_QUANTITY, item.quantity)
                 val option = android.app.ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_right, R.anim.slide_out_left)
-                startActivity(intent, option.toBundle())
+                showInterAll{startActivity(intent, option.toBundle())}
             }
         }
     }
@@ -100,4 +101,24 @@ class EmojiStickerActivity : BaseActivity<ActivityEmojiStickerBinding>() {
             }
         }
     }
+
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_categorySticker), binding.flNativeCollab)
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+        Admob.getInstance().loadNativeAd(
+            this,
+            getString(R.string.native_categorySticker),
+            binding.nativeAds,
+            R.layout.ads_native_banner
+        )
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initNativeCollab()
+    }
+
 }

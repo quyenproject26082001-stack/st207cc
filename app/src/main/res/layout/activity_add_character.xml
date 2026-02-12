@@ -569,6 +569,16 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.75" />
 
+    <!--    flNativeCollab-->
+    <FrameLayout
+        android:id="@+id/flNativeCollab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+    </FrameLayout>
+
+
 <!--    &lt;!&ndash; Custom Input View (1/4 screen height) &ndash;&gt;-->
 <!--    <include-->
 <!--        android:id="@+id/customInputLayout"-->

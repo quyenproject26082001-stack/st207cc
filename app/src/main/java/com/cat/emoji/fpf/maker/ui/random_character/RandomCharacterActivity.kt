@@ -31,6 +31,7 @@ import com.cat.emoji.fpf.maker.core.utils.key.ValueKey
 import com.cat.emoji.fpf.maker.data.model.custom.SuggestionModel
 import com.cat.emoji.fpf.maker.databinding.ActivityRandomCharacterBinding
 import com.cat.emoji.fpf.maker.dialog.YesNoDialog
+import com.lvt.ads.util.Admob
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -117,8 +118,7 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
                     dialogExit.dismiss()
                     hideNavigation()
                     startIntentRightToLeft(
-                        RandomCharacterActivity::class.java, customizeCharacterViewModel.positionSelected
-                    )
+                        RandomCharacterActivity::class.java, customizeCharacterViewModel.positionSelected)
                     finish()
                 }
             }
@@ -292,10 +292,7 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
 //        initNativeCollab()
 //    }
 
-    override fun onRestart() {
-        super.onRestart()
-        //initNativeCollab()
-    }
+
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
@@ -340,5 +337,19 @@ class RandomCharacterActivity : BaseActivity<ActivityRandomCharacterBinding>() {
         super.onDestroy()
         // ✅ Cancel all pending image processing jobs to prevent memory leaks
         randomCharacterAdapter.cancelAllJobs()
+    }
+
+    fun initNativeCollab() {
+        Admob.getInstance().loadNativeCollapNotBanner(this,getString(R.string.native_cl_quickMaker), binding.flNativeCollab)
+    }
+
+    override fun initAds() {
+        initNativeCollab()
+
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        initNativeCollab()
     }
 }

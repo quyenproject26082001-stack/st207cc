@@ -24,15 +24,26 @@
             layout="@layout/layout_actionbar" />
     </FrameLayout>
 
+
+    <!--    native_ads-->
+    <FrameLayout
+        android:id="@+id/native_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/layoutActionBar">
+
+        <include layout="@layout/ads_native_collap_banner_shimmer" />
+    </FrameLayout>
+
     <ScrollView
         android:id="@+id/scvMain"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_marginTop="3dp"
         android:layout_marginBottom="0dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutActionBar">
+        app:layout_constraintTop_toBottomOf="@id/native_ads">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -152,6 +163,14 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
+
+    <!--    flNativeCollab-->
+    <FrameLayout
+        android:id="@+id/flNativeCollab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent">
+    </FrameLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

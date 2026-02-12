@@ -33,6 +33,7 @@
         app:cardBackgroundColor="@color/transparent"
         app:layout_constraintDimensionRatio="267:346"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvSuccess"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutActionBar"
         app:cardCornerRadius="12dp"
@@ -54,12 +55,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+
         android:fontFamily="@font/roboto_bolditalic"
         android:gravity="center"
         android:text="@string/image_has_been_saved_successfully"
         android:textColor="#497E00"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/cvImage"
+        app:layout_constraintBottom_toTopOf="@id/lnlBottom"
         />
 
 
@@ -71,7 +73,7 @@
         android:paddingHorizontal="15dp"
         android:visibility="visible"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSuccess"
+        app:layout_constraintBottom_toTopOf="@id/native_ads"
         >
 
         <include
@@ -92,15 +94,15 @@
     <!--    </FrameLayout>-->
 
 
-    <!--    &lt;!&ndash;    native_ads&ndash;&gt;-->
-    <!--    <FrameLayout-->
-    <!--        android:id="@+id/native_ads"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        app:layout_constraintBottom_toBottomOf="parent">-->
+        <!--    native_ads-->
+        <FrameLayout
+            android:id="@+id/native_ads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-    <!--        <include layout="@layout/ads_native_big_btn_top_shimmer" />-->
-    <!--    </FrameLayout>-->
+            <include layout="@layout/ads_native_big_btn_top_shimmer" />
+        </FrameLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -192,20 +192,20 @@ class PermissionActivity : BaseActivity<ActivityPermissionBinding>() {
 
     override fun shouldPlayBackgroundMusic(): Boolean = false
 
-//    override fun initAds() {
-//        Admob.getInstance().loadInterAds(
-//            this@PermissionActivity, getString(R.string.inter_per), object : InterCallback() {
-//                override fun onAdLoadSuccess(interstitialAd: InterstitialAd?) {
-//                    super.onAdLoadSuccess(interstitialAd)
-//                    inter = interstitialAd
-//                }
-//            })
-//
-//        Admob.getInstance().loadNativeAd(
-//            this@PermissionActivity,
-//            getString(R.string.native_per),
-//            binding.nativeAds,
-//            R.layout.ads_native_big_btn_bottom
-//        )
-//    }
+    override fun initAds() {
+        Admob.getInstance().loadInterAds(
+            this@PermissionActivity, getString(R.string.inter_per), object : InterCallback() {
+                override fun onAdLoadSuccess(interstitialAd: InterstitialAd?) {
+                    super.onAdLoadSuccess(interstitialAd)
+                    inter = interstitialAd
+                }
+            })
+
+        Admob.getInstance().loadNativeAd(
+            this@PermissionActivity,
+            getString(R.string.native_per),
+            binding.nativeAds,
+            R.layout.ads_native_big_btn_bottom
+        )
+    }
 }
